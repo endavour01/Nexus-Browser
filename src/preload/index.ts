@@ -2,7 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 import { ContentBounds, NexusAPI, SystemInfo, TabState } from '../shared/types';
 
 const api: NexusAPI = {
-  createTab: (url?: string, workspaceId?: string) => ipcRenderer.invoke('tabs:create', url, workspaceId),
+  createTab: (url?: string, workspaceId?: string, isPrivate?: boolean) => ipcRenderer.invoke('tabs:create', url, workspaceId, isPrivate),
   createBackgroundTab: (url: string, workspaceId?: string) => ipcRenderer.invoke('tabs:createBackground', url, workspaceId),
   duplicateTab: (id: string) => ipcRenderer.invoke('tabs:duplicate', id),
   reopenClosedTab: () => ipcRenderer.invoke('tabs:reopenClosed'),
@@ -14,6 +14,19 @@ const api: NexusAPI = {
   reload: (id: string) => ipcRenderer.invoke('tabs:reload', id),
   stop: (id: string) => ipcRenderer.invoke('tabs:stop', id),
   toggleDevTools: (id?: string) => ipcRenderer.invoke('tabs:toggleDevTools', id),
+
+  // Tab Controls & Grouping
+  muteTab: (id: string) => ipcRenderer.invoke('tabs:mute', id),
+  pinTab: (id: string) => ipcRenderer.invoke('tabs:pin', id),
+  setTabGroup: (id: string, groupId?: string) => ipcRenderer.invoke('tabs:setGroup', id, groupId),
+  reorderTabs: (orderedIds: string[]) => ipcRenderer.invoke('tabs:reorder', orderedIds),
+  moveTabToWorkspace: (id: string, workspaceId: string) => ipcRenderer.invoke('tabs:moveToWorkspace', id, workspaceId),
+
+  // Workspaces & Sessions
+  switchWorkspace: (workspaceId: string, tabId?: string) => ipcRenderer.invoke('tabs:switchWorkspace', workspaceId, tabId),
+  saveSession: (data: any) => ipcRenderer.invoke('session:save', data),
+  restoreSession: () => ipcRenderer.invoke('session:restore'),
+  clearSession: () => ipcRenderer.invoke('session:clear'),
 
   updateContentBounds: (bounds: ContentBounds) => ipcRenderer.invoke('bounds:update', bounds),
   setModalOpen: (isOpen: boolean) => ipcRenderer.invoke('modal:set', isOpen),

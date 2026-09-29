@@ -5,23 +5,29 @@ import {
   DownloadItem,
   ExtensionItem,
   RecentPage,
+  RecentlyClosedTab,
+  SavedSessionData,
   SystemInfo,
+  TabGroup,
   TabState,
   Workspace,
 } from '@shared/types';
 import { TitleBar } from './components/TitleBar';
 import { NavigationBar } from './components/NavigationBar';
 import { Sidebar } from './components/Sidebar';
+import { VerticalTabBar } from './components/VerticalTabBar';
 import { RightToolbar, SidePanelType } from './components/RightToolbar';
 import { SidePanel } from './components/SidePanel';
 import { StatusBar } from './components/StatusBar';
 import { NewTabWorkspace } from './components/NewTabWorkspace';
 import { CommandPalette } from './components/CommandPalette';
+import { WorkspaceModal } from './components/WorkspaceModal';
+import { TabSearchModal } from './components/TabSearchModal';
 
 const defaultWorkspaces: Workspace[] = [
-  { id: 'default', name: 'Personal', icon: 'User', color: '#A78BFA' },
-  { id: 'dev', name: 'Development', icon: 'Code', color: '#38BDF8' },
-  { id: 'research', name: 'Research', icon: 'BookOpen', color: '#34D399' },
+  { id: 'default', name: 'Personal', icon: 'User', color: '#A78BFA', layout: { sidebarCollapsed: false, tabLayout: 'horizontal' } },
+  { id: 'dev', name: 'Development', icon: 'Code', color: '#38BDF8', layout: { sidebarCollapsed: false, tabLayout: 'horizontal' } },
+  { id: 'research', name: 'Research', icon: 'BookOpen', color: '#34D399', layout: { sidebarCollapsed: false, tabLayout: 'horizontal' } },
 ];
 
 const initialExtensions: ExtensionItem[] = [
@@ -87,14 +93,45 @@ export const App: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeSidePanel, setActiveSidePanel] = useState<SidePanelType>(null);
   const [activeWorkspaceId, setActiveWorkspaceId] = useState('default');
-  const [workspaces] = useState<Workspace[]>(defaultWorkspaces);
   const [zoomLevel, setZoomLevel] = useState(0);
   const [hoveredUrl] = useState<string | null>(null);
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
+
+  // Modals & Overlays
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false);
+  const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null);
+  const [isTabSearchOpen, setIsTabSearchOpen] = useState(false);
   const [focusOmniboxTrigger, setFocusOmniboxTrigger] = useState(0);
 
   // Persistent user data
+  const [workspaces, setWorkspaces] = useState<Workspace[]>(() => {
+    try {
+      const saved = localStorage.getItem('nexus_workspaces');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return defaultWorkspaces;
+  });
+
+  const [tabGroups, setTabGroups] = useState<TabGroup[]>(() => {
+    try {
+      const saved = localStorage.getItem('nexus_tab_groups');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return [
+      { id: 'core', name: 'Dev Core', color: '#A78BFA', collapsed: false },
+      { id: 'docs', name: 'Reference', color: '#38BDF8', collapsed: false },
+    ];
+  });
+
+  const [recentlyClosed, setRecentlyClosed] = useState<RecentlyClosedTab[]>(() => {
+    try {
+      const saved = localStorage.getItem('nexus_recently_closed');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return [];
+  });
+
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => {
     try {
       const saved = localStorage.getItem('nexus_bookmarks');
@@ -133,6 +170,8 @@ export const App: React.FC = () => {
       defaultZoom: 1,
       openDevToolsOnStart: false,
       hardwareAcceleration: false,
+      restoreSessionOnStartup: true,
+      tabLayout: 'horizontal',
     };
   });
 
@@ -148,6 +187,18 @@ export const App: React.FC = () => {
   });
 
   // Save changes to localStorage
+  useEffect(() => {
+    localStorage.setItem('nexus_workspaces', JSON.stringify(workspaces));
+  }, [workspaces]);
+
+  useEffect(() => {
+    localStorage.setItem('nexus_tab_groups', JSON.stringify(tabGroups));
+  }, [tabGroups]);
+
+  useEffect(() => {
+    localStorage.setItem('nexus_recently_closed', JSON.stringify(recentlyClosed));
+  }, [recentlyClosed]);
+
   useEffect(() => {
     localStorage.setItem('nexus_bookmarks', JSON.stringify(bookmarks));
   }, [bookmarks]);
@@ -197,7 +248,7 @@ export const App: React.FC = () => {
 
       // Track recent page history when a tab loads a real website
       const current = updatedTabs.find((t) => t.id === activeId);
-      if (current && current.url && current.url !== 'nexus://newtab') {
+      if (current && current.url && current.url !== 'nexus://newtab' && !current.isPrivate) {
         setRecentPages((prev) => {
           const filtered = prev.filter((p) => p.url !== current.url);
           return [
@@ -207,13 +258,16 @@ export const App: React.FC = () => {
               timestamp: Date.now(),
             },
             ...filtered,
-          ].slice(0, 20);
+          ].slice(0, 25);
         });
       }
     });
 
-    const unsubscribeMax = api.onWindowMaximizedChange(setIsMaximized);
-    api.isWindowMaximized().then(setIsMaximized);
+    const unsubscribeMax = api.onWindowMaximizedChange((maximized) => {
+      setIsMaximized(maximized);
+    });
+
+    api.isWindowMaximized().then(setIsMaximized).catch(console.error);
 
     return () => {
       unsubscribeTabs();
@@ -221,42 +275,73 @@ export const App: React.FC = () => {
     };
   }, [api]);
 
-  // Dynamic 4-Axis Bounds Synchronization with Electron WebContentsView
+  // Session Auto-Save to Disk
+  useEffect(() => {
+    if (!api || tabs.length === 0) return;
+    const sessionData: SavedSessionData = {
+      version: 1,
+      workspaces,
+      activeWorkspaceId,
+      groups: tabGroups,
+      tabs: tabs.map((t) => ({
+        id: t.id,
+        url: t.url,
+        title: t.title,
+        favicon: t.favicon,
+        workspaceId: t.workspaceId,
+        groupId: t.groupId,
+        isPinned: t.isPinned,
+        isMuted: t.isMuted,
+      })),
+      activeTabId,
+      recentlyClosed,
+    };
+    api.saveSession(sessionData).catch(console.error);
+  }, [api, tabs, workspaces, activeWorkspaceId, tabGroups, activeTabId, recentlyClosed]);
+
+  // Update Dynamic 4-Axis Bounds for WebContentsView
   useEffect(() => {
     if (!api) return;
 
-    const sidebarWidth = sidebarCollapsed ? 48 : 210;
-    const rightToolbarWidth = 44;
-    const sidePanelWidth = activeSidePanel ? 310 : 0;
-    const topOffset = 84; // TitleBar (40px) + NavigationBar (44px)
-    const bottomOffset = 24; // StatusBar (24px)
+    const baseSidebarWidth = sidebarCollapsed ? 48 : 210;
+    const vtabWidth = settings.tabLayout === 'vertical' ? 220 : 0;
+    const leftWidth = baseSidebarWidth + vtabWidth;
+    const rightWidth = (activeSidePanel ? 310 : 0) + 44;
 
     api.updateContentBounds({
-      top: topOffset,
-      left: sidebarWidth,
-      right: rightToolbarWidth + sidePanelWidth,
-      bottom: bottomOffset,
+      top: 84,
+      left: leftWidth,
+      right: rightWidth,
+      bottom: 24,
     });
-  }, [api, sidebarCollapsed, activeSidePanel]);
+  }, [api, sidebarCollapsed, activeSidePanel, settings.tabLayout]);
 
-  // Tab Handlers
+  // Modal Visibility Sync to prevent WebContentsView occlusion
+  const isAnyModalOpen = isCommandPaletteOpen || isWorkspaceModalOpen || isTabSearchOpen;
+  useEffect(() => {
+    if (api && api.setModalOpen) {
+      api.setModalOpen(isAnyModalOpen);
+    }
+  }, [api, isAnyModalOpen]);
+
+  // Tab Operations
   const handleSelectTab = useCallback(
     (id: string) => {
+      const tab = tabs.find((t) => t.id === id);
+      if (tab && tab.workspaceId && tab.workspaceId !== activeWorkspaceId) {
+        setActiveWorkspaceId(tab.workspaceId);
+      }
       api?.switchTab(id);
     },
-    [api]
+    [api, tabs, activeWorkspaceId]
   );
 
-  const handleCloseTab = useCallback(
-    (id: string) => {
-      api?.closeTab(id);
+  const handleNewTab = useCallback(
+    (url?: string, isPrivate: boolean = false) => {
+      api?.createTab(url || 'nexus://newtab', activeWorkspaceId, isPrivate);
     },
-    [api]
+    [api, activeWorkspaceId]
   );
-
-  const handleNewTab = useCallback(() => {
-    api?.createTab('nexus://newtab', activeWorkspaceId);
-  }, [api, activeWorkspaceId]);
 
   const handleDuplicateTab = useCallback(
     (id: string) => {
@@ -266,16 +351,141 @@ export const App: React.FC = () => {
   );
 
   const handleReopenClosedTab = useCallback(() => {
-    api?.reopenClosedTab();
-  }, [api]);
+    if (recentlyClosed.length > 0) {
+      const last = recentlyClosed[0];
+      setRecentlyClosed((prev) => prev.slice(1));
+      api?.createTab(last.url, last.workspaceId);
+    } else {
+      api?.reopenClosedTab();
+    }
+  }, [api, recentlyClosed]);
 
+  const handleCloseTab = useCallback(
+    (id: string) => {
+      const closingTab = tabs.find((t) => t.id === id);
+      if (closingTab && closingTab.url && closingTab.url !== 'nexus://newtab' && !closingTab.isPrivate) {
+        setRecentlyClosed((prev) => [
+          {
+            id: `closed-${Date.now()}`,
+            url: closingTab.url,
+            title: closingTab.title,
+            favicon: closingTab.favicon,
+            workspaceId: closingTab.workspaceId,
+            groupId: closingTab.groupId,
+            closedAt: Date.now(),
+          },
+          ...prev,
+        ].slice(0, 30));
+      }
+      api?.closeTab(id);
+    },
+    [api, tabs]
+  );
+
+  const handleTogglePinTab = useCallback(
+    (id: string) => {
+      api?.pinTab(id);
+    },
+    [api]
+  );
+
+  const handleToggleMuteTab = useCallback(
+    (id: string) => {
+      api?.muteTab(id);
+    },
+    [api]
+  );
+
+  const handleSetTabGroup = useCallback(
+    (id: string, groupId?: string) => {
+      api?.setTabGroup(id, groupId);
+    },
+    [api]
+  );
+
+  const handleReorderTabs = useCallback(
+    (orderedIds: string[]) => {
+      api?.reorderTabs(orderedIds);
+    },
+    [api]
+  );
+
+  const handleMoveTabToWorkspace = useCallback(
+    (id: string, workspaceId: string) => {
+      api?.moveTabToWorkspace(id, workspaceId);
+    },
+    [api]
+  );
+
+  const handleSwitchWorkspace = useCallback(
+    (workspaceId: string, tabId?: string) => {
+      setActiveWorkspaceId(workspaceId);
+      api?.switchWorkspace(workspaceId, tabId);
+    },
+    [api]
+  );
+
+  // Tab Groups
+  const handleCreateGroup = useCallback(() => {
+    const colors = ['#A78BFA', '#38BDF8', '#34D399', '#FBBF24', '#F43F5E', '#E879F9'];
+    const newGroup: TabGroup = {
+      id: `group-${Date.now()}`,
+      name: `Group ${tabGroups.length + 1}`,
+      color: colors[tabGroups.length % colors.length],
+      collapsed: false,
+    };
+    setTabGroups((prev) => [...prev, newGroup]);
+  }, [tabGroups]);
+
+  const handleToggleGroupCollapse = useCallback((groupId: string) => {
+    setTabGroups((prev) =>
+      prev.map((g) => (g.id === groupId ? { ...g, collapsed: !g.collapsed } : g))
+    );
+  }, []);
+
+  // Workspaces CRUD
+  const handleSaveWorkspace = useCallback(
+    (workspace: Workspace) => {
+      setWorkspaces((prev) => {
+        const exists = prev.some((w) => w.id === workspace.id);
+        if (exists) {
+          return prev.map((w) => (w.id === workspace.id ? workspace : w));
+        }
+        return [...prev, workspace];
+      });
+    },
+    []
+  );
+
+  const handleDeleteWorkspace = useCallback(
+    (id: string) => {
+      if (id === 'default') return;
+
+      // Reassign tabs in deleted workspace to default
+      for (const tab of tabs) {
+        if (tab.workspaceId === id) {
+          api?.moveTabToWorkspace(tab.id, 'default');
+        }
+      }
+
+      setWorkspaces((prev) => prev.filter((w) => w.id !== id));
+      if (activeWorkspaceId === id) {
+        handleSwitchWorkspace('default');
+      }
+    },
+    [activeWorkspaceId, tabs, api, handleSwitchWorkspace]
+  );
+
+  // Navigation
   const handleNavigate = useCallback(
     (url: string) => {
       if (activeTabId) {
         api?.navigate(activeTabId, url);
+      } else {
+        api?.createTab(url, activeWorkspaceId);
       }
     },
-    [api, activeTabId]
+    [api, activeTabId, activeWorkspaceId]
   );
 
   const handleGoBack = useCallback(() => {
@@ -299,32 +509,29 @@ export const App: React.FC = () => {
   }, [api, activeTabId]);
 
   const handleToggleDevTools = useCallback(() => {
-    if (activeTabId) api?.toggleDevTools(activeTabId);
+    api?.toggleDevTools(activeTabId || undefined);
   }, [api, activeTabId]);
 
-  // Zoom Handlers
   const handleZoomIn = useCallback(async () => {
-    const next = zoomLevel + 0.2;
-    if (next <= 3.0) {
-      const applied = await api?.setZoomLevel(next);
-      if (typeof applied === 'number') setZoomLevel(applied);
-    }
-  }, [api, zoomLevel]);
-
-  const handleZoomOut = useCallback(async () => {
-    const next = zoomLevel - 0.2;
-    if (next >= -2.0) {
-      const applied = await api?.setZoomLevel(next);
-      if (typeof applied === 'number') setZoomLevel(applied);
-    }
-  }, [api, zoomLevel]);
-
-  const handleResetZoom = useCallback(async () => {
-    const applied = await api?.setZoomLevel(0);
-    if (typeof applied === 'number') setZoomLevel(applied);
+    if (!api) return;
+    const current = await api.getZoomLevel();
+    const next = await api.setZoomLevel(Math.min(current + 0.5, 3));
+    setZoomLevel(next);
   }, [api]);
 
-  // Window Controls
+  const handleZoomOut = useCallback(async () => {
+    if (!api) return;
+    const current = await api.getZoomLevel();
+    const next = await api.setZoomLevel(Math.max(current - 0.5, -3));
+    setZoomLevel(next);
+  }, [api]);
+
+  const handleResetZoom = useCallback(async () => {
+    if (!api) return;
+    const next = await api.setZoomLevel(0);
+    setZoomLevel(next);
+  }, [api]);
+
   const handleMinimize = useCallback(() => api?.minimizeWindow(), [api]);
   const handleMaximize = useCallback(() => api?.maximizeWindow(), [api]);
   const handleCloseWindow = useCallback(() => api?.closeWindow(), [api]);
@@ -372,27 +579,25 @@ export const App: React.FC = () => {
     }
   }, [api]);
 
-  // Sync modal open state to main process so WebContentsView is hidden/shown cleanly
-  useEffect(() => {
-    if (api && api.setModalOpen) {
-      api.setModalOpen(isCommandPaletteOpen);
-    }
-  }, [api, isCommandPaletteOpen]);
-
   // Tab Cycling Shortcuts
+  const workspaceTabs = useMemo(
+    () => tabs.filter((t) => t.workspaceId === activeWorkspaceId),
+    [tabs, activeWorkspaceId]
+  );
+
   const handleNextTab = useCallback(() => {
-    if (tabs.length <= 1) return;
-    const currentIndex = tabs.findIndex((t) => t.id === activeTabId);
-    const nextIndex = (currentIndex + 1) % tabs.length;
-    handleSelectTab(tabs[nextIndex].id);
-  }, [tabs, activeTabId, handleSelectTab]);
+    if (workspaceTabs.length <= 1) return;
+    const currentIndex = workspaceTabs.findIndex((t) => t.id === activeTabId);
+    const nextIndex = (currentIndex + 1) % workspaceTabs.length;
+    handleSelectTab(workspaceTabs[nextIndex].id);
+  }, [workspaceTabs, activeTabId, handleSelectTab]);
 
   const handlePrevTab = useCallback(() => {
-    if (tabs.length <= 1) return;
-    const currentIndex = tabs.findIndex((t) => t.id === activeTabId);
-    const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
-    handleSelectTab(tabs[prevIndex].id);
-  }, [tabs, activeTabId, handleSelectTab]);
+    if (workspaceTabs.length <= 1) return;
+    const currentIndex = workspaceTabs.findIndex((t) => t.id === activeTabId);
+    const prevIndex = (currentIndex - 1 + workspaceTabs.length) % workspaceTabs.length;
+    handleSelectTab(workspaceTabs[prevIndex].id);
+  }, [workspaceTabs, activeTabId, handleSelectTab]);
 
   const handleFocusOmnibox = useCallback(() => {
     setFocusOmniboxTrigger((prev) => prev + 1);
@@ -417,6 +622,11 @@ export const App: React.FC = () => {
       ) {
         e.preventDefault();
         setIsCommandPaletteOpen((prev) => !prev);
+      }
+      // Ctrl+Shift+A: Tab Search
+      else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        setIsTabSearchOpen((prev) => !prev);
       }
       // Ctrl+L: Focus address bar
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') {
@@ -512,11 +722,17 @@ export const App: React.FC = () => {
         e.preventDefault();
         handleResetZoom();
       }
-      // Escape: Dismiss Command Palette
+      // Escape: Dismiss active overlays
       else if (e.key === 'Escape') {
         if (isCommandPaletteOpen) {
           e.preventDefault();
           setIsCommandPaletteOpen(false);
+        } else if (isTabSearchOpen) {
+          e.preventDefault();
+          setIsTabSearchOpen(false);
+        } else if (isWorkspaceModalOpen) {
+          e.preventDefault();
+          setIsWorkspaceModalOpen(false);
         }
       }
     };
@@ -541,6 +757,8 @@ export const App: React.FC = () => {
     handleViewSource,
     activeTabId,
     isCommandPaletteOpen,
+    isTabSearchOpen,
+    isWorkspaceModalOpen,
   ]);
 
   const isNewTab = !activeTab || activeTab.url === 'nexus://newtab' || activeTab.url === '';
@@ -550,14 +768,31 @@ export const App: React.FC = () => {
       {/* 1. Compact Top Tab Strip & Frameless Controls */}
       <TitleBar
         tabs={tabs}
+        tabGroups={tabGroups}
+        workspaces={workspaces}
         activeTabId={activeTabId}
+        activeWorkspaceId={activeWorkspaceId}
         isMaximized={isMaximized}
+        tabLayout={settings.tabLayout || 'horizontal'}
         onSelectTab={handleSelectTab}
         onCloseTab={handleCloseTab}
         onNewTab={handleNewTab}
         onDuplicateTab={handleDuplicateTab}
         onReopenClosedTab={handleReopenClosedTab}
         onReloadTab={handleReload}
+        onTogglePinTab={handleTogglePinTab}
+        onToggleMuteTab={handleToggleMuteTab}
+        onSetTabGroup={handleSetTabGroup}
+        onMoveTabToWorkspace={handleMoveTabToWorkspace}
+        onReorderTabs={handleReorderTabs}
+        onOpenTabSearch={() => setIsTabSearchOpen(true)}
+        onCreateGroup={handleCreateGroup}
+        onToggleGroupCollapse={handleToggleGroupCollapse}
+        onToggleTabLayout={() => {
+          handleUpdateSettings({
+            tabLayout: settings.tabLayout === 'vertical' ? 'horizontal' : 'vertical',
+          });
+        }}
         onMinimize={handleMinimize}
         onMaximize={handleMaximize}
         onCloseWindow={handleCloseWindow}
@@ -580,16 +815,50 @@ export const App: React.FC = () => {
 
       {/* Body: Left Sidebar + Central Content + Right Toolbar / SidePanel */}
       <div className="browser-body-layout">
-        {/* 4. Collapsible Left Sidebar */}
+        {/* 4. Collapsible Left Sidebar (Workspaces) */}
         <Sidebar
           collapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
           workspaces={workspaces}
           activeWorkspaceId={activeWorkspaceId}
-          onSelectWorkspace={setActiveWorkspaceId}
+          onSelectWorkspace={handleSwitchWorkspace}
+          onCreateWorkspace={() => {
+            setEditingWorkspace(null);
+            setIsWorkspaceModalOpen(true);
+          }}
+          onEditWorkspace={(ws) => {
+            setEditingWorkspace(ws);
+            setIsWorkspaceModalOpen(true);
+          }}
+          tabGroups={tabGroups}
+          onCreateGroup={handleCreateGroup}
           onNavigate={handleNavigate}
-          pinnedCount={tabs.length}
+          pinnedCount={workspaceTabs.filter((t) => t.isPinned).length}
         />
+
+        {/* Optional Vertical Tab Strip */}
+        {settings.tabLayout === 'vertical' && (
+          <VerticalTabBar
+            tabs={tabs}
+            tabGroups={tabGroups}
+            workspaces={workspaces}
+            activeTabId={activeTabId}
+            activeWorkspaceId={activeWorkspaceId}
+            onSelectTab={handleSelectTab}
+            onCloseTab={handleCloseTab}
+            onNewTab={handleNewTab}
+            onDuplicateTab={handleDuplicateTab}
+            onReloadTab={handleReload}
+            onTogglePinTab={handleTogglePinTab}
+            onToggleMuteTab={handleToggleMuteTab}
+            onSetTabGroup={handleSetTabGroup}
+            onMoveTabToWorkspace={handleMoveTabToWorkspace}
+            onReorderTabs={handleReorderTabs}
+            onOpenTabSearch={() => setIsTabSearchOpen(true)}
+            onCreateGroup={handleCreateGroup}
+            onToggleGroupCollapse={handleToggleGroupCollapse}
+          />
+        )}
 
         {/* 5. Central Browser Content Area */}
         <main className="browser-content-host">
@@ -669,7 +938,7 @@ export const App: React.FC = () => {
         onGoHome={handleGoHome}
         onToggleDevTools={handleToggleDevTools}
         onClearCache={handleClearCache}
-        onSelectWorkspace={setActiveWorkspaceId}
+        onSelectWorkspace={handleSwitchWorkspace}
         onTogglePanel={(panel) => setActiveSidePanel(panel)}
         onToggleBookmark={handleToggleBookmark}
         onToggleSidebar={() => setSidebarCollapsed((prev) => !prev)}
@@ -677,6 +946,37 @@ export const App: React.FC = () => {
         onZoomOut={handleZoomOut}
         onResetZoom={handleResetZoom}
         onFocusOmnibox={handleFocusOmnibox}
+      />
+
+      {/* 8. Workspace Management Modal */}
+      <WorkspaceModal
+        isOpen={isWorkspaceModalOpen}
+        onClose={() => {
+          setIsWorkspaceModalOpen(false);
+          setEditingWorkspace(null);
+        }}
+        workspaces={workspaces}
+        editingWorkspace={editingWorkspace}
+        onSaveWorkspace={handleSaveWorkspace}
+        onDeleteWorkspace={handleDeleteWorkspace}
+      />
+
+      {/* 9. Tab Search & Recently Closed Modal */}
+      <TabSearchModal
+        isOpen={isTabSearchOpen}
+        onClose={() => setIsTabSearchOpen(false)}
+        tabs={tabs}
+        workspaces={workspaces}
+        tabGroups={tabGroups}
+        recentlyClosed={recentlyClosed}
+        activeTabId={activeTabId}
+        onSelectTab={handleSelectTab}
+        onCloseTab={handleCloseTab}
+        onRestoreClosedTab={(closedTab) => {
+          api?.createTab(closedTab.url, closedTab.workspaceId);
+          setRecentlyClosed((prev) => prev.filter((c) => c !== closedTab));
+        }}
+        onClearRecentlyClosed={() => setRecentlyClosed([])}
       />
     </div>
   );

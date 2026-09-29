@@ -6,19 +6,34 @@ export interface TabState {
   isLoading: boolean;
   canGoBack: boolean;
   canGoForward: boolean;
-  workspaceId?: string;
+  workspaceId: string;
   isPinned?: boolean;
   groupId?: string;
+  isMuted?: boolean;
+  hasAudio?: boolean;
   isSecure?: boolean;
+  isPrivate?: boolean;
   errorCode?: number;
   errorDescription?: string;
 }
 
-export interface ContentBounds {
-  top: number;
-  left: number;
-  right: number;
-  bottom: number;
+export interface TabGroup {
+  id: string;
+  name: string;
+  color: string;
+  collapsed?: boolean;
+}
+
+export interface PinnedSiteItem {
+  id: string;
+  title: string;
+  url: string;
+  icon?: string;
+}
+
+export interface WorkspaceLayout {
+  sidebarCollapsed?: boolean;
+  tabLayout?: 'horizontal' | 'vertical';
 }
 
 export interface Workspace {
@@ -26,6 +41,45 @@ export interface Workspace {
   name: string;
   icon: string;
   color: string;
+  isolatedSession?: boolean;
+  pinnedSites?: PinnedSiteItem[];
+  layout?: WorkspaceLayout;
+}
+
+export interface RecentlyClosedTab {
+  id: string;
+  url: string;
+  title: string;
+  favicon?: string;
+  workspaceId: string;
+  groupId?: string;
+  closedAt: number;
+}
+
+export interface SavedSessionData {
+  version: number;
+  workspaces: Workspace[];
+  activeWorkspaceId: string;
+  groups: TabGroup[];
+  tabs: Array<{
+    id: string;
+    url: string;
+    title: string;
+    favicon?: string;
+    workspaceId: string;
+    groupId?: string;
+    isPinned?: boolean;
+    isMuted?: boolean;
+  }>;
+  activeTabId: string | null;
+  recentlyClosed: RecentlyClosedTab[];
+}
+
+export interface ContentBounds {
+  top: number;
+  left: number;
+  right: number;
+  bottom: number;
 }
 
 export interface Bookmark {
@@ -61,6 +115,8 @@ export interface BrowserSettings {
   defaultZoom: number;
   openDevToolsOnStart: boolean;
   hardwareAcceleration: boolean;
+  restoreSessionOnStartup: boolean;
+  tabLayout: 'horizontal' | 'vertical';
 }
 
 export interface SystemInfo {
@@ -91,7 +147,7 @@ export type SidePanelType = 'bookmarks' | 'downloads' | 'extensions' | 'profiles
 
 export interface NexusAPI {
   // Tab Management
-  createTab: (url?: string, workspaceId?: string) => Promise<string>;
+  createTab: (url?: string, workspaceId?: string, isPrivate?: boolean) => Promise<string>;
   createBackgroundTab: (url: string, workspaceId?: string) => Promise<string>;
   duplicateTab: (id: string) => Promise<string | null>;
   reopenClosedTab: () => Promise<string | null>;
@@ -103,6 +159,19 @@ export interface NexusAPI {
   reload: (id: string) => Promise<void>;
   stop: (id: string) => Promise<void>;
   toggleDevTools: (id?: string) => Promise<void>;
+  
+  // Tab Controls & Grouping
+  muteTab: (id: string) => Promise<boolean>;
+  pinTab: (id: string) => Promise<boolean>;
+  setTabGroup: (id: string, groupId?: string) => Promise<void>;
+  reorderTabs: (orderedIds: string[]) => Promise<void>;
+  moveTabToWorkspace: (id: string, workspaceId: string) => Promise<void>;
+
+  // Workspaces & Sessions
+  switchWorkspace: (workspaceId: string, tabId?: string) => Promise<void>;
+  saveSession: (data: SavedSessionData) => Promise<void>;
+  restoreSession: () => Promise<SavedSessionData | null>;
+  clearSession: () => Promise<void>;
   
   // Layout Bounds & Modal Visibility
   updateContentBounds: (bounds: ContentBounds) => Promise<void>;
@@ -130,3 +199,4 @@ declare global {
     nexusAPI: NexusAPI;
   }
 }
+

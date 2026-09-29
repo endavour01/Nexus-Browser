@@ -1,5 +1,6 @@
 import { BrowserWindow, WebContentsView, session } from 'electron';
-import { ContentBounds, TabState } from '../shared/types';
+import { ContentBounds, SavedSessionData, TabState } from '../shared/types';
+import { SessionStore } from './session-store';
 
 interface ManagedTab {
   id: string;
@@ -11,7 +12,11 @@ interface ManagedTab {
   canGoForward: boolean;
   workspaceId: string;
   isPinned: boolean;
+  groupId?: string;
+  isMuted: boolean;
+  hasAudio: boolean;
   isSecure: boolean;
+  isPrivate: boolean;
   errorCode?: number;
   errorDescription?: string;
   view: WebContentsView;
@@ -21,13 +26,19 @@ interface ClosedTabRecord {
   url: string;
   title: string;
   workspaceId: string;
+  favicon?: string;
+  groupId?: string;
+  closedAt: number;
 }
 
 export class TabManager {
   private tabs: Map<string, ManagedTab> = new Map();
   private closedTabs: ClosedTabRecord[] = [];
   private activeTabId: string | null = null;
+  private activeWorkspaceId: string = 'default';
+  private isolatedWorkspaces: Set<string> = new Set();
   private mainWindow: BrowserWindow;
+  private sessionStore: SessionStore = new SessionStore();
   private bounds: ContentBounds = {
     top: 84,
     left: 210,
@@ -74,7 +85,6 @@ export class TabManager {
   }
 
   private setupPermissions() {
-    // Explicit permission handling: block sensitive hardware by default, allow safe web features
     session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
       const allowedPermissions = ['fullscreen', 'clipboard-read', 'clipboard-sanitized-write'];
       if (allowedPermissions.includes(permission)) {
@@ -100,8 +110,39 @@ export class TabManager {
     this.searchEngine = engine;
   }
 
+  public setIsolatedWorkspaces(workspaceIds: string[]) {
+    this.isolatedWorkspaces = new Set(workspaceIds);
+  }
+
   public getActiveTabId(): string | null {
     return this.activeTabId;
+  }
+
+  public getActiveWorkspaceId(): string {
+    return this.activeWorkspaceId;
+  }
+
+  public getTabState(tabId: string): TabState | undefined {
+    const t = this.tabs.get(tabId);
+    if (!t) return undefined;
+    return {
+      id: t.id,
+      url: t.url,
+      title: t.title,
+      favicon: t.favicon,
+      isLoading: t.isLoading,
+      canGoBack: t.canGoBack,
+      canGoForward: t.canGoForward,
+      workspaceId: t.workspaceId,
+      isPinned: t.isPinned,
+      groupId: t.groupId,
+      isMuted: t.isMuted,
+      hasAudio: t.hasAudio,
+      isSecure: t.isSecure,
+      isPrivate: t.isPrivate,
+      errorCode: t.errorCode,
+      errorDescription: t.errorDescription,
+    };
   }
 
   public getAllTabStates(): TabState[] {
@@ -115,7 +156,11 @@ export class TabManager {
       canGoForward: t.canGoForward,
       workspaceId: t.workspaceId,
       isPinned: t.isPinned,
+      groupId: t.groupId,
+      isMuted: t.isMuted,
+      hasAudio: t.hasAudio,
       isSecure: t.isSecure,
+      isPrivate: t.isPrivate,
       errorCode: t.errorCode,
       errorDescription: t.errorDescription,
     }));
@@ -140,13 +185,43 @@ export class TabManager {
     );
   }
 
-  public createTab(initialUrl?: string, makeActive: boolean = true, workspaceId: string = 'default'): string {
+  public createTab(
+    initialUrl?: string,
+    makeActive: boolean = true,
+    workspaceIdOrOptions: string | { workspaceId?: string; isPrivate?: boolean; isPinned?: boolean; groupId?: string } = 'default',
+    isPrivate: boolean = false,
+    isPinned: boolean = false,
+    groupId?: string
+  ): string {
+    let workspaceId = 'default';
+    let privateTab = isPrivate;
+    let pinnedTab = isPinned;
+    let tabGroupId = groupId;
+
+    if (typeof workspaceIdOrOptions === 'object' && workspaceIdOrOptions !== null) {
+      workspaceId = workspaceIdOrOptions.workspaceId || 'default';
+      privateTab = workspaceIdOrOptions.isPrivate ?? isPrivate;
+      pinnedTab = workspaceIdOrOptions.isPinned ?? isPinned;
+      tabGroupId = workspaceIdOrOptions.groupId ?? groupId;
+    } else if (typeof workspaceIdOrOptions === 'string') {
+      workspaceId = workspaceIdOrOptions;
+    }
+
     const id = `tab-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     const url = initialUrl || 'nexus://newtab';
     const isNewTab = url === 'nexus://newtab' || url === '';
 
+    // Separate session partition for isolated workspaces or private tabs
+    let tabSession: Electron.Session = session.defaultSession;
+    if (privateTab) {
+      tabSession = session.fromPartition(`private_${id}`);
+    } else if (this.isolatedWorkspaces.has(workspaceId)) {
+      tabSession = session.fromPartition(`persist:workspace_${workspaceId}`);
+    }
+
     const view = new WebContentsView({
       webPreferences: {
+        session: tabSession,
         sandbox: true,
         contextIsolation: true,
         nodeIntegration: false,
@@ -163,8 +238,12 @@ export class TabManager {
       canGoBack: false,
       canGoForward: false,
       workspaceId,
-      isPinned: false,
+      isPinned: pinnedTab,
+      groupId: tabGroupId,
+      isMuted: false,
+      hasAudio: false,
       isSecure: url.startsWith('https://'),
+      isPrivate: privateTab,
       view,
     };
 
@@ -186,6 +265,7 @@ export class TabManager {
       }
     });
 
+    // Loading & Navigation events
     wc.on('did-start-loading', () => {
       tab.isLoading = true;
       tab.errorCode = undefined;
@@ -228,9 +308,19 @@ export class TabManager {
       this.notifyTabsUpdated();
     });
 
+    // Audio indicators
+    wc.on('media-started-playing', () => {
+      tab.hasAudio = true;
+      this.notifyTabsUpdated();
+    });
+
+    wc.on('media-paused', () => {
+      tab.hasAudio = false;
+      this.notifyTabsUpdated();
+    });
+
     // Error handling: catch navigation failures and present styled dark error page
     wc.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
-      // Ignore aborts (e.g. user stopped load or redirected)
       if (errorCode === -3) return;
 
       if (isMainFrame) {
@@ -244,118 +334,101 @@ export class TabManager {
           <html>
           <head>
             <meta charset="utf-8">
-            <title>Connection Error</title>
+            <title>Error Loading Page</title>
             <style>
               body {
-                background-color: #0B0D12;
+                background: #0B0D12;
                 color: #F4F4F5;
-                font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
                 height: 100vh;
                 margin: 0;
-                user-select: none;
+                padding: 24px;
+                box-sizing: border-box;
               }
-              .error-card {
+              .error-box {
+                background: #12151D;
+                border: 1px solid #272C3D;
+                border-radius: 8px;
+                padding: 32px;
                 max-width: 480px;
-                padding: 36px 32px;
-                background-color: #12151D;
-                border: 1px solid #1C202C;
-                border-radius: 10px;
                 text-align: center;
                 box-shadow: 0 10px 30px rgba(0,0,0,0.5);
               }
-              .error-icon {
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                width: 44px;
-                height: 44px;
-                border-radius: 50%;
-                background: rgba(248, 113, 113, 0.12);
+              .badge {
+                display: inline-block;
+                padding: 4px 10px;
+                background: rgba(248, 113, 113, 0.15);
                 color: #F87171;
+                border: 1px solid rgba(248, 113, 113, 0.3);
+                border-radius: 4px;
+                font-family: monospace;
+                font-size: 11px;
                 margin-bottom: 16px;
-                font-size: 20px;
-                font-weight: 700;
+                text-transform: uppercase;
               }
               h2 {
-                margin: 0 0 8px 0;
+                margin: 0 0 12px;
                 font-size: 18px;
                 font-weight: 600;
-                color: #F4F4F5;
               }
               p {
-                margin: 0 0 20px 0;
+                margin: 0 0 20px;
                 font-size: 13px;
                 color: #9298A8;
                 line-height: 1.5;
-                word-break: break-all;
               }
-              .code-badge {
-                display: inline-block;
-                font-family: 'JetBrains Mono', monospace;
-                font-size: 11px;
-                background: #0B0D12;
-                padding: 4px 8px;
+              .url-display {
+                background: #191D28;
+                padding: 8px 12px;
                 border-radius: 4px;
-                border: 1px solid #1C202C;
+                font-family: monospace;
+                font-size: 12px;
                 color: #A78BFA;
-                margin-top: 8px;
+                word-break: break-all;
+                margin-bottom: 24px;
+                border: 1px solid #272C3D;
               }
-              .btn-row {
-                display: flex;
-                gap: 10px;
-                justify-content: center;
-              }
-              button {
+              .retry-btn {
                 background: #A78BFA;
                 color: #0B0D12;
                 border: none;
-                padding: 8px 16px;
-                border-radius: 6px;
-                font-size: 12px;
+                border-radius: 4px;
+                padding: 9px 20px;
+                font-size: 13px;
                 font-weight: 600;
                 cursor: pointer;
-                transition: opacity 120ms ease;
+                transition: opacity 120ms;
               }
-              button:hover { opacity: 0.9; }
-              .btn-secondary {
-                background: #191D28;
-                color: #F4F4F5;
-                border: 1px solid #272C3D;
+              .retry-btn:hover {
+                opacity: 0.9;
               }
             </style>
           </head>
           <body>
-            <div class="error-card">
-              <div class="error-icon">!</div>
-              <h2>Unable to connect</h2>
-              <p>NEXUS couldn't establish a secure connection to<br><strong>${validatedURL}</strong><br><span class="code-badge">${errorDescription} (${errorCode})</span></p>
-              <div class="btn-row">
-                <button onclick="location.reload()">Retry Connection</button>
-              </div>
+            <div class="error-box">
+              <div class="badge">Navigation Error ${errorCode}</div>
+              <h2>Unable to load page</h2>
+              <p>${errorDescription || 'A network error occurred while attempting to reach the server.'}</p>
+              <div class="url-display">${validatedURL}</div>
+              <button class="retry-btn" onclick="location.reload()">Retry Connection</button>
             </div>
           </body>
           </html>
         `;
-
-        wc.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(errorHtml)}`).catch(() => {});
+        wc.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(errorHtml)}`);
         this.notifyTabsUpdated();
       }
     });
 
-    // Window open & target="_blank" handler
+    // Handle target="_blank" window.open requests
     wc.setWindowOpenHandler((details) => {
-      if (this.isUnsafeProtocol(details.url)) {
-        console.warn(`[NEXUS Security] Blocked window.open with unsafe URL: ${details.url}`);
-        return { action: 'deny' };
+      if (this.isValidProtocol(details.url)) {
+        this.createTab(details.url, true, workspaceId, isPrivate);
       }
-
-      // Check disposition for background tabs
-      const isBackground = details.disposition === 'background-tab';
-      this.createTab(details.url, !isBackground, tab.workspaceId);
       return { action: 'deny' };
     });
 
@@ -364,14 +437,12 @@ export class TabManager {
     // Initial load
     if (!isNewTab) {
       const formatted = this.formatUrl(url);
-      tab.url = formatted;
-      tab.isSecure = formatted.startsWith('https://');
       wc.loadURL(formatted).catch((err) => {
-        console.error(`Failed to load initial URL ${url}:`, err);
+        console.warn('Initial load error for', formatted, err);
       });
     }
 
-    if (makeActive || !this.activeTabId) {
+    if (makeActive) {
       this.switchTab(id);
     } else {
       this.notifyTabsUpdated();
@@ -383,6 +454,7 @@ export class TabManager {
   public switchTab(id: string) {
     if (!this.tabs.has(id)) return;
 
+    // Hide previously active view
     if (this.activeTabId && this.activeTabId !== id) {
       const prevTab = this.tabs.get(this.activeTabId);
       if (prevTab) {
@@ -392,9 +464,7 @@ export class TabManager {
           } else {
             this.mainWindow.contentView.removeChildView(prevTab.view);
           }
-        } catch (e) {
-          console.warn('Error hiding view:', e);
-        }
+        } catch (e) {}
       }
     }
 
@@ -402,6 +472,11 @@ export class TabManager {
     const currentTab = this.tabs.get(id);
 
     if (currentTab) {
+      // Sync active workspace if switching to a tab from another workspace
+      if (currentTab.workspaceId) {
+        this.activeWorkspaceId = currentTab.workspaceId;
+      }
+
       const isNewTab = currentTab.url === 'nexus://newtab' || currentTab.url === '';
 
       try {
@@ -432,31 +507,142 @@ export class TabManager {
     this.notifyTabsUpdated();
   }
 
+  public toggleMuteTab(id: string): boolean {
+    const tab = this.tabs.get(id);
+    if (!tab) return false;
+    const nextMuted = !tab.view.webContents.isAudioMuted();
+    tab.view.webContents.setAudioMuted(nextMuted);
+    tab.isMuted = nextMuted;
+    this.notifyTabsUpdated();
+    return tab.isMuted;
+  }
+
+  public togglePinTab(id: string): boolean {
+    const tab = this.tabs.get(id);
+    if (!tab) return false;
+    tab.isPinned = !tab.isPinned;
+    this.sortTabs();
+    this.notifyTabsUpdated();
+    return tab.isPinned;
+  }
+
+  public setTabGroup(id: string, groupId?: string): void {
+    const tab = this.tabs.get(id);
+    if (!tab) return;
+    tab.groupId = groupId;
+    this.notifyTabsUpdated();
+  }
+
+  public reorderTabs(orderedTabIds: string[]): void {
+    const newTabsMap = new Map<string, ManagedTab>();
+    for (const id of orderedTabIds) {
+      const tab = this.tabs.get(id);
+      if (tab) {
+        newTabsMap.set(id, tab);
+      }
+    }
+    for (const [id, tab] of this.tabs.entries()) {
+      if (!newTabsMap.has(id)) {
+        newTabsMap.set(id, tab);
+      }
+    }
+    this.tabs = newTabsMap;
+    this.notifyTabsUpdated();
+  }
+
+  public moveTabToWorkspace(id: string, targetWorkspaceId: string): void {
+    const tab = this.tabs.get(id);
+    if (!tab) return;
+    tab.workspaceId = targetWorkspaceId;
+
+    if (this.activeTabId === id && this.activeWorkspaceId !== targetWorkspaceId) {
+      const remaining = Array.from(this.tabs.values()).filter(
+        (t) => t.workspaceId === this.activeWorkspaceId && t.id !== id
+      );
+      if (remaining.length > 0) {
+        this.switchTab(remaining[remaining.length - 1].id);
+      } else {
+        this.createTab('nexus://newtab', true, this.activeWorkspaceId);
+      }
+    } else {
+      this.notifyTabsUpdated();
+    }
+  }
+
+  public switchWorkspace(workspaceId: string, targetTabId?: string): void {
+    this.activeWorkspaceId = workspaceId;
+
+    // Hide views for all tabs outside the target workspace
+    for (const tab of this.tabs.values()) {
+      if (tab.workspaceId !== workspaceId) {
+        try {
+          if (typeof tab.view.setVisible === 'function') {
+            tab.view.setVisible(false);
+          } else {
+            this.mainWindow.contentView.removeChildView(tab.view);
+          }
+        } catch (e) {}
+      }
+    }
+
+    const workspaceTabs = Array.from(this.tabs.values()).filter(
+      (t) => t.workspaceId === workspaceId
+    );
+
+    if (targetTabId && this.tabs.has(targetTabId)) {
+      this.switchTab(targetTabId);
+    } else if (workspaceTabs.length > 0) {
+      this.switchTab(workspaceTabs[0].id);
+    } else {
+      this.createTab('nexus://newtab', true, workspaceId);
+    }
+  }
+
+  private sortTabs() {
+    const pinned: ManagedTab[] = [];
+    const normal: ManagedTab[] = [];
+    for (const tab of this.tabs.values()) {
+      if (tab.isPinned) pinned.push(tab);
+      else normal.push(tab);
+    }
+    const newMap = new Map<string, ManagedTab>();
+    for (const t of pinned) newMap.set(t.id, t);
+    for (const t of normal) newMap.set(t.id, t);
+    this.tabs = newMap;
+  }
+
   public duplicateTab(id: string): string | null {
     const tab = this.tabs.get(id);
     if (!tab) return null;
-    return this.createTab(tab.url, true, tab.workspaceId);
+    return this.createTab(tab.url, true, tab.workspaceId, tab.isPrivate, tab.isPinned, tab.groupId);
   }
 
   public reopenClosedTab(): string | null {
     if (this.closedTabs.length === 0) return null;
     const record = this.closedTabs.pop();
     if (!record) return null;
-    return this.createTab(record.url, true, record.workspaceId);
+    return this.createTab(record.url, true, record.workspaceId, false, false, record.groupId);
+  }
+
+  public getRecentlyClosedTabs(): ClosedTabRecord[] {
+    return [...this.closedTabs].reverse();
   }
 
   public closeTab(id: string) {
     const tab = this.tabs.get(id);
     if (!tab) return;
 
-    // Record in closed tabs stack if valid URL
-    if (tab.url && tab.url !== 'nexus://newtab') {
+    // Do not record private tabs in recently closed
+    if (!tab.isPrivate && tab.url && tab.url !== 'nexus://newtab') {
       this.closedTabs.push({
         url: tab.url,
         title: tab.title,
         workspaceId: tab.workspaceId,
+        favicon: tab.favicon,
+        groupId: tab.groupId,
+        closedAt: Date.now(),
       });
-      if (this.closedTabs.length > 25) {
+      if (this.closedTabs.length > 30) {
         this.closedTabs.shift();
       }
     }
@@ -471,12 +657,20 @@ export class TabManager {
     this.tabs.delete(id);
 
     if (this.activeTabId === id) {
-      const remainingTabIds = Array.from(this.tabs.keys());
-      if (remainingTabIds.length > 0) {
-        this.switchTab(remainingTabIds[remainingTabIds.length - 1]);
+      // Find remaining tab in same workspace first
+      const remainingInWorkspace = Array.from(this.tabs.values()).filter(
+        (t) => t.workspaceId === tab.workspaceId
+      );
+      if (remainingInWorkspace.length > 0) {
+        this.switchTab(remainingInWorkspace[remainingInWorkspace.length - 1].id);
       } else {
-        this.activeTabId = null;
-        this.createTab('nexus://newtab', true, tab.workspaceId);
+        const anyRemaining = Array.from(this.tabs.keys());
+        if (anyRemaining.length > 0) {
+          this.switchTab(anyRemaining[anyRemaining.length - 1]);
+        } else {
+          this.activeTabId = null;
+          this.createTab('nexus://newtab', true, tab.workspaceId);
+        }
       }
     } else {
       this.notifyTabsUpdated();
@@ -487,7 +681,6 @@ export class TabManager {
     const tab = this.tabs.get(id);
     if (!tab) return;
 
-    // Validate unsafe protocols
     if (this.isUnsafeProtocol(input)) {
       console.warn(`[NEXUS Security] Navigation blocked for unsafe protocol: ${input}`);
       return;
@@ -595,6 +788,18 @@ export class TabManager {
     }
   }
 
+  public saveSession(data: SavedSessionData): boolean {
+    return this.sessionStore.save(data);
+  }
+
+  public restoreSession(): SavedSessionData | null {
+    return this.sessionStore.load();
+  }
+
+  public clearSession(): boolean {
+    return this.sessionStore.clear();
+  }
+
   public updateActiveTabBounds() {
     if (!this.activeTabId) return;
     const tab = this.tabs.get(this.activeTabId);
@@ -631,22 +836,18 @@ export class TabManager {
       return trimmed;
     }
 
-    // Already has protocol
     if (/^[a-zA-Z]+:\/\//.test(trimmed)) {
       return trimmed;
     }
 
-    // IP address or localhost
     if (trimmed.startsWith('localhost') || /^127\.0\.0\.1(:\d+)?/.test(trimmed)) {
       return `http://${trimmed}`;
     }
 
-    // Has a valid domain extension or looks like a URL
     if (/^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/.*)?$/.test(trimmed)) {
       return `https://${trimmed}`;
     }
 
-    // Search engines
     const encoded = encodeURIComponent(trimmed);
     switch (this.searchEngine) {
       case 'google':

@@ -341,6 +341,40 @@ export const SidePanel: React.FC<SidePanelProps> = ({
               </select>
             </div>
 
+            {/* Startup Session Behavior */}
+            <div className="setting-group">
+              <label className="setting-label">On Startup</label>
+              <select
+                className="setting-select"
+                value={settings.restoreSessionOnStartup ? 'restore' : 'fresh'}
+                onChange={(e) =>
+                  onUpdateSettings({
+                    restoreSessionOnStartup: e.target.value === 'restore',
+                  })
+                }
+              >
+                <option value="restore">Restore previous session</option>
+                <option value="fresh">Start fresh with new tab</option>
+              </select>
+            </div>
+
+            {/* Tab Layout Preference */}
+            <div className="setting-group">
+              <label className="setting-label">Tab Strip Layout</label>
+              <select
+                className="setting-select"
+                value={settings.tabLayout || 'horizontal'}
+                onChange={(e) =>
+                  onUpdateSettings({
+                    tabLayout: e.target.value as 'horizontal' | 'vertical',
+                  })
+                }
+              >
+                <option value="horizontal">Horizontal Tabs (Top)</option>
+                <option value="vertical">Vertical Tabs (Left Sidebar)</option>
+              </select>
+            </div>
+
             {/* Default Zoom Preset */}
             <div className="setting-group">
               <label className="setting-label">Default Page Zoom</label>

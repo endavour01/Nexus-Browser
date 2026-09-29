@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit",
     "test:engine": "esbuild test/verify-full-engine.ts --platform=node --target=node20 --bundle --outfile=dist/test-full.js --external:electron && electron --no-sandbox --disable-gpu dist/test-full.js 2>/dev/null && rm -f dist/test-full.js",
     "test:commands": "esbuild test/verify-commands.ts --platform=node --target=node20 --bundle --outfile=dist/test-cmd.js --external:electron && electron --no-sandbox --disable-gpu dist/test-cmd.js 2>/dev/null && rm -f dist/test-cmd.js",
-    "test": "npm run test:engine && npm run test:commands"
+    "test:workspaces": "esbuild test/verify-workspaces-tabs.ts --platform=node --target=node20 --bundle --outfile=dist/test-ws.js --external:electron && electron --no-sandbox --disable-gpu dist/test-ws.js 2>/dev/null && rm -f dist/test-ws.js",
+    "test": "npm run test:engine && npm run test:commands && npm run test:workspaces"
   },
   "keywords": [
     "browser",

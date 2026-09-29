@@ -100,8 +100,8 @@ function registerIpcHandlers() {
   });
 
   // Tab operations
-  ipcMain.handle('tabs:create', (_event, url?: string, workspaceId?: string) => {
-    return tabManager?.createTab(url, true, workspaceId);
+  ipcMain.handle('tabs:create', (_event, url?: string, workspaceId?: string, isPrivate?: boolean) => {
+    return tabManager?.createTab(url, true, workspaceId, isPrivate);
   });
 
   ipcMain.handle('tabs:createBackground', (_event, url: string, workspaceId?: string) => {
@@ -146,6 +146,44 @@ function registerIpcHandlers() {
 
   ipcMain.handle('tabs:toggleDevTools', (_event, id?: string) => {
     tabManager?.toggleDevTools(id);
+  });
+
+  // Tab controls & grouping
+  ipcMain.handle('tabs:mute', (_event, id: string) => {
+    return tabManager?.toggleMuteTab(id) ?? false;
+  });
+
+  ipcMain.handle('tabs:pin', (_event, id: string) => {
+    return tabManager?.togglePinTab(id) ?? false;
+  });
+
+  ipcMain.handle('tabs:setGroup', (_event, id: string, groupId?: string) => {
+    tabManager?.setTabGroup(id, groupId);
+  });
+
+  ipcMain.handle('tabs:reorder', (_event, orderedIds: string[]) => {
+    tabManager?.reorderTabs(orderedIds);
+  });
+
+  ipcMain.handle('tabs:moveToWorkspace', (_event, id: string, workspaceId: string) => {
+    tabManager?.moveTabToWorkspace(id, workspaceId);
+  });
+
+  // Workspaces & Sessions
+  ipcMain.handle('tabs:switchWorkspace', (_event, workspaceId: string, tabId?: string) => {
+    tabManager?.switchWorkspace(workspaceId, tabId);
+  });
+
+  ipcMain.handle('session:save', (_event, data: any) => {
+    return tabManager?.saveSession(data);
+  });
+
+  ipcMain.handle('session:restore', () => {
+    return tabManager?.restoreSession() ?? null;
+  });
+
+  ipcMain.handle('session:clear', () => {
+    return tabManager?.clearSession();
   });
 
   ipcMain.handle('bounds:update', (_event, bounds: any) => {
