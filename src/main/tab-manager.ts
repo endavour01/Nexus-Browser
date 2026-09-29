@@ -1,6 +1,7 @@
 import { BrowserWindow, WebContentsView, session } from 'electron';
 import { ContentBounds, SavedSessionData, TabState } from '../shared/types';
 import { SessionStore } from './session-store';
+import { HistoryStore } from './history-store';
 
 interface ManagedTab {
   id: string;
@@ -39,6 +40,7 @@ export class TabManager {
   private isolatedWorkspaces: Set<string> = new Set();
   private mainWindow: BrowserWindow;
   private sessionStore: SessionStore = new SessionStore();
+  private historyStore: HistoryStore = new HistoryStore();
   private bounds: ContentBounds = {
     top: 84,
     left: 210,
@@ -145,6 +147,37 @@ export class TabManager {
     };
   }
 
+  public getView(tabId: string): WebContentsView | undefined {
+    return this.tabs.get(tabId)?.view;
+  }
+
+  public isViewVisible(tabId: string): boolean {
+    const tab = this.tabs.get(tabId);
+    if (!tab) return false;
+    if (this.activeTabId !== tabId) return false;
+    const isInternal = tab.url.startsWith('nexus://') || tab.url === '';
+    if (isInternal) return false;
+    if (this.isModalOpen) return false;
+    return this.mainWindow.contentView.children.includes(tab.view);
+  }
+
+  public handleTabNavigationForTesting(
+    tabId: string,
+    url: string,
+    title?: string,
+    favicon?: string
+  ) {
+    const tab = this.tabs.get(tabId);
+    if (!tab) return;
+    tab.url = url;
+    if (title) tab.title = title;
+    if (favicon) tab.favicon = favicon;
+    if (!tab.isPrivate && tab.url && !tab.url.startsWith('nexus://')) {
+      this.historyStore.addEntry(tab.title, tab.url, tab.favicon);
+    }
+    this.notifyTabsUpdated();
+  }
+
   public getAllTabStates(): TabState[] {
     return Array.from(this.tabs.values()).map((t) => ({
       id: t.id,
@@ -214,6 +247,9 @@ export class TabManager {
     let initialTitle = 'New Tab';
     if (url === 'nexus://extensions') initialTitle = 'Extensions';
     else if (url === 'nexus://compatibility') initialTitle = 'Compatibility Guide';
+    else if (url === 'nexus://bookmarks') initialTitle = 'Bookmarks';
+    else if (url === 'nexus://history') initialTitle = 'History';
+    else if (url === 'nexus://downloads') initialTitle = 'Downloads';
     else if (!isInternalPage) initialTitle = 'Loading...';
 
     // Separate session partition for isolated workspaces or private tabs
@@ -270,6 +306,12 @@ export class TabManager {
       }
     });
 
+    const recordHistory = () => {
+      if (!tab.isPrivate && tab.url && !tab.url.startsWith('nexus://')) {
+        this.historyStore.addEntry(tab.title, tab.url, tab.favicon);
+      }
+    };
+
     // Loading & Navigation events
     wc.on('did-start-loading', () => {
       tab.isLoading = true;
@@ -282,17 +324,20 @@ export class TabManager {
       tab.isLoading = false;
       tab.canGoBack = wc.canGoBack();
       tab.canGoForward = wc.canGoForward();
+      recordHistory();
       this.notifyTabsUpdated();
     });
 
     wc.on('page-title-updated', (_event, title) => {
       tab.title = title || 'Untitled';
+      recordHistory();
       this.notifyTabsUpdated();
     });
 
     wc.on('page-favicon-updated', (_event, favicons) => {
       if (favicons && favicons.length > 0) {
         tab.favicon = favicons[0];
+        recordHistory();
         this.notifyTabsUpdated();
       }
     });
@@ -302,6 +347,7 @@ export class TabManager {
       tab.isSecure = navigatedUrl.startsWith('https://');
       tab.canGoBack = wc.canGoBack();
       tab.canGoForward = wc.canGoForward();
+      recordHistory();
       this.notifyTabsUpdated();
     });
 
@@ -310,6 +356,7 @@ export class TabManager {
       tab.isSecure = inPageUrl.startsWith('https://');
       tab.canGoBack = wc.canGoBack();
       tab.canGoForward = wc.canGoForward();
+      recordHistory();
       this.notifyTabsUpdated();
     });
 
@@ -700,6 +747,12 @@ export class TabManager {
         tab.title = 'Extensions';
       } else if (formatted === 'nexus://compatibility') {
         tab.title = 'Compatibility Guide';
+      } else if (formatted === 'nexus://bookmarks') {
+        tab.title = 'Bookmarks';
+      } else if (formatted === 'nexus://history') {
+        tab.title = 'History';
+      } else if (formatted === 'nexus://downloads') {
+        tab.title = 'Downloads';
       } else {
         tab.title = 'New Tab';
       }
@@ -871,5 +924,13 @@ export class TabManager {
       default:
         return `https://duckduckgo.com/?q=${encoded}`;
     }
+  }
+
+  public getHistoryStore(): HistoryStore {
+    return this.historyStore;
+  }
+
+  public setHistoryStore(store: HistoryStore): void {
+    this.historyStore = store;
   }
 }

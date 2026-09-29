@@ -34,12 +34,40 @@ const api: NexusAPI = {
   setZoomLevel: (level: number) => ipcRenderer.invoke('zoom:set', level),
   getZoomLevel: () => ipcRenderer.invoke('zoom:get'),
   clearBrowsingData: () => ipcRenderer.invoke('storage:clear'),
+  clearBrowsingDataDetailed: (options: any) => ipcRenderer.invoke('storage:clearDetailed', options),
   getSystemInfo: (): Promise<SystemInfo> => ipcRenderer.invoke('system:info'),
 
   minimizeWindow: () => ipcRenderer.invoke('window:minimize'),
   maximizeWindow: () => ipcRenderer.invoke('window:maximize'),
   closeWindow: () => ipcRenderer.invoke('window:close'),
   isWindowMaximized: () => ipcRenderer.invoke('window:isMaximized'),
+
+  // Bookmarks
+  getBookmarks: () => ipcRenderer.invoke('bookmarks:get'),
+  saveBookmark: (item: any) => ipcRenderer.invoke('bookmarks:save', item),
+  createBookmarkFolder: (title: string, parentId?: string | null) => ipcRenderer.invoke('bookmarks:createFolder', title, parentId),
+  removeBookmark: (id: string) => ipcRenderer.invoke('bookmarks:remove', id),
+  exportBookmarksHtml: () => ipcRenderer.invoke('bookmarks:exportHtml'),
+  importBookmarksHtml: (htmlContent: string) => ipcRenderer.invoke('bookmarks:importHtml', htmlContent),
+
+  // History
+  getHistory: (limit?: number) => ipcRenderer.invoke('history:get', limit),
+  searchHistory: (query: string, limit?: number) => ipcRenderer.invoke('history:search', query, limit),
+  deleteHistoryEntry: (id: string) => ipcRenderer.invoke('history:delete', id),
+  deleteHistoryRange: (startTime: number, endTime: number) => ipcRenderer.invoke('history:deleteRange', startTime, endTime),
+  clearAllHistory: () => ipcRenderer.invoke('history:clear'),
+
+  // Downloads
+  getDownloads: () => ipcRenderer.invoke('downloads:get'),
+  pauseDownload: (id: string) => ipcRenderer.invoke('downloads:pause', id),
+  resumeDownload: (id: string) => ipcRenderer.invoke('downloads:resume', id),
+  cancelDownload: (id: string) => ipcRenderer.invoke('downloads:cancel', id),
+  openDownloadFile: (id: string) => ipcRenderer.invoke('downloads:openFile', id),
+  showDownloadInFolder: (id: string) => ipcRenderer.invoke('downloads:showInFolder', id),
+  getDownloadDirectory: () => ipcRenderer.invoke('downloads:getDirectory'),
+  setDownloadDirectory: () => ipcRenderer.invoke('downloads:setDirectory'),
+  clearDownloadsList: () => ipcRenderer.invoke('downloads:clear'),
+  removeDownloadEntry: (id: string) => ipcRenderer.invoke('downloads:remove', id),
 
   onTabsUpdated: (callback: (tabs: TabState[], activeTabId: string) => void) => {
     const handler = (_event: Electron.IpcRendererEvent, tabs: TabState[], activeTabId: string) => {
@@ -78,6 +106,36 @@ const api: NexusAPI = {
     ipcRenderer.on('extensions:updated', handler);
     return () => {
       ipcRenderer.removeListener('extensions:updated', handler);
+    };
+  },
+
+  onBookmarksUpdated: (callback: (bookmarks: any[]) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, bookmarks: any[]) => {
+      callback(bookmarks);
+    };
+    ipcRenderer.on('bookmarks:updated', handler);
+    return () => {
+      ipcRenderer.removeListener('bookmarks:updated', handler);
+    };
+  },
+
+  onHistoryUpdated: (callback: (history: any[]) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, history: any[]) => {
+      callback(history);
+    };
+    ipcRenderer.on('history:updated', handler);
+    return () => {
+      ipcRenderer.removeListener('history:updated', handler);
+    };
+  },
+
+  onDownloadsUpdated: (callback: (downloads: any[]) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, downloads: any[]) => {
+      callback(downloads);
+    };
+    ipcRenderer.on('downloads:updated', handler);
+    return () => {
+      ipcRenderer.removeListener('downloads:updated', handler);
     };
   },
 };

@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
-  Bookmark,
+  BookmarkItem,
   BrowserSettings,
-  DownloadItem,
+  ClearDataOptions,
+  DownloadRecord,
   ExtensionItem,
+  HistoryEntry,
   RecentPage,
   RecentlyClosedTab,
   SavedSessionData,
@@ -11,9 +13,12 @@ import {
   TabGroup,
   TabState,
   Workspace,
+  ExtensionValidationResult,
+  InstalledExtension,
 } from '@shared/types';
 import { TitleBar } from './components/TitleBar';
 import { NavigationBar } from './components/NavigationBar';
+import { BookmarksBar } from './components/BookmarksBar';
 import { Sidebar } from './components/Sidebar';
 import { VerticalTabBar } from './components/VerticalTabBar';
 import { RightToolbar, SidePanelType } from './components/RightToolbar';
@@ -26,35 +31,16 @@ import { TabSearchModal } from './components/TabSearchModal';
 import { ExtensionsPage } from './components/ExtensionsPage';
 import { ExtensionPermissionModal } from './components/ExtensionPermissionModal';
 import { ExtensionCompatibilityModal } from './components/ExtensionCompatibilityModal';
-import { ExtensionValidationResult, InstalledExtension } from '@shared/types';
+import { BookmarksPage } from './components/BookmarksPage';
+import { BookmarkEditModal } from './components/BookmarkEditModal';
+import { HistoryPage } from './components/HistoryPage';
+import { ClearBrowsingDataModal } from './components/ClearBrowsingDataModal';
+import { DownloadsPage } from './components/DownloadsPage';
 
 const defaultWorkspaces: Workspace[] = [
   { id: 'default', name: 'Personal', icon: 'User', color: '#A78BFA', layout: { sidebarCollapsed: false, tabLayout: 'horizontal' } },
   { id: 'dev', name: 'Development', icon: 'Code', color: '#38BDF8', layout: { sidebarCollapsed: false, tabLayout: 'horizontal' } },
   { id: 'research', name: 'Research', icon: 'BookOpen', color: '#34D399', layout: { sidebarCollapsed: false, tabLayout: 'horizontal' } },
-];
-
-const initialExtensions: InstalledExtension[] = [];
-
-const initialDownloads: DownloadItem[] = [
-  {
-    id: 'dl-1',
-    filename: 'nexus-linux-x64.tar.gz',
-    url: 'https://nexus.dev/builds/latest',
-    filesize: '78.4 MB',
-    progress: 100,
-    status: 'completed',
-    timestamp: Date.now() - 3600000,
-  },
-  {
-    id: 'dl-2',
-    filename: 'docker-compose.yml',
-    url: 'https://raw.githubusercontent.com/...',
-    filesize: '2.4 KB',
-    progress: 100,
-    status: 'completed',
-    timestamp: Date.now() - 7200000,
-  },
 ];
 
 export const App: React.FC = () => {
@@ -74,6 +60,11 @@ export const App: React.FC = () => {
   const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null);
   const [isTabSearchOpen, setIsTabSearchOpen] = useState(false);
   const [focusOmniboxTrigger, setFocusOmniboxTrigger] = useState(0);
+
+  // Browsing Library Modals
+  const [isBookmarkEditModalOpen, setIsBookmarkEditModalOpen] = useState(false);
+  const [editingBookmarkItem, setEditingBookmarkItem] = useState<BookmarkItem | null>(null);
+  const [isClearDataModalOpen, setIsClearDataModalOpen] = useState(false);
 
   // Persistent user data
   const [workspaces, setWorkspaces] = useState<Workspace[]>(() => {
@@ -103,25 +94,10 @@ export const App: React.FC = () => {
     return [];
   });
 
-  const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => {
-    try {
-      const saved = localStorage.getItem('nexus_bookmarks');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return [
-      { id: 'bm-1', title: 'GitHub: Let’s build from here', url: 'https://github.com', createdAt: Date.now() },
-      { id: 'bm-2', title: 'Hacker News', url: 'https://news.ycombinator.com', createdAt: Date.now() },
-      { id: 'bm-3', title: 'MDN Web Docs', url: 'https://developer.mozilla.org', createdAt: Date.now() },
-    ];
-  });
-
-  const [downloads, setDownloads] = useState<DownloadItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('nexus_downloads');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return initialDownloads;
-  });
+  const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
+  const [historyEntries, setHistoryEntries] = useState<HistoryEntry[]>([]);
+  const [downloads, setDownloads] = useState<DownloadRecord[]>([]);
+  const [downloadDirectory, setDownloadDirectory] = useState<string>('');
 
   const [extensions, setExtensions] = useState<InstalledExtension[]>([]);
   const [permissionValidation, setPermissionValidation] = useState<ExtensionValidationResult | null>(null);
@@ -141,21 +117,11 @@ export const App: React.FC = () => {
       hardwareAcceleration: false,
       restoreSessionOnStartup: true,
       tabLayout: 'horizontal',
+      showBookmarksBar: true,
     };
   });
 
-  const [recentPages, setRecentPages] = useState<RecentPage[]>(() => {
-    try {
-      const saved = localStorage.getItem('nexus_history');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return [
-      { title: 'Example Domain', url: 'https://example.com', timestamp: Date.now() - 100000 },
-      { title: 'GitHub: Let’s build from here', url: 'https://github.com', timestamp: Date.now() - 200000 },
-    ];
-  });
-
-  // Save changes to localStorage
+  // Save workspaces & settings changes to localStorage
   useEffect(() => {
     localStorage.setItem('nexus_workspaces', JSON.stringify(workspaces));
   }, [workspaces]);
@@ -169,20 +135,8 @@ export const App: React.FC = () => {
   }, [recentlyClosed]);
 
   useEffect(() => {
-    localStorage.setItem('nexus_bookmarks', JSON.stringify(bookmarks));
-  }, [bookmarks]);
-
-  useEffect(() => {
-    localStorage.setItem('nexus_downloads', JSON.stringify(downloads));
-  }, [downloads]);
-
-  useEffect(() => {
     localStorage.setItem('nexus_settings', JSON.stringify(settings));
   }, [settings]);
-
-  useEffect(() => {
-    localStorage.setItem('nexus_history', JSON.stringify(recentPages));
-  }, [recentPages]);
 
   const api = window.nexusAPI;
 
@@ -196,10 +150,14 @@ export const App: React.FC = () => {
     [workspaces, activeWorkspaceId]
   );
 
-  const isBookmarked = useMemo(() => {
-    if (!activeTab || activeTab.url === 'nexus://newtab') return false;
-    return bookmarks.some((b) => b.url === activeTab.url);
+  const activeBookmark = useMemo(() => {
+    if (!activeTab || !activeTab.url || activeTab.url.startsWith('nexus://')) return null;
+    return bookmarks.find((b) => b.type === 'bookmark' && b.url === activeTab.url) || null;
   }, [bookmarks, activeTab]);
+
+  const isBookmarked = useMemo(() => {
+    return !!activeBookmark;
+  }, [activeBookmark]);
 
   // Sync System Info & Listeners
   useEffect(() => {
@@ -213,25 +171,18 @@ export const App: React.FC = () => {
       }
     }).catch(console.error);
 
+    // Initial load for browsing library
+    api.getBookmarks().then(setBookmarks).catch(console.error);
+    api.getHistory().then(setHistoryEntries).catch(console.error);
+    api.getDownloads().then(setDownloads).catch(console.error);
+    api.getDownloadDirectory().then(setDownloadDirectory).catch(console.error);
+
     const unsubscribeTabs = api.onTabsUpdated((updatedTabs, activeId) => {
       setTabs(updatedTabs);
       setActiveTabId(activeId);
 
-      // Track recent page history when a tab loads a real website
-      const current = updatedTabs.find((t) => t.id === activeId);
-      if (current && current.url && current.url !== 'nexus://newtab' && !current.isPrivate) {
-        setRecentPages((prev) => {
-          const filtered = prev.filter((p) => p.url !== current.url);
-          return [
-            {
-              title: current.title || current.url,
-              url: current.url,
-              timestamp: Date.now(),
-            },
-            ...filtered,
-          ].slice(0, 25);
-        });
-      }
+      // Refresh history from store when tabs navigate
+      api.getHistory().then(setHistoryEntries).catch(() => {});
     });
 
     const unsubscribeMax = api.onWindowMaximizedChange((maximized) => {
@@ -242,12 +193,27 @@ export const App: React.FC = () => {
       setExtensions(updatedList);
     }) : () => {};
 
+    const unsubscribeBookmarks = api.onBookmarksUpdated ? api.onBookmarksUpdated((bList) => {
+      setBookmarks(bList);
+    }) : () => {};
+
+    const unsubscribeHistory = api.onHistoryUpdated ? api.onHistoryUpdated((hList) => {
+      setHistoryEntries(hList);
+    }) : () => {};
+
+    const unsubscribeDownloads = api.onDownloadsUpdated ? api.onDownloadsUpdated((dList) => {
+      setDownloads(dList);
+    }) : () => {};
+
     api.isWindowMaximized().then(setIsMaximized).catch(console.error);
 
     return () => {
       unsubscribeTabs();
       unsubscribeMax();
       unsubscribeExtensions();
+      unsubscribeBookmarks();
+      unsubscribeHistory();
+      unsubscribeDownloads();
     };
   }, [api]);
 
@@ -283,14 +249,15 @@ export const App: React.FC = () => {
     const vtabWidth = settings.tabLayout === 'vertical' ? 220 : 0;
     const leftWidth = baseSidebarWidth + vtabWidth;
     const rightWidth = (activeSidePanel ? 310 : 0) + 44;
+    const topHeight = 84 + (settings.showBookmarksBar ? 28 : 0);
 
     api.updateContentBounds({
-      top: 84,
+      top: topHeight,
       left: leftWidth,
       right: rightWidth,
       bottom: 24,
     });
-  }, [api, sidebarCollapsed, activeSidePanel, settings.tabLayout]);
+  }, [api, sidebarCollapsed, activeSidePanel, settings.tabLayout, settings.showBookmarksBar]);
 
   // Modal Visibility Sync to prevent WebContentsView occlusion
   const isAnyModalOpen =
@@ -298,7 +265,9 @@ export const App: React.FC = () => {
     isWorkspaceModalOpen ||
     isTabSearchOpen ||
     isPermissionModalOpen ||
-    isCompatibilityModalOpen;
+    isCompatibilityModalOpen ||
+    isBookmarkEditModalOpen ||
+    isClearDataModalOpen;
   useEffect(() => {
     if (api && api.setModalOpen) {
       api.setModalOpen(isAnyModalOpen);
@@ -519,30 +488,196 @@ export const App: React.FC = () => {
 
   // Bookmarking Handlers
   const handleToggleBookmark = useCallback(() => {
-    if (!activeTab || activeTab.url === 'nexus://newtab') return;
-    if (isBookmarked) {
-      setBookmarks((prev) => prev.filter((b) => b.url !== activeTab.url));
+    if (!activeTab || activeTab.url === 'nexus://newtab' || activeTab.url.startsWith('nexus://')) return;
+    setEditingBookmarkItem(activeBookmark);
+    setIsBookmarkEditModalOpen(true);
+  }, [activeTab, activeBookmark]);
+
+  const handleOpenBookmarksPage = useCallback(() => {
+    if (activeTabId) {
+      api?.navigate(activeTabId, 'nexus://bookmarks');
     } else {
-      setBookmarks((prev) => [
-        {
-          id: `bm-${Date.now()}`,
-          title: activeTab.title || activeTab.url,
-          url: activeTab.url,
-          favicon: activeTab.favicon,
-          createdAt: Date.now(),
-        },
-        ...prev,
-      ]);
+      api?.createTab('nexus://bookmarks', activeWorkspaceId);
     }
-  }, [activeTab, isBookmarked]);
+  }, [api, activeTabId, activeWorkspaceId]);
 
-  const handleRemoveBookmark = useCallback((id: string) => {
-    setBookmarks((prev) => prev.filter((b) => b.id !== id));
-  }, []);
+  const handleSaveBookmark = useCallback(
+    async (item: {
+      id?: string;
+      title: string;
+      url?: string;
+      favicon?: string;
+      parentId?: string | null;
+      type?: 'bookmark' | 'folder';
+    }) => {
+      if (!api) return;
+      await api.saveBookmark(item);
+      const updated = await api.getBookmarks();
+      setBookmarks(updated);
+    },
+    [api]
+  );
 
-  const handleClearDownloads = useCallback(() => {
-    setDownloads([]);
-  }, []);
+  const handleCreateBookmarkFolder = useCallback(
+    async (title: string, parentId?: string | null) => {
+      if (!api) throw new Error('API unavailable');
+      const folder = await api.createBookmarkFolder(title, parentId);
+      const updated = await api.getBookmarks();
+      setBookmarks(updated);
+      return folder;
+    },
+    [api]
+  );
+
+  const handleRemoveBookmark = useCallback(
+    async (id: string) => {
+      if (!api) return;
+      await api.removeBookmark(id);
+      const updated = await api.getBookmarks();
+      setBookmarks(updated);
+    },
+    [api]
+  );
+
+  const handleExportBookmarksHtml = useCallback(async () => {
+    if (!api) return '';
+    return await api.exportBookmarksHtml();
+  }, [api]);
+
+  const handleImportBookmarksHtml = useCallback(
+    async (html: string) => {
+      if (!api) return { imported: 0 };
+      const res = await api.importBookmarksHtml(html);
+      const updated = await api.getBookmarks();
+      setBookmarks(updated);
+      return res;
+    },
+    [api]
+  );
+
+  // History Handlers
+  const handleOpenHistoryPage = useCallback(() => {
+    if (activeTabId) {
+      api?.navigate(activeTabId, 'nexus://history');
+    } else {
+      api?.createTab('nexus://history', activeWorkspaceId);
+    }
+  }, [api, activeTabId, activeWorkspaceId]);
+
+  const handleDeleteHistoryEntry = useCallback(
+    async (id: string) => {
+      if (!api) return false;
+      const ok = await api.deleteHistoryEntry(id);
+      const updated = await api.getHistory();
+      setHistoryEntries(updated);
+      return ok;
+    },
+    [api]
+  );
+
+  const handleDeleteHistoryRange = useCallback(
+    async (startTime: number, endTime: number) => {
+      if (!api) return 0;
+      const count = await api.deleteHistoryRange(startTime, endTime);
+      const updated = await api.getHistory();
+      setHistoryEntries(updated);
+      return count;
+    },
+    [api]
+  );
+
+  const handleClearAllHistory = useCallback(async () => {
+    if (!api) return false;
+    const ok = await api.clearAllHistory();
+    setHistoryEntries([]);
+    return ok;
+  }, [api]);
+
+  const handleClearBrowsingDataDetailed = useCallback(
+    async (options: ClearDataOptions) => {
+      if (!api) return;
+      await api.clearBrowsingDataDetailed(options);
+      const updatedHist = await api.getHistory();
+      setHistoryEntries(updatedHist);
+      const updatedDl = await api.getDownloads();
+      setDownloads(updatedDl);
+    },
+    [api]
+  );
+
+  // Downloads Handlers
+  const handleOpenDownloadsPage = useCallback(() => {
+    if (activeTabId) {
+      api?.navigate(activeTabId, 'nexus://downloads');
+    } else {
+      api?.createTab('nexus://downloads', activeWorkspaceId);
+    }
+  }, [api, activeTabId, activeWorkspaceId]);
+
+  const handlePauseDownload = useCallback(
+    async (id: string) => {
+      if (!api) return false;
+      return await api.pauseDownload(id);
+    },
+    [api]
+  );
+
+  const handleResumeDownload = useCallback(
+    async (id: string) => {
+      if (!api) return false;
+      return await api.resumeDownload(id);
+    },
+    [api]
+  );
+
+  const handleCancelDownload = useCallback(
+    async (id: string) => {
+      if (!api) return false;
+      return await api.cancelDownload(id);
+    },
+    [api]
+  );
+
+  const handleOpenFile = useCallback(
+    async (id: string) => {
+      if (!api) return false;
+      return await api.openDownloadFile(id);
+    },
+    [api]
+  );
+
+  const handleShowInFolder = useCallback(
+    async (id: string) => {
+      if (!api) return false;
+      return await api.showDownloadInFolder(id);
+    },
+    [api]
+  );
+
+  const handleChangeDownloadDirectory = useCallback(async () => {
+    if (!api) return null;
+    const chosen = await api.setDownloadDirectory();
+    if (chosen) setDownloadDirectory(chosen);
+    return chosen;
+  }, [api]);
+
+  const handleClearDownloadsList = useCallback(async () => {
+    if (!api) return;
+    await api.clearDownloadsList();
+    const updated = await api.getDownloads();
+    setDownloads(updated);
+  }, [api]);
+
+  const handleRemoveDownloadEntry = useCallback(
+    async (id: string) => {
+      if (!api) return false;
+      const ok = await api.removeDownloadEntry(id);
+      const updated = await api.getDownloads();
+      setDownloads(updated);
+      return ok;
+    },
+    [api]
+  );
 
   // Extensions Handlers
   const handleOpenExtensionsPage = useCallback(() => {
@@ -820,6 +955,12 @@ export const App: React.FC = () => {
     activeTab?.url === 'nexus://extensions' || activeTab?.url?.startsWith('nexus://extensions');
   const isCompatibilityPage =
     activeTab?.url === 'nexus://compatibility' || activeTab?.url?.startsWith('nexus://compatibility');
+  const isBookmarksPage =
+    activeTab?.url === 'nexus://bookmarks' || activeTab?.url?.startsWith('nexus://bookmarks');
+  const isHistoryPage =
+    activeTab?.url === 'nexus://history' || activeTab?.url?.startsWith('nexus://history');
+  const isDownloadsPage =
+    activeTab?.url === 'nexus://downloads' || activeTab?.url?.startsWith('nexus://downloads');
 
   return (
     <div className="nexus-app">
@@ -870,6 +1011,16 @@ export const App: React.FC = () => {
         onToggleBookmark={handleToggleBookmark}
         focusOmniboxTrigger={focusOmniboxTrigger}
       />
+
+      {/* 2b. Bookmarks Bar (Toolbar) */}
+      {settings.showBookmarksBar !== false && (
+        <BookmarksBar
+          bookmarks={bookmarks}
+          onNavigate={handleNavigate}
+          onOpenBookmarksManager={handleOpenBookmarksPage}
+          onCreateFolder={handleCreateBookmarkFolder}
+        />
+      )}
 
       {/* Body: Left Sidebar + Central Content + Right Toolbar / SidePanel */}
       <div className="browser-body-layout">
@@ -924,8 +1075,12 @@ export const App: React.FC = () => {
             <NewTabWorkspace
               onNavigate={handleNavigate}
               systemInfo={systemInfo}
-              recentPages={recentPages}
-              onClearRecentPages={() => setRecentPages([])}
+              recentPages={historyEntries.slice(0, 10).map((h) => ({
+                title: h.title,
+                url: h.url,
+                timestamp: h.timestamp,
+              }))}
+              onClearRecentPages={handleClearAllHistory}
             />
           )}
 
@@ -940,6 +1095,44 @@ export const App: React.FC = () => {
               onOpenCompatibility={handleOpenCompatibilityGuide}
             />
           )}
+
+          {isBookmarksPage && (
+            <BookmarksPage
+              bookmarks={bookmarks}
+              onNavigate={handleNavigate}
+              onSaveBookmark={handleSaveBookmark}
+              onCreateFolder={handleCreateBookmarkFolder}
+              onRemoveBookmark={handleRemoveBookmark}
+              onExportHtml={handleExportBookmarksHtml}
+              onImportHtml={handleImportBookmarksHtml}
+            />
+          )}
+
+          {isHistoryPage && (
+            <HistoryPage
+              history={historyEntries}
+              onNavigate={handleNavigate}
+              onDeleteEntry={handleDeleteHistoryEntry}
+              onDeleteRange={handleDeleteHistoryRange}
+              onClearAll={handleClearAllHistory}
+              onOpenClearDialog={() => setIsClearDataModalOpen(true)}
+            />
+          )}
+
+          {isDownloadsPage && (
+            <DownloadsPage
+              downloads={downloads}
+              downloadDirectory={downloadDirectory}
+              onChangeDownloadDirectory={handleChangeDownloadDirectory}
+              onPauseDownload={handlePauseDownload}
+              onResumeDownload={handleResumeDownload}
+              onCancelDownload={handleCancelDownload}
+              onOpenFile={handleOpenFile}
+              onShowInFolder={handleShowInFolder}
+              onClearDownloads={handleClearDownloadsList}
+              onRemoveDownload={handleRemoveDownloadEntry}
+            />
+          )}
         </main>
 
         {/* 3. Right Side Panel (Flyout drawer) */}
@@ -951,8 +1144,17 @@ export const App: React.FC = () => {
             onAddBookmark={handleToggleBookmark}
             onRemoveBookmark={handleRemoveBookmark}
             onNavigate={handleNavigate}
+            onOpenBookmarksPage={handleOpenBookmarksPage}
             downloads={downloads}
-            onClearDownloads={handleClearDownloads}
+            onClearDownloads={handleClearDownloadsList}
+            onPauseDownload={handlePauseDownload}
+            onResumeDownload={handleResumeDownload}
+            onCancelDownload={handleCancelDownload}
+            onOpenFile={handleOpenFile}
+            onShowInFolder={handleShowInFolder}
+            onOpenDownloadsPage={handleOpenDownloadsPage}
+            onChangeDownloadDirectory={handleChangeDownloadDirectory}
+            downloadDirectory={downloadDirectory}
             extensions={extensions}
             onToggleExtension={handleToggleExtension}
             onOpenExtensionsPage={handleOpenExtensionsPage}
@@ -966,8 +1168,11 @@ export const App: React.FC = () => {
             systemInfo={systemInfo}
             currentUrl={activeTab?.url}
             isBookmarked={isBookmarked}
-            history={recentPages}
-            onClearHistory={() => setRecentPages([])}
+            history={historyEntries}
+            onDeleteHistoryEntry={handleDeleteHistoryEntry}
+            onClearHistory={handleClearAllHistory}
+            onOpenHistoryPage={handleOpenHistoryPage}
+            onOpenClearDataModal={() => setIsClearDataModalOpen(true)}
           />
         )}
 
@@ -975,7 +1180,7 @@ export const App: React.FC = () => {
         <RightToolbar
           activePanel={activeSidePanel}
           onTogglePanel={setActiveSidePanel}
-          downloadCount={downloads.filter((d) => d.status === 'in_progress').length}
+          downloadCount={downloads.filter((d) => d.status === 'progressing').length}
           bookmarkCount={bookmarks.length}
           extensions={extensions}
           onOpenExtensionPopup={handleOpenExtensionPopup}
@@ -1072,6 +1277,30 @@ export const App: React.FC = () => {
       <ExtensionCompatibilityModal
         isOpen={isCompatibilityModalOpen}
         onClose={() => setIsCompatibilityModalOpen(false)}
+      />
+
+      {/* 12. Bookmark Edit Modal */}
+      <BookmarkEditModal
+        isOpen={isBookmarkEditModalOpen}
+        bookmark={editingBookmarkItem}
+        folders={bookmarks.filter((b) => b.type === 'folder')}
+        currentUrl={activeTab?.url}
+        currentTitle={activeTab?.title}
+        currentFavicon={activeTab?.favicon}
+        onSave={handleSaveBookmark}
+        onRemove={handleRemoveBookmark}
+        onCreateFolder={handleCreateBookmarkFolder}
+        onClose={() => {
+          setIsBookmarkEditModalOpen(false);
+          setEditingBookmarkItem(null);
+        }}
+      />
+
+      {/* 13. Clear Browsing Data Modal */}
+      <ClearBrowsingDataModal
+        isOpen={isClearDataModalOpen}
+        onClose={() => setIsClearDataModalOpen(false)}
+        onClear={handleClearBrowsingDataDetailed}
       />
     </div>
   );

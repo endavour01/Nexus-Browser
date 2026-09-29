@@ -17,7 +17,8 @@
     "test:commands": "esbuild test/verify-commands.ts --platform=node --target=node20 --bundle --outfile=dist/test-cmd.js --external:electron && electron --no-sandbox --disable-gpu dist/test-cmd.js 2>/dev/null && rm -f dist/test-cmd.js",
     "test:workspaces": "esbuild test/verify-workspaces-tabs.ts --platform=node --target=node20 --bundle --outfile=dist/test-ws.js --external:electron && electron --no-sandbox --disable-gpu dist/test-ws.js 2>/dev/null && rm -f dist/test-ws.js",
     "test:extensions": "esbuild test/verify-extensions.ts --platform=node --target=node20 --bundle --outfile=dist/test-ext.js --external:electron && electron --no-sandbox --disable-gpu dist/test-ext.js 2>/dev/null && rm -f dist/test-ext.js",
-    "test": "npm run test:engine && npm run test:commands && npm run test:workspaces && npm run test:extensions"
+    "test:library": "esbuild test/verify-browsing-library.ts --platform=node --target=node20 --bundle --outfile=dist/test-lib.js --external:electron && electron --no-sandbox --disable-gpu dist/test-lib.js 2>/dev/null && rm -f dist/test-lib.js",
+    "test": "npm run test:engine && npm run test:commands && npm run test:workspaces && npm run test:extensions && npm run test:library"
   },
   "keywords": [
     "browser",

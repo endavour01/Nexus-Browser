@@ -1,5 +1,12 @@
 import React, { useState } from 'react';
-import { Bookmark, BrowserSettings, DownloadItem, ExtensionItem, RecentPage, SystemInfo } from '@shared/types';
+import {
+  BookmarkItem,
+  BrowserSettings,
+  DownloadRecord,
+  ExtensionItem,
+  HistoryEntry,
+  SystemInfo,
+} from '@shared/types';
 import { SidePanelType } from './RightToolbar';
 import {
   X,
@@ -18,17 +25,33 @@ import {
   FolderPlus,
   HelpCircle,
   Puzzle,
+  Pause,
+  Play,
+  XCircle,
+  Folder,
+  Globe,
+  FileCheck,
+  Bookmark as BookmarkIcon,
 } from 'lucide-react';
 
 interface SidePanelProps {
   type: SidePanelType;
   onClose: () => void;
-  bookmarks: Bookmark[];
+  bookmarks: BookmarkItem[];
   onAddBookmark: () => void;
   onRemoveBookmark: (id: string) => void;
   onNavigate: (url: string) => void;
-  downloads: DownloadItem[];
+  onOpenBookmarksPage?: () => void;
+  downloads: DownloadRecord[];
   onClearDownloads: () => void;
+  onPauseDownload?: (id: string) => void;
+  onResumeDownload?: (id: string) => void;
+  onCancelDownload?: (id: string) => void;
+  onOpenFile?: (id: string) => void;
+  onShowInFolder?: (id: string) => void;
+  onOpenDownloadsPage?: () => void;
+  onChangeDownloadDirectory?: () => void;
+  downloadDirectory?: string;
   extensions: ExtensionItem[];
   onToggleExtension: (id: string, enabled?: boolean) => void;
   onOpenExtensionsPage?: () => void;
@@ -42,8 +65,11 @@ interface SidePanelProps {
   systemInfo: SystemInfo | null;
   currentUrl?: string;
   isBookmarked: boolean;
-  history?: RecentPage[];
+  history?: HistoryEntry[];
+  onDeleteHistoryEntry?: (id: string) => void;
   onClearHistory?: () => void;
+  onOpenHistoryPage?: () => void;
+  onOpenClearDataModal?: () => void;
 }
 
 export const SidePanel: React.FC<SidePanelProps> = ({
@@ -53,8 +79,17 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   onAddBookmark,
   onRemoveBookmark,
   onNavigate,
+  onOpenBookmarksPage,
   downloads,
   onClearDownloads,
+  onPauseDownload,
+  onResumeDownload,
+  onCancelDownload,
+  onOpenFile,
+  onShowInFolder,
+  onOpenDownloadsPage,
+  onChangeDownloadDirectory,
+  downloadDirectory,
   extensions,
   onToggleExtension,
   onOpenExtensionsPage,
@@ -68,7 +103,10 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   systemInfo,
   isBookmarked,
   history = [],
+  onDeleteHistoryEntry,
   onClearHistory,
+  onOpenHistoryPage,
+  onOpenClearDataModal,
 }) => {
   const [bookmarkQuery, setBookmarkQuery] = useState('');
   const [historyQuery, setHistoryQuery] = useState('');
@@ -88,7 +126,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   const filteredBookmarks = bookmarks.filter(
     (b) =>
       b.title.toLowerCase().includes(bookmarkQuery.toLowerCase()) ||
-      b.url.toLowerCase().includes(bookmarkQuery.toLowerCase())
+      (b.url && b.url.toLowerCase().includes(bookmarkQuery.toLowerCase()))
   );
 
   const filteredHistory = history.filter(
@@ -128,7 +166,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
         {type === 'bookmarks' && (
           <div className="panel-section">
             <div className="panel-actions-row">
-              <div className="panel-search-box">
+              <div className="panel-search-box flex-1">
                 <Search size={13} className="panel-search-icon" />
                 <input
                   type="text"
@@ -141,11 +179,24 @@ export const SidePanel: React.FC<SidePanelProps> = ({
               <button
                 className="panel-action-btn-primary"
                 onClick={onAddBookmark}
-                title={isBookmarked ? 'Already bookmarked' : 'Add current tab'}
+                title={isBookmarked ? 'Edit bookmark' : 'Bookmark current tab'}
               >
                 {isBookmarked ? <Check size={13} /> : <Plus size={13} />}
                 <span>{isBookmarked ? 'Saved' : 'Add'}</span>
               </button>
+            </div>
+
+            <div className="flex items-center justify-between px-1 my-2">
+              <span className="text-[11px] text-muted">{filteredBookmarks.length} items</span>
+              {onOpenBookmarksPage && (
+                <button
+                  className="text-[11px] text-accent hover:underline flex items-center gap-1"
+                  onClick={onOpenBookmarksPage}
+                >
+                  <ExternalLink size={11} />
+                  <span>Open Full Manager</span>
+                </button>
+              )}
             </div>
 
             <div className="panel-list">
@@ -153,10 +204,30 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                 <div className="panel-empty-state">No bookmarks found</div>
               ) : (
                 filteredBookmarks.map((b) => (
-                  <div key={b.id} className="panel-list-item" onClick={() => onNavigate(b.url)}>
+                  <div
+                    key={b.id}
+                    className="panel-list-item"
+                    onClick={() => b.url && onNavigate(b.url)}
+                  >
+                    <div className="flex-shrink-0 mr-1.5 mt-0.5">
+                      {b.type === 'folder' ? (
+                        <Folder size={13} className="text-accent" />
+                      ) : b.favicon ? (
+                        <img
+                          src={b.favicon}
+                          alt=""
+                          className="w-3.5 h-3.5 rounded-sm object-contain"
+                          onError={(e) => {
+                            (e.target as HTMLElement).style.display = 'none';
+                          }}
+                        />
+                      ) : (
+                        <Globe size={13} className="text-secondary" />
+                      )}
+                    </div>
                     <div className="item-meta">
                       <span className="item-title">{b.title}</span>
-                      <span className="item-sub">{b.url}</span>
+                      {b.url && <span className="item-sub font-mono">{b.url}</span>}
                     </div>
                     <button
                       className="item-delete-btn"
@@ -179,7 +250,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
         {type === 'history' && (
           <div className="panel-section">
             <div className="panel-actions-row">
-              <div className="panel-search-box">
+              <div className="panel-search-box flex-1">
                 <Search size={13} className="panel-search-icon" />
                 <input
                   type="text"
@@ -189,13 +260,25 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                   className="panel-search-input"
                 />
               </div>
-              {history.length > 0 && onClearHistory && (
+            </div>
+
+            <div className="flex items-center justify-between px-1 my-2">
+              {onOpenClearDataModal && (
                 <button
-                  className="panel-text-btn"
-                  onClick={onClearHistory}
-                  title="Clear all browsing history"
+                  className="text-[11px] text-red-400 hover:underline flex items-center gap-1"
+                  onClick={onOpenClearDataModal}
                 >
-                  Clear all
+                  <Trash2 size={11} />
+                  <span>Clear data...</span>
+                </button>
+              )}
+              {onOpenHistoryPage && (
+                <button
+                  className="text-[11px] text-accent hover:underline flex items-center gap-1"
+                  onClick={onOpenHistoryPage}
+                >
+                  <ExternalLink size={11} />
+                  <span>Full History</span>
                 </button>
               )}
             </div>
@@ -204,19 +287,33 @@ export const SidePanel: React.FC<SidePanelProps> = ({
               {filteredHistory.length === 0 ? (
                 <div className="panel-empty-state">No history records found</div>
               ) : (
-                filteredHistory.map((item, idx) => (
+                filteredHistory.map((item) => (
                   <div
-                    key={`${item.url}-${item.timestamp}-${idx}`}
+                    key={item.id}
                     className="panel-list-item history-list-item"
                     onClick={() => onNavigate(item.url)}
                   >
                     <div className="item-meta">
                       <span className="item-title">{item.title || item.url}</span>
-                      <span className="item-sub">{item.url}</span>
+                      <span className="item-sub font-mono">{item.url}</span>
                     </div>
-                    <div className="history-item-badge">
-                      <Clock size={11} className="text-secondary" />
-                      <span className="history-timestamp">{formatTime(item.timestamp)}</span>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="history-item-badge">
+                        <Clock size={11} className="text-secondary" />
+                        <span className="history-timestamp">{formatTime(item.timestamp)}</span>
+                      </div>
+                      {onDeleteHistoryEntry && (
+                        <button
+                          className="item-delete-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteHistoryEntry(item.id);
+                          }}
+                          title="Delete from history"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))
@@ -229,39 +326,123 @@ export const SidePanel: React.FC<SidePanelProps> = ({
         {type === 'downloads' && (
           <div className="panel-section">
             <div className="panel-actions-row justify-between">
-              <span className="text-secondary text-xs">{downloads.length} items</span>
-              {downloads.length > 0 && (
-                <button className="panel-text-btn" onClick={onClearDownloads}>
-                  Clear all
-                </button>
-              )}
+              <span className="text-secondary text-xs">{downloads.length} downloads</span>
+              <div className="flex items-center gap-2">
+                {downloads.length > 0 && (
+                  <button className="panel-text-btn" onClick={onClearDownloads}>
+                    Clear finished
+                  </button>
+                )}
+                {onOpenDownloadsPage && (
+                  <button
+                    className="text-[11px] text-accent hover:underline flex items-center gap-1"
+                    onClick={onOpenDownloadsPage}
+                  >
+                    <ExternalLink size={11} />
+                    <span>Full page</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="panel-list">
               {downloads.length === 0 ? (
                 <div className="panel-empty-state">No recent downloads</div>
               ) : (
-                downloads.map((d) => (
-                  <div key={d.id} className="download-item-card">
-                    <div className="download-info">
-                      <span className="download-filename">{d.filename}</span>
-                      <span className="download-size">{d.filesize}</span>
+                downloads.map((d) => {
+                  const isProgressing = d.status === 'progressing';
+                  const isPaused = d.status === 'paused';
+                  const isCompleted = d.status === 'completed';
+
+                  return (
+                    <div key={d.id} className="download-item-card">
+                      <div className="download-info">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          {isCompleted ? (
+                            <FileCheck size={13} className="text-emerald-400 flex-shrink-0" />
+                          ) : (
+                            <FolderOpen size={13} className="text-secondary flex-shrink-0" />
+                          )}
+                          <span className="download-filename truncate" title={d.filename}>
+                            {d.filename}
+                          </span>
+                        </div>
+                        <span className="download-size">{d.filesize}</span>
+                      </div>
+
+                      {isProgressing || isPaused ? (
+                        <div className="space-y-1 mt-1.5">
+                          <div className="download-progress-track">
+                            <div
+                              className={`download-progress-bar ${isPaused ? 'bg-amber-400' : ''}`}
+                              style={{ width: `${d.progress}%` }}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between text-[10px] text-muted">
+                            <span>{d.progress}%</span>
+                            {d.speed && <span className="font-mono text-accent">{d.speed}</span>}
+                            <div className="flex items-center gap-1">
+                              {isProgressing && onPauseDownload && (
+                                <button
+                                  className="text-muted hover:text-primary"
+                                  onClick={() => onPauseDownload(d.id)}
+                                  title="Pause"
+                                >
+                                  <Pause size={10} />
+                                </button>
+                              )}
+                              {isPaused && onResumeDownload && (
+                                <button
+                                  className="text-muted hover:text-primary"
+                                  onClick={() => onResumeDownload(d.id)}
+                                  title="Resume"
+                                >
+                                  <Play size={10} />
+                                </button>
+                              )}
+                              {onCancelDownload && (
+                                <button
+                                  className="text-muted hover:text-red-400"
+                                  onClick={() => onCancelDownload(d.id)}
+                                  title="Cancel"
+                                >
+                                  <XCircle size={10} />
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ) : isCompleted ? (
+                        <div className="flex items-center justify-between mt-1 text-[10px]">
+                          <div className="flex items-center gap-1 text-emerald-400">
+                            <CheckCircle2 size={11} />
+                            <span>Finished</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {onOpenFile && (
+                              <button
+                                className="text-accent hover:underline"
+                                onClick={() => onOpenFile(d.id)}
+                              >
+                                Open
+                              </button>
+                            )}
+                            {onShowInFolder && (
+                              <button
+                                className="text-muted hover:text-primary"
+                                onClick={() => onShowInFolder(d.id)}
+                              >
+                                Show
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-[10px] text-red-400 mt-1">Interrupted</div>
+                      )}
                     </div>
-                    {d.status === 'in_progress' ? (
-                      <div className="download-progress-track">
-                        <div
-                          className="download-progress-bar"
-                          style={{ width: `${d.progress}%` }}
-                        />
-                      </div>
-                    ) : (
-                      <div className="download-status-done">
-                        <CheckCircle2 size={13} className="text-green" />
-                        <span>Finished</span>
-                      </div>
-                    )}
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </div>
@@ -442,6 +623,40 @@ export const SidePanel: React.FC<SidePanelProps> = ({
               </select>
             </div>
 
+            {/* Bookmarks Bar Visibility */}
+            <div className="setting-group">
+              <label className="setting-label">Bookmarks Bar</label>
+              <label className="flex items-center gap-2 cursor-pointer mt-1">
+                <input
+                  type="checkbox"
+                  checked={settings.showBookmarksBar ?? true}
+                  onChange={(e) => onUpdateSettings({ showBookmarksBar: e.target.checked })}
+                />
+                <span className="text-xs text-primary">Always show bookmarks bar</span>
+              </label>
+            </div>
+
+            {/* Download Location */}
+            <div className="setting-group">
+              <label className="setting-label">Downloads Folder</label>
+              <div className="flex items-center gap-2 mt-1">
+                <input
+                  type="text"
+                  readOnly
+                  value={downloadDirectory || 'Default Downloads folder'}
+                  className="nexus-input text-xs font-mono flex-1 bg-[#191D28] text-muted truncate"
+                />
+                {onChangeDownloadDirectory && (
+                  <button
+                    className="nexus-btn-sm nexus-btn-secondary text-xs px-2 py-1 flex-shrink-0"
+                    onClick={onChangeDownloadDirectory}
+                  >
+                    Change
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* Startup Session Behavior */}
             <div className="setting-group">
               <label className="setting-label">On Startup</label>
@@ -499,44 +714,15 @@ export const SidePanel: React.FC<SidePanelProps> = ({
               </div>
             </div>
 
-            {/* Default Zoom Preset */}
+            {/* Clear Browsing Data Dialog Button */}
             <div className="setting-group">
-              <label className="setting-label">Default Page Zoom</label>
-              <select
-                className="setting-select"
-                value={settings.defaultZoom}
-                onChange={(e) => onUpdateSettings({ defaultZoom: Number(e.target.value) })}
-              >
-                <option value="0.8">80%</option>
-                <option value="0.9">90%</option>
-                <option value="1">100% (Standard)</option>
-                <option value="1.1">110%</option>
-                <option value="1.25">125%</option>
-              </select>
-            </div>
-
-            {/* Clear Browsing Data */}
-            <div className="setting-group">
-              <label className="setting-label">Storage & Cache</label>
+              <label className="setting-label">Privacy & Data</label>
               <button
                 className="setting-action-btn"
-                onClick={handleClearCacheClick}
-                disabled={clearingCache}
+                onClick={onOpenClearDataModal || handleClearCacheClick}
               >
-                {clearingCache ? (
-                  <RotateCw size={13} className="animate-spin" />
-                ) : cacheCleared ? (
-                  <Check size={13} className="text-green" />
-                ) : (
-                  <HardDrive size={13} />
-                )}
-                <span>
-                  {clearingCache
-                    ? 'Clearing...'
-                    : cacheCleared
-                    ? 'Cache Cleared!'
-                    : 'Clear Cache & Storage'}
-                </span>
+                <Trash2 size={13} className="text-red-400" />
+                <span>Clear Browsing Data...</span>
               </button>
             </div>
 

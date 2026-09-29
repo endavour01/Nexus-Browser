@@ -82,24 +82,55 @@ export interface ContentBounds {
   bottom: number;
 }
 
-export interface Bookmark {
+export interface BookmarkItem {
+  id: string;
+  type: 'bookmark' | 'folder';
+  title: string;
+  url?: string;
+  favicon?: string;
+  parentId?: string | null; // 'toolbar' | 'other' | custom folder id | null
+  createdAt: number;
+  updatedAt?: number;
+}
+
+export type Bookmark = BookmarkItem;
+
+export interface HistoryEntry {
   id: string;
   title: string;
   url: string;
   favicon?: string;
-  createdAt: number;
-  category?: string;
+  timestamp: number;
+  visitCount: number;
 }
 
-export interface DownloadItem {
+export interface ClearDataOptions {
+  timeRange: '1h' | '24h' | '7d' | '4w' | 'all';
+  history: boolean;
+  downloads: boolean;
+  cookies: boolean;
+  cache: boolean;
+}
+
+export interface DownloadRecord {
   id: string;
   filename: string;
   url: string;
+  savePath: string;
+  mimeType?: string;
+  receivedBytes: number;
+  totalBytes: number;
   filesize: string;
+  speed: string;
   progress: number; // 0 - 100
-  status: 'completed' | 'in_progress' | 'cancelled';
-  timestamp: number;
+  status: 'progressing' | 'paused' | 'completed' | 'cancelled' | 'interrupted';
+  stateReason?: string;
+  startTime: number;
+  endTime?: number;
+  canResume: boolean;
 }
+
+export type DownloadItem = DownloadRecord;
 
 export interface ExtensionCompatibility {
   status: 'compatible' | 'partially_compatible' | 'incompatible';
@@ -166,6 +197,8 @@ export interface BrowserSettings {
   hardwareAcceleration: boolean;
   restoreSessionOnStartup: boolean;
   tabLayout: 'horizontal' | 'vertical';
+  showBookmarksBar?: boolean;
+  defaultDownloadDirectory?: string;
 }
 
 export interface SystemInfo {
@@ -230,6 +263,7 @@ export interface NexusAPI {
   setZoomLevel: (level: number) => Promise<number>;
   getZoomLevel: () => Promise<number>;
   clearBrowsingData: () => Promise<void>;
+  clearBrowsingDataDetailed: (options: ClearDataOptions) => Promise<void>;
   getSystemInfo: () => Promise<SystemInfo>;
 
   // Window Controls
@@ -248,10 +282,40 @@ export interface NexusAPI {
   getInstalledExtensions: () => Promise<InstalledExtension[]>;
   openExtensionPopup: (extensionId: string) => Promise<void>;
 
+  // Bookmarks Management
+  getBookmarks: () => Promise<BookmarkItem[]>;
+  saveBookmark: (item: { id?: string; title: string; url?: string; favicon?: string; parentId?: string | null; type?: 'bookmark' | 'folder' }) => Promise<BookmarkItem>;
+  createBookmarkFolder: (title: string, parentId?: string | null) => Promise<BookmarkItem>;
+  removeBookmark: (id: string) => Promise<boolean>;
+  exportBookmarksHtml: () => Promise<string>;
+  importBookmarksHtml: (htmlContent: string) => Promise<{ imported: number }>;
+
+  // History Management
+  getHistory: (limit?: number) => Promise<HistoryEntry[]>;
+  searchHistory: (query: string, limit?: number) => Promise<HistoryEntry[]>;
+  deleteHistoryEntry: (id: string) => Promise<boolean>;
+  deleteHistoryRange: (startTime: number, endTime: number) => Promise<number>;
+  clearAllHistory: () => Promise<boolean>;
+
+  // Downloads Management
+  getDownloads: () => Promise<DownloadRecord[]>;
+  pauseDownload: (id: string) => Promise<boolean>;
+  resumeDownload: (id: string) => Promise<boolean>;
+  cancelDownload: (id: string) => Promise<boolean>;
+  openDownloadFile: (id: string) => Promise<boolean>;
+  showDownloadInFolder: (id: string) => Promise<boolean>;
+  getDownloadDirectory: () => Promise<string>;
+  setDownloadDirectory: () => Promise<string | null>;
+  clearDownloadsList: () => Promise<void>;
+  removeDownloadEntry: (id: string) => Promise<boolean>;
+
   // Event Listeners
   onTabsUpdated: (callback: (tabs: TabState[], activeTabId: string) => void) => () => void;
   onWindowMaximizedChange: (callback: (isMaximized: boolean) => void) => () => void;
   onExtensionsUpdated: (callback: (extensions: InstalledExtension[]) => void) => () => void;
+  onBookmarksUpdated: (callback: (bookmarks: BookmarkItem[]) => void) => () => void;
+  onHistoryUpdated: (callback: (history: HistoryEntry[]) => void) => () => void;
+  onDownloadsUpdated: (callback: (downloads: DownloadRecord[]) => void) => () => void;
 }
 
 declare global {
@@ -259,4 +323,5 @@ declare global {
     nexusAPI: NexusAPI;
   }
 }
+
 

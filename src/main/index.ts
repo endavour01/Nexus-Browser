@@ -1,8 +1,11 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog, session } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import { TabManager } from './tab-manager';
 import { ExtensionManager } from './extension-manager';
+import { BookmarksStore } from './bookmarks-store';
+import { DownloadManager } from './download-manager';
+import { ClearDataOptions } from '../shared/types';
 
 // Ensure smooth launch on Linux systems without hardware GPU or SUID sandbox helper
 if (process.platform === 'linux') {
@@ -16,6 +19,8 @@ if (process.platform === 'linux') {
 let mainWindow: BrowserWindow | null = null;
 let tabManager: TabManager | null = null;
 let extensionManager: ExtensionManager | null = null;
+let bookmarksStore: BookmarksStore | null = null;
+let downloadManager: DownloadManager | null = null;
 
 const isDev = process.env.ELECTRON_IS_DEV === '1';
 
@@ -37,6 +42,8 @@ function createWindow() {
   });
 
   tabManager = new TabManager(mainWindow);
+  bookmarksStore = new BookmarksStore();
+  downloadManager = new DownloadManager(mainWindow);
   extensionManager = new ExtensionManager(mainWindow);
   extensionManager.init().catch((err) => {
     console.error('[NEXUS] Failed to initialize extension manager:', err);
@@ -80,6 +87,8 @@ function createWindow() {
     mainWindow = null;
     tabManager = null;
     extensionManager = null;
+    bookmarksStore = null;
+    downloadManager = null;
   });
 }
 
@@ -214,6 +223,137 @@ function registerIpcHandlers() {
 
   ipcMain.handle('storage:clear', async () => {
     await tabManager?.clearBrowsingData();
+  });
+
+  ipcMain.handle('storage:clearDetailed', async (_event, options: ClearDataOptions) => {
+    const now = Date.now();
+    let startTime = 0;
+    if (options.timeRange === '1h') startTime = now - 3600 * 1000;
+    else if (options.timeRange === '24h') startTime = now - 24 * 3600 * 1000;
+    else if (options.timeRange === '7d') startTime = now - 7 * 24 * 3600 * 1000;
+    else if (options.timeRange === '4w') startTime = now - 28 * 24 * 3600 * 1000;
+    else if (options.timeRange === 'all') startTime = 0;
+
+    if (options.history) {
+      if (options.timeRange === 'all') {
+        tabManager?.getHistoryStore().clearAll();
+      } else {
+        tabManager?.getHistoryStore().deleteRange(startTime, now);
+      }
+    }
+
+    if (options.downloads) {
+      downloadManager?.clearHistory();
+    }
+
+    if (options.cookies) {
+      try {
+        await session.defaultSession.clearStorageData({
+          storages: ['cookies', 'localstorage', 'websql', 'indexdb'],
+        });
+      } catch (err) {
+        console.warn('Failed to clear storage data:', err);
+      }
+    }
+
+    if (options.cache) {
+      try {
+        await session.defaultSession.clearCache();
+      } catch (err) {
+        console.warn('Failed to clear cache:', err);
+      }
+    }
+  });
+
+  // Bookmarks Management
+  ipcMain.handle('bookmarks:get', () => {
+    return bookmarksStore?.getAll() ?? [];
+  });
+
+  ipcMain.handle('bookmarks:save', (_event, item) => {
+    if (!bookmarksStore) return null;
+    if (item.id && bookmarksStore.getById(item.id)) {
+      return bookmarksStore.updateItem(item.id, item);
+    }
+    return bookmarksStore.addBookmark(item);
+  });
+
+  ipcMain.handle('bookmarks:createFolder', (_event, title: string, parentId?: string | null) => {
+    return bookmarksStore?.createFolder(title, parentId);
+  });
+
+  ipcMain.handle('bookmarks:remove', (_event, id: string) => {
+    return bookmarksStore?.removeItem(id) ?? false;
+  });
+
+  ipcMain.handle('bookmarks:exportHtml', () => {
+    return bookmarksStore?.exportHtml() ?? '';
+  });
+
+  ipcMain.handle('bookmarks:importHtml', (_event, htmlContent: string) => {
+    return bookmarksStore?.importHtml(htmlContent) ?? { imported: 0 };
+  });
+
+  // History Management
+  ipcMain.handle('history:get', (_event, limit?: number) => {
+    return tabManager?.getHistoryStore().getAll(limit) ?? [];
+  });
+
+  ipcMain.handle('history:search', (_event, query: string, limit?: number) => {
+    return tabManager?.getHistoryStore().search(query, limit) ?? [];
+  });
+
+  ipcMain.handle('history:delete', (_event, id: string) => {
+    return tabManager?.getHistoryStore().deleteEntry(id) ?? false;
+  });
+
+  ipcMain.handle('history:deleteRange', (_event, startTime: number, endTime: number) => {
+    return tabManager?.getHistoryStore().deleteRange(startTime, endTime) ?? 0;
+  });
+
+  ipcMain.handle('history:clear', () => {
+    return tabManager?.getHistoryStore().clearAll() ?? false;
+  });
+
+  // Downloads Management
+  ipcMain.handle('downloads:get', () => {
+    return downloadManager?.getAll() ?? [];
+  });
+
+  ipcMain.handle('downloads:pause', (_event, id: string) => {
+    return downloadManager?.pause(id) ?? false;
+  });
+
+  ipcMain.handle('downloads:resume', (_event, id: string) => {
+    return downloadManager?.resume(id) ?? false;
+  });
+
+  ipcMain.handle('downloads:cancel', (_event, id: string) => {
+    return downloadManager?.cancel(id) ?? false;
+  });
+
+  ipcMain.handle('downloads:openFile', async (_event, id: string) => {
+    return (await downloadManager?.openFile(id)) ?? false;
+  });
+
+  ipcMain.handle('downloads:showInFolder', (_event, id: string) => {
+    return downloadManager?.showInFolder(id) ?? false;
+  });
+
+  ipcMain.handle('downloads:getDirectory', () => {
+    return downloadManager?.getDownloadDirectory() ?? '';
+  });
+
+  ipcMain.handle('downloads:setDirectory', async () => {
+    return (await downloadManager?.selectDownloadDirectory()) ?? null;
+  });
+
+  ipcMain.handle('downloads:clear', () => {
+    downloadManager?.clearHistory();
+  });
+
+  ipcMain.handle('downloads:remove', (_event, id: string) => {
+    return downloadManager?.removeRecord(id) ?? false;
   });
 
   // Extensions Management
