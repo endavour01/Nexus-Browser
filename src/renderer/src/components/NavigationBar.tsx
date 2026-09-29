@@ -207,6 +207,9 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
           <Code2 size={16} />
         </button>
       </div>
+
+      {/* Loading Progress Bar */}
+      {activeTab?.isLoading && <div className="navbar-loading-bar" />}
     </div>
   );
 };

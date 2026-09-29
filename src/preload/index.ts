@@ -3,6 +3,9 @@ import { ContentBounds, NexusAPI, SystemInfo, TabState } from '../shared/types';
 
 const api: NexusAPI = {
   createTab: (url?: string, workspaceId?: string) => ipcRenderer.invoke('tabs:create', url, workspaceId),
+  createBackgroundTab: (url: string, workspaceId?: string) => ipcRenderer.invoke('tabs:createBackground', url, workspaceId),
+  duplicateTab: (id: string) => ipcRenderer.invoke('tabs:duplicate', id),
+  reopenClosedTab: () => ipcRenderer.invoke('tabs:reopenClosed'),
   closeTab: (id: string) => ipcRenderer.invoke('tabs:close', id),
   switchTab: (id: string) => ipcRenderer.invoke('tabs:switch', id),
   navigate: (id: string, url: string) => ipcRenderer.invoke('tabs:navigate', id, url),

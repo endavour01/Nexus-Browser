@@ -260,6 +260,17 @@ export const App: React.FC = () => {
     api?.createTab('nexus://newtab', activeWorkspaceId);
   }, [api, activeWorkspaceId]);
 
+  const handleDuplicateTab = useCallback(
+    (id: string) => {
+      api?.duplicateTab(id);
+    },
+    [api]
+  );
+
+  const handleReopenClosedTab = useCallback(() => {
+    api?.reopenClosedTab();
+  }, [api]);
+
   const handleNavigate = useCallback(
     (url: string) => {
       if (activeTabId) {
@@ -366,8 +377,13 @@ export const App: React.FC = () => {
   // Global Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+Shift+T: Reopen Closed Tab
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 't') {
+        e.preventDefault();
+        handleReopenClosedTab();
+      }
       // Ctrl+T: New Tab
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 't') {
+      else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 't') {
         e.preventDefault();
         handleNewTab();
       }
@@ -461,6 +477,9 @@ export const App: React.FC = () => {
         onSelectTab={handleSelectTab}
         onCloseTab={handleCloseTab}
         onNewTab={handleNewTab}
+        onDuplicateTab={handleDuplicateTab}
+        onReopenClosedTab={handleReopenClosedTab}
+        onReloadTab={handleReload}
         onMinimize={handleMinimize}
         onMaximize={handleMaximize}
         onCloseWindow={handleCloseWindow}

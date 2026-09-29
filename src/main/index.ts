@@ -104,6 +104,18 @@ function registerIpcHandlers() {
     return tabManager?.createTab(url, true, workspaceId);
   });
 
+  ipcMain.handle('tabs:createBackground', (_event, url: string, workspaceId?: string) => {
+    return tabManager?.createTab(url, false, workspaceId);
+  });
+
+  ipcMain.handle('tabs:duplicate', (_event, id: string) => {
+    return tabManager?.duplicateTab(id);
+  });
+
+  ipcMain.handle('tabs:reopenClosed', () => {
+    return tabManager?.reopenClosedTab();
+  });
+
   ipcMain.handle('tabs:close', (_event, id: string) => {
     tabManager?.closeTab(id);
   });

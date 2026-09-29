@@ -11,23 +11,47 @@ interface ManagedTab {
   canGoForward: boolean;
   workspaceId: string;
   isPinned: boolean;
+  isSecure: boolean;
+  errorCode?: number;
+  errorDescription?: string;
   view: WebContentsView;
+}
+
+interface ClosedTabRecord {
+  url: string;
+  title: string;
+  workspaceId: string;
 }
 
 export class TabManager {
   private tabs: Map<string, ManagedTab> = new Map();
+  private closedTabs: ClosedTabRecord[] = [];
   private activeTabId: string | null = null;
   private mainWindow: BrowserWindow;
   private bounds: ContentBounds = {
     top: 84,
-    left: 0,
-    right: 0,
+    left: 210,
+    right: 44,
     bottom: 24,
   };
   private searchEngine: string = 'duckduckgo';
 
   constructor(mainWindow: BrowserWindow) {
     this.mainWindow = mainWindow;
+    this.setupPermissions();
+  }
+
+  private setupPermissions() {
+    // Explicit permission handling: block sensitive hardware by default, allow safe web features
+    session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
+      const allowedPermissions = ['fullscreen', 'clipboard-read', 'clipboard-sanitized-write'];
+      if (allowedPermissions.includes(permission)) {
+        callback(true);
+      } else {
+        console.warn(`[NEXUS Security] Blocked device permission request: ${permission}`);
+        callback(false);
+      }
+    });
   }
 
   public setContentBounds(bounds: Partial<ContentBounds>) {
@@ -59,7 +83,28 @@ export class TabManager {
       canGoForward: t.canGoForward,
       workspaceId: t.workspaceId,
       isPinned: t.isPinned,
+      isSecure: t.isSecure,
+      errorCode: t.errorCode,
+      errorDescription: t.errorDescription,
     }));
+  }
+
+  public isValidProtocol(url: string): boolean {
+    const trimmed = url.trim().toLowerCase();
+    if (trimmed.startsWith('nexus://')) return true;
+    if (trimmed.startsWith('https://')) return true;
+    if (trimmed.startsWith('http://')) return true;
+    return false;
+  }
+
+  public isUnsafeProtocol(url: string): boolean {
+    const trimmed = url.trim().toLowerCase();
+    return (
+      trimmed.startsWith('javascript:') ||
+      trimmed.startsWith('vbscript:') ||
+      trimmed.startsWith('file:') ||
+      trimmed.startsWith('data:text/html')
+    );
   }
 
   public createTab(initialUrl?: string, makeActive: boolean = true, workspaceId: string = 'default'): string {
@@ -73,6 +118,7 @@ export class TabManager {
         contextIsolation: true,
         nodeIntegration: false,
         spellcheck: true,
+        disableBlinkFeatures: 'Auxclick',
       },
     });
 
@@ -85,14 +131,32 @@ export class TabManager {
       canGoForward: false,
       workspaceId,
       isPinned: false,
+      isSecure: url.startsWith('https://'),
       view,
     };
 
-    // Attach listeners to view.webContents
     const wc = view.webContents;
+
+    // Security: Block unsafe protocols on will-navigate
+    wc.on('will-navigate', (event, destinationUrl) => {
+      if (this.isUnsafeProtocol(destinationUrl)) {
+        console.warn(`[NEXUS Security] Blocked unsafe navigation to: ${destinationUrl}`);
+        event.preventDefault();
+        return;
+      }
+    });
+
+    wc.on('will-redirect', (_event, destinationUrl) => {
+      if (this.isUnsafeProtocol(destinationUrl)) {
+        console.warn(`[NEXUS Security] Blocked unsafe redirect to: ${destinationUrl}`);
+        _event.preventDefault();
+      }
+    });
 
     wc.on('did-start-loading', () => {
       tab.isLoading = true;
+      tab.errorCode = undefined;
+      tab.errorDescription = undefined;
       this.notifyTabsUpdated();
     });
 
@@ -115,32 +179,162 @@ export class TabManager {
       }
     });
 
-    wc.on('did-navigate', (_event, url) => {
-      tab.url = url;
+    wc.on('did-navigate', (_event, navigatedUrl) => {
+      tab.url = navigatedUrl;
+      tab.isSecure = navigatedUrl.startsWith('https://');
       tab.canGoBack = wc.canGoBack();
       tab.canGoForward = wc.canGoForward();
       this.notifyTabsUpdated();
     });
 
-    wc.on('did-navigate-in-page', (_event, url) => {
-      tab.url = url;
+    wc.on('did-navigate-in-page', (_event, inPageUrl) => {
+      tab.url = inPageUrl;
+      tab.isSecure = inPageUrl.startsWith('https://');
       tab.canGoBack = wc.canGoBack();
       tab.canGoForward = wc.canGoForward();
       this.notifyTabsUpdated();
     });
 
-    // Intercept window.open / target="_blank"
+    // Error handling: catch navigation failures and present styled dark error page
+    wc.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+      // Ignore aborts (e.g. user stopped load or redirected)
+      if (errorCode === -3) return;
+
+      if (isMainFrame) {
+        tab.isLoading = false;
+        tab.errorCode = errorCode;
+        tab.errorDescription = errorDescription;
+        tab.title = 'Connection Failed';
+
+        const errorHtml = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <title>Connection Error</title>
+            <style>
+              body {
+                background-color: #0B0D12;
+                color: #F4F4F5;
+                font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                margin: 0;
+                user-select: none;
+              }
+              .error-card {
+                max-width: 480px;
+                padding: 36px 32px;
+                background-color: #12151D;
+                border: 1px solid #1C202C;
+                border-radius: 10px;
+                text-align: center;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+              }
+              .error-icon {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                background: rgba(248, 113, 113, 0.12);
+                color: #F87171;
+                margin-bottom: 16px;
+                font-size: 20px;
+                font-weight: 700;
+              }
+              h2 {
+                margin: 0 0 8px 0;
+                font-size: 18px;
+                font-weight: 600;
+                color: #F4F4F5;
+              }
+              p {
+                margin: 0 0 20px 0;
+                font-size: 13px;
+                color: #9298A8;
+                line-height: 1.5;
+                word-break: break-all;
+              }
+              .code-badge {
+                display: inline-block;
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 11px;
+                background: #0B0D12;
+                padding: 4px 8px;
+                border-radius: 4px;
+                border: 1px solid #1C202C;
+                color: #A78BFA;
+                margin-top: 8px;
+              }
+              .btn-row {
+                display: flex;
+                gap: 10px;
+                justify-content: center;
+              }
+              button {
+                background: #A78BFA;
+                color: #0B0D12;
+                border: none;
+                padding: 8px 16px;
+                border-radius: 6px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: opacity 120ms ease;
+              }
+              button:hover { opacity: 0.9; }
+              .btn-secondary {
+                background: #191D28;
+                color: #F4F4F5;
+                border: 1px solid #272C3D;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="error-card">
+              <div class="error-icon">!</div>
+              <h2>Unable to connect</h2>
+              <p>NEXUS couldn't establish a secure connection to<br><strong>${validatedURL}</strong><br><span class="code-badge">${errorDescription} (${errorCode})</span></p>
+              <div class="btn-row">
+                <button onclick="location.reload()">Retry Connection</button>
+              </div>
+            </div>
+          </body>
+          </html>
+        `;
+
+        wc.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(errorHtml)}`).catch(() => {});
+        this.notifyTabsUpdated();
+      }
+    });
+
+    // Window open & target="_blank" handler
     wc.setWindowOpenHandler((details) => {
-      this.createTab(details.url, true, tab.workspaceId);
+      if (this.isUnsafeProtocol(details.url)) {
+        console.warn(`[NEXUS Security] Blocked window.open with unsafe URL: ${details.url}`);
+        return { action: 'deny' };
+      }
+
+      // Check disposition for background tabs
+      const isBackground = details.disposition === 'background-tab';
+      this.createTab(details.url, !isBackground, tab.workspaceId);
       return { action: 'deny' };
     });
 
     this.tabs.set(id, tab);
 
-    // Initial load if not newtab
+    // Initial load
     if (!isNewTab) {
-      wc.loadURL(this.formatUrl(url)).catch((err) => {
-        console.error(`Failed to load URL ${url}:`, err);
+      const formatted = this.formatUrl(url);
+      tab.url = formatted;
+      tab.isSecure = formatted.startsWith('https://');
+      wc.loadURL(formatted).catch((err) => {
+        console.error(`Failed to load initial URL ${url}:`, err);
       });
     }
 
@@ -156,7 +350,6 @@ export class TabManager {
   public switchTab(id: string) {
     if (!this.tabs.has(id)) return;
 
-    // Hide currently active view if different
     if (this.activeTabId && this.activeTabId !== id) {
       const prevTab = this.tabs.get(this.activeTabId);
       if (prevTab) {
@@ -177,16 +370,14 @@ export class TabManager {
 
     if (currentTab) {
       const isNewTab = currentTab.url === 'nexus://newtab' || currentTab.url === '';
-      
+
       try {
-        // Ensure child view is added
         const children = this.mainWindow.contentView.children;
         if (!children.includes(currentTab.view)) {
           this.mainWindow.contentView.addChildView(currentTab.view);
         }
 
         if (isNewTab) {
-          // If on new tab workspace, hide the WebContentsView so the React dashboard is visible
           if (typeof currentTab.view.setVisible === 'function') {
             currentTab.view.setVisible(false);
           } else {
@@ -206,9 +397,34 @@ export class TabManager {
     this.notifyTabsUpdated();
   }
 
+  public duplicateTab(id: string): string | null {
+    const tab = this.tabs.get(id);
+    if (!tab) return null;
+    return this.createTab(tab.url, true, tab.workspaceId);
+  }
+
+  public reopenClosedTab(): string | null {
+    if (this.closedTabs.length === 0) return null;
+    const record = this.closedTabs.pop();
+    if (!record) return null;
+    return this.createTab(record.url, true, record.workspaceId);
+  }
+
   public closeTab(id: string) {
     const tab = this.tabs.get(id);
     if (!tab) return;
+
+    // Record in closed tabs stack if valid URL
+    if (tab.url && tab.url !== 'nexus://newtab') {
+      this.closedTabs.push({
+        url: tab.url,
+        title: tab.title,
+        workspaceId: tab.workspaceId,
+      });
+      if (this.closedTabs.length > 25) {
+        this.closedTabs.shift();
+      }
+    }
 
     try {
       this.mainWindow.contentView.removeChildView(tab.view);
@@ -219,7 +435,6 @@ export class TabManager {
 
     this.tabs.delete(id);
 
-    // If closed tab was active, switch to adjacent tab
     if (this.activeTabId === id) {
       const remainingTabIds = Array.from(this.tabs.keys());
       if (remainingTabIds.length > 0) {
@@ -237,8 +452,15 @@ export class TabManager {
     const tab = this.tabs.get(id);
     if (!tab) return;
 
+    // Validate unsafe protocols
+    if (this.isUnsafeProtocol(input)) {
+      console.warn(`[NEXUS Security] Navigation blocked for unsafe protocol: ${input}`);
+      return;
+    }
+
     const formatted = this.formatUrl(input);
     tab.url = formatted;
+    tab.isSecure = formatted.startsWith('https://');
 
     if (formatted === 'nexus://newtab') {
       tab.title = 'New Tab';
@@ -253,7 +475,6 @@ export class TabManager {
       return;
     }
 
-    // Ensure view is visible and added
     try {
       const children = this.mainWindow.contentView.children;
       if (!children.includes(tab.view)) {
@@ -368,7 +589,7 @@ export class TabManager {
     this.mainWindow.webContents.send('tabs:updated', tabStates, this.activeTabId);
   }
 
-  private formatUrl(input: string): string {
+  public formatUrl(input: string): string {
     const trimmed = input.trim();
     if (!trimmed) return 'nexus://newtab';
     if (trimmed === 'nexus://newtab') return 'nexus://newtab';

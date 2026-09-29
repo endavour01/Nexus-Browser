@@ -9,6 +9,9 @@ export interface TabState {
   workspaceId?: string;
   isPinned?: boolean;
   groupId?: string;
+  isSecure?: boolean;
+  errorCode?: number;
+  errorDescription?: string;
 }
 
 export interface ContentBounds {
@@ -71,6 +74,9 @@ export interface SystemInfo {
 export interface NexusAPI {
   // Tab Management
   createTab: (url?: string, workspaceId?: string) => Promise<string>;
+  createBackgroundTab: (url: string, workspaceId?: string) => Promise<string>;
+  duplicateTab: (id: string) => Promise<string | null>;
+  reopenClosedTab: () => Promise<string | null>;
   closeTab: (id: string) => Promise<void>;
   switchTab: (id: string) => Promise<void>;
   navigate: (id: string, url: string) => Promise<void>;

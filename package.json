@@ -13,7 +13,7 @@
     "build:main": "esbuild src/main/index.ts src/preload/index.ts --platform=node --target=node20 --bundle --outdir=dist --sourcemap --external:electron",
     "start": "electron --no-sandbox --disable-gpu .",
     "typecheck": "tsc --noEmit",
-    "test": "esbuild test/verify-engine.ts --platform=node --target=node20 --bundle --outfile=dist/test-verify.js --external:electron && electron --no-sandbox --disable-gpu dist/test-verify.js && rm -f dist/test-verify.js"
+    "test": "esbuild test/verify-full-engine.ts --platform=node --target=node20 --bundle --outfile=dist/test-full.js --external:electron && electron --no-sandbox --disable-gpu dist/test-full.js 2>/dev/null && rm -f dist/test-full.js"
   },
   "keywords": [
     "browser",
