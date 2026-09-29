@@ -46,6 +46,7 @@ import { ResponsiveDeviceBar } from './components/ResponsiveDeviceBar';
 import { ReaderView } from './components/ReaderView';
 import { JsonFormatterModal } from './components/JsonFormatterModal';
 import { DeveloperDashboard } from './components/DeveloperDashboard';
+import { useTheme } from './hooks/useTheme';
 
 const defaultWorkspaces: Workspace[] = [
   { id: 'default', name: 'Personal', icon: 'User', color: '#A78BFA', layout: { sidebarCollapsed: false, tabLayout: 'horizontal' } },
@@ -141,8 +142,17 @@ export const App: React.FC = () => {
       restoreSessionOnStartup: true,
       tabLayout: 'horizontal',
       showBookmarksBar: true,
+      theme: 'dark',
+      reducedMotion: false,
     };
   });
+
+  useTheme(settings.theme);
+
+  useEffect(() => {
+    document.documentElement.dataset.reducedMotion =
+      settings.reducedMotion ? 'true' : 'false';
+  }, [settings.reducedMotion]);
 
   // Save workspaces & settings changes to localStorage
   useEffect(() => {

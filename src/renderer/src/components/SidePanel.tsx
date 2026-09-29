@@ -11,6 +11,7 @@ import {
 } from '@shared/types';
 import { SidePanelType } from './RightToolbar';
 import { DeveloperToolsPanel } from './DeveloperToolsPanel';
+import { NexusState } from './NexusState';
 import {
   X,
   Plus,
@@ -234,7 +235,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
 
             <div className="panel-list">
               {filteredBookmarks.length === 0 ? (
-                <div className="panel-empty-state">No bookmarks found</div>
+                <NexusState variant="empty" title="No bookmarks yet" description="Save pages from the star in the address bar or import HTML." />
               ) : (
                 filteredBookmarks.map((b) => (
                   <div
@@ -318,7 +319,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
 
             <div className="panel-list">
               {filteredHistory.length === 0 ? (
-                <div className="panel-empty-state">No history records found</div>
+                <NexusState variant="empty" title="No history yet" description="Pages you visit will appear here (private tabs excluded)." />
               ) : (
                 filteredHistory.map((item) => (
                   <div
@@ -380,7 +381,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
 
             <div className="panel-list">
               {downloads.length === 0 ? (
-                <div className="panel-empty-state">No recent downloads</div>
+                <NexusState variant="empty" title="No downloads" description="Files you download will show up here with progress and actions." />
               ) : (
                 downloads.map((d) => {
                   const isProgressing = d.status === 'progressing';
@@ -679,6 +680,33 @@ export const SidePanel: React.FC<SidePanelProps> = ({
         {/* ================= Settings View ================= */}
         {type === 'settings' && (
           <div className="panel-section settings-section">
+            {/* Appearance */}
+            <div className="setting-group">
+              <label className="setting-label">Appearance</label>
+              <select
+                className="setting-select"
+                value={settings.theme || 'dark'}
+                onChange={(e) =>
+                  onUpdateSettings({
+                    theme: e.target.value as BrowserSettings['theme'],
+                  })
+                }
+                aria-label="Color theme"
+              >
+                <option value="dark">Dark (default)</option>
+                <option value="light">Light</option>
+                <option value="system">Match system</option>
+              </select>
+              <label className="flex items-center gap-2 cursor-pointer mt-2">
+                <input
+                  type="checkbox"
+                  checked={settings.reducedMotion ?? false}
+                  onChange={(e) => onUpdateSettings({ reducedMotion: e.target.checked })}
+                />
+                <span className="text-xs text-primary">Reduce motion (overrides OS preference)</span>
+              </label>
+            </div>
+
             {/* Search Engine */}
             <div className="setting-group">
               <label className="setting-label">Default Search Engine</label>

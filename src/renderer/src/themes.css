@@ -1,0 +1,70 @@
+/* Light theme — mirrors dark token names for one design system */
+:root[data-theme='light'] {
+  --bg-app: #f4f5f7;
+  --bg-base: #eef0f4;
+  --bg-surface: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-surface-hover: #e8ebf0;
+  --bg-surface-active: #dde2ea;
+  --bg-input: #ffffff;
+
+  --accent-primary: #7c3aed;
+  --accent-primary-hover: #6d28d9;
+  --accent-glow: rgba(124, 58, 237, 0.12);
+  --accent-dim: rgba(124, 58, 237, 0.08);
+
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-muted: #9ca3af;
+
+  --border-subtle: #e5e7eb;
+  --border-medium: #d1d5db;
+  --border-focus: #9ca3af;
+  --border-accent: rgba(124, 58, 237, 0.35);
+
+  --status-green: #059669;
+  --status-amber: #d97706;
+  --status-red: #dc2626;
+}
+
+/* System preference when theme is "system" */
+@media (prefers-color-scheme: light) {
+  :root[data-theme='system'] {
+    --bg-app: #f4f5f7;
+    --bg-base: #eef0f4;
+    --bg-surface: #ffffff;
+    --bg-elevated: #ffffff;
+    --bg-surface-hover: #e8ebf0;
+    --bg-surface-active: #dde2ea;
+    --bg-input: #ffffff;
+
+    --accent-primary: #7c3aed;
+    --accent-primary-hover: #6d28d9;
+    --accent-glow: rgba(124, 58, 237, 0.12);
+    --accent-dim: rgba(124, 58, 237, 0.08);
+
+    --text-primary: #111827;
+    --text-secondary: #4b5563;
+    --text-muted: #9ca3af;
+
+    --border-subtle: #e5e7eb;
+    --border-medium: #d1d5db;
+    --border-focus: #9ca3af;
+    --border-accent: rgba(124, 58, 237, 0.35);
+
+    --status-green: #059669;
+    --status-amber: #d97706;
+    --status-red: #dc2626;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

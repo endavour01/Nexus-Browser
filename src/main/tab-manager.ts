@@ -27,6 +27,7 @@ interface ManagedTab {
   errorCode?: number;
   errorDescription?: string;
   view: WebContentsView;
+  hasStartedLoad: boolean;
 }
 
 interface ClosedTabRecord {
@@ -374,6 +375,7 @@ export class TabManager {
       isSecure: url.startsWith('https://'),
       isPrivate: privateTab,
       view,
+      hasStartedLoad: false,
     };
 
     const wc = view.webContents;
@@ -590,12 +592,13 @@ export class TabManager {
 
     this.tabs.set(id, tab);
 
-    // Initial load
+    // Initial load — defer until tab is activated (avoids loading hidden background tabs)
     if (!isInternalPage) {
       const formatted = this.formatUrl(url);
-      wc.loadURL(formatted).catch((err) => {
-        console.warn('Initial load error for', formatted, err);
-      });
+      tab.url = formatted;
+      if (makeActive) {
+        this.startTabLoad(tab, formatted);
+      }
     }
 
     if (makeActive) {
@@ -605,6 +608,16 @@ export class TabManager {
     }
 
     return id;
+  }
+
+  private startTabLoad(tab: ManagedTab, url?: string) {
+    if (tab.hasStartedLoad || tab.url.startsWith('nexus://') || tab.url === '') return;
+    const target = url ?? this.formatUrl(tab.url);
+    tab.hasStartedLoad = true;
+    tab.isLoading = true;
+    tab.view.webContents.loadURL(target).catch((err) => {
+      console.warn('Load error for', target, err);
+    });
   }
 
   public switchTab(id: string) {
@@ -648,6 +661,7 @@ export class TabManager {
             this.mainWindow.contentView.removeChildView(currentTab.view);
           }
         } else {
+          this.startTabLoad(currentTab);
           if (typeof currentTab.view.setVisible === 'function') {
             currentTab.view.setVisible(!this.isModalOpen);
           }
@@ -821,8 +835,19 @@ export class TabManager {
     } catch (e) {}
 
     try {
+      this.networkMonitor?.clearLogs(id);
+    } catch (e) {}
+
+    try {
       this.mainWindow.contentView.removeChildView(tab.view);
-      (tab.view.webContents as any).close?.();
+      const wc = tab.view.webContents;
+      if (!wc.isDestroyed()) {
+        wc.stop();
+        wc.close();
+      }
+      if (typeof (tab.view as any).destroy === 'function') {
+        (tab.view as any).destroy();
+      }
     } catch (e) {
       console.warn('Error closing tab view:', e);
     }

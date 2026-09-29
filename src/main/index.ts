@@ -93,6 +93,9 @@ function createWindow() {
   // Show window when ready
   mainWindow.once('ready-to-show', () => {
     if (mainWindow) {
+      if (process.env.NEXUS_MEASURE_STARTUP === '1') {
+        console.log('NEXUS_STARTUP_READY');
+      }
       mainWindow.show();
       // Initialize with a default new tab
       tabManager?.createTab('nexus://newtab', true);

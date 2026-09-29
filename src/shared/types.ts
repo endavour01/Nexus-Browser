@@ -191,8 +191,12 @@ export interface ExtensionValidationResult {
   error?: string;
 }
 
+export type ThemePreference = 'dark' | 'light' | 'system';
+
 export interface BrowserSettings {
   searchEngine: 'duckduckgo' | 'google' | 'brave' | 'bing';
+  theme?: ThemePreference;
+  reducedMotion?: boolean;
   defaultZoom: number;
   openDevToolsOnStart: boolean;
   hardwareAcceleration: boolean;
