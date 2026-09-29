@@ -106,7 +106,9 @@ export function useBrowserMode(
         setTelemetry(updated);
       }
     }
+    applyBrowserMode('default');
     onUpdateSettings({
+      mode: 'default',
       performanceTabDiscardTimeout: 180000,
       performanceAutoSuspend: true,
       performanceBackgroundThrottling: true,

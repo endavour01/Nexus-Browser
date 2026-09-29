@@ -20,6 +20,7 @@ import {
   Command,
   X,
   Compass,
+  Sun,
   Sidebar as SidebarIcon,
   Maximize2,
   FileCode,
@@ -485,7 +486,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         title: 'Switch to Default Mode',
         subtitle: 'Obsidian & violet aesthetic, balanced rendering, normal behavior',
         category: 'Browser Modes',
-        icon: 'Sparkles',
+        icon: 'Compass',
         action: () => onSelectMode?.('default'),
       },
       {
@@ -493,7 +494,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         title: 'Switch to Balanced Mode',
         subtitle: 'Metallic gold & warm highlights, Super Saiyan aesthetic, refined rendering',
         category: 'Browser Modes',
-        icon: 'Zap',
+        icon: 'Sun',
         action: () => onSelectMode?.('balanced'),
       },
       {
@@ -501,7 +502,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         title: 'Switch to Performance Mode',
         subtitle: 'Crimson & carbon theme, instant zero-latency UI, aggressive tab suspension',
         category: 'Browser Modes',
-        icon: 'Flame',
+        icon: 'Zap',
         action: () => onSelectMode?.('performance'),
       },
       {
@@ -695,6 +696,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       case 'Maximize2': return <Maximize2 size={15} />;
       case 'FileCode': return <FileCode size={15} />;
       case 'Sparkles': return <Sparkles size={15} />;
+      case 'Compass': return <Compass size={15} />;
+      case 'Sun': return <Sun size={15} />;
       case 'Zap': return <Zap size={15} />;
       case 'Flame': return <Flame size={15} />;
       case 'Search': return <Search size={15} />;

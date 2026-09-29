@@ -151,6 +151,8 @@ async function runModesTestSuite() {
   passedChecks++;
 
   // 3.5 Direct wake method
+  const tabBRecord = (tabManager as any).tabs.get(tabB);
+  if (tabBRecord) tabBRecord.isLoading = false;
   tabManager.switchTab(tabA); // Switch away so tab B can be suspended again
   tabManager.suspendTab(tabB);
   assert(tabManager.getTabState(tabB)?.isSuspended === true, 'Tab B suspended again');

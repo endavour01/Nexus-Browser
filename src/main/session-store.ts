@@ -32,6 +32,9 @@ export class SessionStore {
         ...data,
         version: 1,
         tabs: sanitizedTabs,
+        workspaces: Array.isArray(data.workspaces) ? data.workspaces : [],
+        groups: Array.isArray(data.groups) ? data.groups : [],
+        recentlyClosed: Array.isArray(data.recentlyClosed) ? data.recentlyClosed : [],
       };
 
       const dir = path.dirname(this.filePath);
@@ -58,9 +61,18 @@ export class SessionStore {
       const raw = fs.readFileSync(this.filePath, 'utf8');
       const parsed = JSON.parse(raw) as SavedSessionData;
 
-      if (!parsed || !Array.isArray(parsed.workspaces) || !Array.isArray(parsed.tabs)) {
+      if (!parsed || !Array.isArray(parsed.tabs)) {
         console.warn('[NEXUS SessionStore] Invalid session schema detected');
         return null;
+      }
+      if (!Array.isArray(parsed.workspaces)) {
+        parsed.workspaces = [];
+      }
+      if (!Array.isArray(parsed.groups)) {
+        parsed.groups = [];
+      }
+      if (!Array.isArray(parsed.recentlyClosed)) {
+        parsed.recentlyClosed = [];
       }
       return parsed;
     } catch (err) {

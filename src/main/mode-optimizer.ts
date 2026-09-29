@@ -64,6 +64,7 @@ export class ModeOptimizer extends EventEmitter {
   }
 
   public restoreDefaultBehavior(): void {
+    this.setMode('default');
     this.config = {
       tabInactivityThresholdMs: 180000,
       autoSuspendEnabled: true,
@@ -75,15 +76,10 @@ export class ModeOptimizer extends EventEmitter {
     };
 
     if (this.tabManager) {
-      this.tabManager.setMode(this.currentMode, true);
+      this.tabManager.setMode('default', true);
     }
 
-    if (this.currentMode === 'performance') {
-      this.startAutoSuspension();
-    } else {
-      this.stopAutoSuspension();
-    }
-
+    this.stopAutoSuspension();
     this.broadcastTelemetry();
   }
 

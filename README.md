@@ -92,9 +92,73 @@ npm start
 
 ---
 
+## ⚡ Three-Mode System
+
+NEXUS features an integrated Three-Mode Engine that provides distinct visual identities, tailored operational workflows, and verified system safeguards without disrupting open web pages or running downloads.
+
+### 1. Default Mode — Obsidian & Violet
+* **Visual Identity**: Original charcoal-and-violet aesthetic (`#0B0D12` background, `#12151D` surface, `#A78BFA` violet accent).
+* **Behavior**: Preserves standard browser execution and all user preferences. Background tabs run unthrottled and no automatic resource suspension is enforced.
+* **Default Out of the Box**: Configured as the default experience for all new installations.
+
+### 2. Balanced Mode — Golden Focus & Productivity
+* **Visual Identity**: Super Saiyan-inspired aesthetic featuring deep blacks and rich metallic gold accents (`#090909` background, `#14120C` surface, `#F5C542` primary gold, `#D4A72C` secondary gold, `#FFF8E5` warm typography).
+* **Behavior**: Tailored for focus and extended browsing sessions. Features high-visibility golden keyboard focus rings (`2px solid #F5C542`), dedicated Focus Workspaces for research projects, and optional distraction reduction.
+* **Safeguards**: Never blocks websites or suppresses notifications arbitrarily.
+
+### 3. Performance Mode — Crimson Redline & Carbon
+* **Visual Identity**: High-contrast carbon surfaces and vivid crimson accents (`#080809` background, `#121214` surface, `#F02D43` primary redline, `#A9152A` secondary crimson).
+* **Behavior & Resource Conservation**:
+  - **Zero-Latency Transitions**: Bypasses UI transition delays (`0.01ms`) for instant keyboard and mouse response.
+  - **Background Tab Throttling**: Restricts background timer execution via Chromium `setBackgroundThrottling(true)`.
+  - **Intelligent Inactivity Auto-Suspension**: Unloads inactive background `WebContentsView` processes after a configurable timeout (default 3 minutes), freeing ~85 MB of memory per tab.
+* **Strict Safeguards**:
+  - **Playing Audio**: Tabs playing media or audio are strictly protected from suspension.
+  - **Active Downloads**: Tabs with in-progress file transfers are never discarded.
+  - **Actively Loading Pages**: Tabs currently loading web resources are protected from interruption.
+  - **Foreground Active Tab**: The current visible tab is always preserved.
+* **Honest Telemetry**: Telemetry reports actual measured process memory (`process.memoryUsage().rss` and `heapUsed`) and explicitly distinguishes measured metrics from estimated renderer savings. No fake CPU overclocking or artificial benchmarks.
+
+---
+
+## 🎛️ Mode Controls & Accessibility
+
+* **Toolbar Mode Switcher**: Fast-access toolbar trigger displaying distinctive icons (`Compass` for Default, `Sun` for Balanced, `Zap` for Performance) and a compact popover with live color swatches and active checkmarks.
+* **Full Keyboard Accessibility**: ARIA-compliant `role="radiogroup"` / `role="radio"` navigation with Arrow cycling, `Enter`/`Space` selection, and `Escape` dismissal.
+* **One-Click Reset**: "Restore Standard Behavior" instantly resets the browser mode, tab inactivity thresholds, and throttling back to standard defaults.
+
+---
+
+## 🧪 Verification & Testing Suite
+
+NEXUS includes 12 automated test suites covering core engine operations, IPC security, tab lifecycle, visual tokens, and mode integrations:
+
+```bash
+# Run the complete test suite (all 12 suites)
+npm test
+
+# Run dedicated Three-Mode Integration QA (11 verification suites)
+npm run test:modes-qa
+
+# Run Modes Control Panel & Toolbar Switcher tests (14 check suites)
+npm run test:control-panel
+
+# Run Three-Mode Optimizer & Safeguards tests (22 verification checks)
+npm run test:modes
+
+# Run Runtime Visual Identity & Computed CSS verification
+npm run test:visual
+
+# Typecheck and build
+npm run typecheck
+npm run build
+```
+
+---
+
 ## 🔒 Security Posture
 
 - **Renderer Process**: Completely isolated (`contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`). No Node.js APIs or raw Electron `ipcRenderer` instances are accessible from web content.
 - **Web Engine Views**: Websites render within sandboxed `WebContentsView` contexts. Popups and external links are intercepted using `setWindowOpenHandler` and spawned cleanly as managed NEXUS tabs.
-- **IPC Dispatcher**: Channel access is restricted strictly to high-level actions (`navigate`, `createTab`, `switchTab`, `closeTab`, `toggleDevTools`, `windowControls`).
-# Nexus-Browser
+- **IPC Dispatcher**: Channel access is restricted strictly to high-level actions (`navigate`, `createTab`, `switchTab`, `closeTab`, `toggleDevTools`, `windowControls`, `modes:*`).
+

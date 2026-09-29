@@ -343,6 +343,7 @@ export class TabManager {
     if (tab.id === this.activeTabId) return false;
     if (tab.isPinned && !forceSuspendPinned) return false;
     if (tab.hasAudio) return false;
+    if (tab.isLoading) return false;
     if (this.hasActiveDownload(tabId)) return false;
     if (tab.isSuspended) return false;
     if (tab.url.startsWith('nexus://') || !tab.url) return false;
@@ -728,6 +729,8 @@ export class TabManager {
     tab.isLoading = true;
     tab.view.webContents.loadURL(target).catch((err) => {
       console.warn('Load error for', target, err);
+      tab.isLoading = false;
+      this.notifyTabsUpdated();
     });
   }
 
