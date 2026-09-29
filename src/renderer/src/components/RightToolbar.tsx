@@ -19,6 +19,7 @@ interface RightToolbarProps {
   bookmarkCount: number;
   extensions?: InstalledExtension[];
   onOpenExtensionPopup?: (id: string) => void;
+  minimal?: boolean;
 }
 
 export const RightToolbar: React.FC<RightToolbarProps> = ({
@@ -28,6 +29,7 @@ export const RightToolbar: React.FC<RightToolbarProps> = ({
   bookmarkCount,
   extensions = [],
   onOpenExtensionPopup,
+  minimal = false,
 }) => {
   const toggle = (panel: SidePanelType) => {
     if (activePanel === panel) {
@@ -92,7 +94,7 @@ export const RightToolbar: React.FC<RightToolbarProps> = ({
 
       {/* Extensions Button */}
       <button
-        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'extensions' ? 'active' : ''}`}
+        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'extensions' ? 'active' : ''} ${minimal ? 'minimal-hidden' : ''}`}
         onClick={() => toggle('extensions')}
         title="Extensions & Tools"
       >
@@ -101,7 +103,7 @@ export const RightToolbar: React.FC<RightToolbarProps> = ({
 
       {/* Developer Toolkit Button */}
       <button
-        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'devtools' ? 'active' : ''}`}
+        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'devtools' ? 'active' : ''} ${minimal ? 'minimal-hidden' : ''}`}
         onClick={() => toggle('devtools')}
         title="Developer Toolkit"
       >
@@ -112,7 +114,7 @@ export const RightToolbar: React.FC<RightToolbarProps> = ({
 
       {/* Profiles Button */}
       <button
-        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'profiles' ? 'active' : ''}`}
+        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'profiles' ? 'active' : ''} ${minimal ? 'minimal-hidden' : ''}`}
         onClick={() => toggle('profiles')}
         title="User Profiles"
       >

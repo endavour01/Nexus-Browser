@@ -21,7 +21,9 @@
     "test:privacy-security": "esbuild test/verify-privacy-security.ts --platform=node --target=node20 --bundle --outfile=dist/test-sec.js --external:electron && electron --no-sandbox --disable-gpu dist/test-sec.js 2>/dev/null && rm -f dist/test-sec.js",
     "test:devtools": "esbuild test/verify-developer-tools.ts --platform=node --target=node20 --bundle --outfile=dist/test-devtools.js --external:electron && electron --no-sandbox --disable-gpu dist/test-devtools.js 2>/dev/null && rm -f dist/test-devtools.js",
     "test:qa": "esbuild test/verify-release-qa.ts --platform=node --target=node20 --bundle --outfile=dist/test-qa.js --external:electron && electron --no-sandbox --disable-gpu dist/test-qa.js 2>/dev/null && rm -f dist/test-qa.js",
-    "test": "npm run test:engine && npm run test:commands && npm run test:workspaces && npm run test:extensions && npm run test:library && npm run test:privacy-security && npm run test:devtools && npm run test:qa",
+    "test:modes": "esbuild test/verify-browser-modes.ts --platform=node --target=node20 --bundle --outfile=dist/test-modes.js --external:electron && electron --no-sandbox --disable-gpu dist/test-modes.js 2>/dev/null && rm -f dist/test-modes.js",
+    "test:visual": "esbuild test/verify-modes-runtime.ts --platform=node --target=node20 --bundle --outfile=dist/test-runtime.js --external:electron && electron --no-sandbox --disable-gpu dist/test-runtime.js 2>/dev/null && rm -f dist/test-runtime.js",
+    "test": "npm run test:engine && npm run test:commands && npm run test:workspaces && npm run test:extensions && npm run test:library && npm run test:privacy-security && npm run test:devtools && npm run test:qa && npm run test:modes && npm run test:visual",
     "package": "npm run build && electron-builder --linux AppImage",
     "package:dir": "npm run build && electron-builder --linux --dir",
     "package:all": "npm run build && electron-builder"

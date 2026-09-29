@@ -1,5 +1,5 @@
 import { BrowserWindow, WebContentsView, session } from 'electron';
-import { ContentBounds, SavedSessionData, TabState } from '../shared/types';
+import { ContentBounds, SavedSessionData, TabState, NexusBrowserMode } from '../shared/types';
 import { SessionStore } from './session-store';
 import { HistoryStore } from './history-store';
 import { ProfileManager } from './profile-manager';
@@ -8,6 +8,7 @@ import { SecurityManager } from './security-manager';
 import { TrackingProtection } from './tracking-protection';
 import { ZoomManager } from './zoom-manager';
 import { NetworkMonitor } from './network-monitor';
+import type { DownloadManager } from './download-manager';
 
 interface ManagedTab {
   id: string;
@@ -28,6 +29,9 @@ interface ManagedTab {
   errorDescription?: string;
   view: WebContentsView;
   hasStartedLoad: boolean;
+  isSuspended?: boolean;
+  suspendedAt?: number;
+  lastActiveAt?: number;
 }
 
 interface ClosedTabRecord {
@@ -54,6 +58,7 @@ export class TabManager {
   private trackingProtection?: TrackingProtection;
   private zoomManager?: ZoomManager;
   private networkMonitor?: NetworkMonitor;
+  private downloadManager?: DownloadManager;
   private bounds: ContentBounds = {
     top: 84,
     left: 210,
@@ -62,6 +67,7 @@ export class TabManager {
   };
   private searchEngine: string = 'duckduckgo';
   private isModalOpen: boolean = false;
+  private currentMode: NexusBrowserMode = 'default';
 
   constructor(mainWindow: BrowserWindow) {
     this.mainWindow = mainWindow;
@@ -110,6 +116,20 @@ export class TabManager {
   }
   public getNetworkMonitor(): NetworkMonitor | undefined {
     return this.networkMonitor;
+  }
+
+  public setDownloadManager(dm: DownloadManager) {
+    this.downloadManager = dm;
+  }
+  public getDownloadManager(): DownloadManager | undefined {
+    return this.downloadManager;
+  }
+
+  public hasActiveDownload(tabId: string): boolean {
+    if (!this.downloadManager) return false;
+    const tab = this.tabs.get(tabId);
+    if (!tab || !tab.view || tab.view.webContents.isDestroyed()) return false;
+    return this.downloadManager.hasActiveDownloadForWebContents(tab.view.webContents.id);
   }
 
   public getTabIdForWebContents(wcId: number): string | undefined {
@@ -215,6 +235,8 @@ export class TabManager {
       isPrivate: t.isPrivate,
       errorCode: t.errorCode,
       errorDescription: t.errorDescription,
+      isSuspended: t.isSuspended ?? false,
+      suspendedAt: t.suspendedAt,
     };
   }
 
@@ -267,6 +289,8 @@ export class TabManager {
       isPrivate: t.isPrivate,
       errorCode: t.errorCode,
       errorDescription: t.errorDescription,
+      isSuspended: t.isSuspended ?? false,
+      suspendedAt: t.suspendedAt,
     }));
   }
 
@@ -289,47 +313,90 @@ export class TabManager {
     );
   }
 
-  public createTab(
-    initialUrl?: string,
-    makeActive: boolean = true,
-    workspaceIdOrOptions: string | { workspaceId?: string; isPrivate?: boolean; isPinned?: boolean; groupId?: string } = 'default',
-    isPrivate: boolean = false,
-    isPinned: boolean = false,
-    groupId?: string
-  ): string {
-    let workspaceId = 'default';
-    let privateTab = isPrivate;
-    let pinnedTab = isPinned;
-    let tabGroupId = groupId;
+  public getTabLastActiveTime(tabId: string): number | undefined {
+    return this.tabs.get(tabId)?.lastActiveAt;
+  }
 
-    if (typeof workspaceIdOrOptions === 'object' && workspaceIdOrOptions !== null) {
-      workspaceId = workspaceIdOrOptions.workspaceId || 'default';
-      privateTab = workspaceIdOrOptions.isPrivate ?? isPrivate;
-      pinnedTab = workspaceIdOrOptions.isPinned ?? isPinned;
-      tabGroupId = workspaceIdOrOptions.groupId ?? groupId;
-    } else if (typeof workspaceIdOrOptions === 'string') {
-      workspaceId = workspaceIdOrOptions;
+  public setMode(mode: NexusBrowserMode, backgroundThrottlingEnabled: boolean = true): void {
+    this.currentMode = mode;
+    const shouldThrottle = mode === 'performance' && backgroundThrottlingEnabled;
+    for (const tab of this.tabs.values()) {
+      if (tab.view && !tab.isSuspended) {
+        try {
+          tab.view.webContents.setBackgroundThrottling(shouldThrottle);
+        } catch (e) {}
+      }
+    }
+  }
+
+  public getMode(): NexusBrowserMode {
+    return this.currentMode;
+  }
+
+  public isTabSuspended(tabId: string): boolean {
+    return this.tabs.get(tabId)?.isSuspended ?? false;
+  }
+
+  public suspendTab(tabId: string, forceSuspendPinned: boolean = false): boolean {
+    const tab = this.tabs.get(tabId);
+    if (!tab) return false;
+    if (tab.id === this.activeTabId) return false;
+    if (tab.isPinned && !forceSuspendPinned) return false;
+    if (tab.hasAudio) return false;
+    if (this.hasActiveDownload(tabId)) return false;
+    if (tab.isSuspended) return false;
+    if (tab.url.startsWith('nexus://') || !tab.url) return false;
+
+    try {
+      if (this.mainWindow && !this.mainWindow.isDestroyed() && tab.view) {
+        try {
+          this.mainWindow.contentView.removeChildView(tab.view);
+        } catch (e) {}
+      }
+      if (tab.view) {
+        try {
+          const wc = tab.view.webContents;
+          if (wc && !wc.isDestroyed()) {
+            wc.stop();
+            wc.close();
+          }
+        } catch (e) {}
+        tab.view = undefined as any;
+      }
+    } catch (err) {
+      console.warn('Error during tab suspension:', err);
     }
 
-    const id = `tab-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
-    const url = initialUrl || 'nexus://newtab';
-    const isInternalPage = url.startsWith('nexus://') || url === '';
+    tab.isSuspended = true;
+    tab.suspendedAt = Date.now();
+    this.notifyTabsUpdated();
+    return true;
+  }
 
-    let initialTitle = 'New Tab';
-    if (url === 'nexus://extensions') initialTitle = 'Extensions';
-    else if (url === 'nexus://compatibility') initialTitle = 'Compatibility Guide';
-    else if (url === 'nexus://bookmarks') initialTitle = 'Bookmarks';
-    else if (url === 'nexus://history') initialTitle = 'History';
-    else if (url === 'nexus://downloads') initialTitle = 'Downloads';
-    else if (url === 'nexus://permissions') initialTitle = 'Site Permissions';
-    else if (!isInternalPage) initialTitle = 'Loading...';
+  public wakeTab(tabId: string): boolean {
+    const tab = this.tabs.get(tabId);
+    if (!tab || !tab.isSuspended) return false;
 
-    // Separate session partition for isolated workspaces, profiles, or private tabs
+    tab.view = this.setupWebContentsView(tab);
+    tab.isSuspended = false;
+    tab.suspendedAt = undefined;
+    tab.hasStartedLoad = false;
+    tab.lastActiveAt = Date.now();
+
+    if (tab.url && !tab.url.startsWith('nexus://')) {
+      this.startTabLoad(tab);
+    }
+
+    this.notifyTabsUpdated();
+    return true;
+  }
+
+  private getTabSession(isPrivate: boolean, tabId: string, workspaceId: string): Electron.Session {
     let tabSession: Electron.Session = session.defaultSession;
     const activeProfile = this.profileManager?.getActiveProfile();
 
-    if (privateTab) {
-      tabSession = session.fromPartition(`private_${id}`, { cache: false });
+    if (isPrivate) {
+      tabSession = session.fromPartition(`private_${tabId}`, { cache: false });
     } else if (activeProfile && activeProfile.id !== 'default') {
       tabSession = session.fromPartition(`persist:profile_${activeProfile.id}`);
     } else if (this.isolatedWorkspaces.has(workspaceId)) {
@@ -349,6 +416,11 @@ export class TabManager {
       this.networkMonitor.attachToSession(tabSession);
     }
 
+    return tabSession;
+  }
+
+  private setupWebContentsView(tab: ManagedTab): WebContentsView {
+    const tabSession = this.getTabSession(tab.isPrivate, tab.id, tab.workspaceId);
     const view = new WebContentsView({
       webPreferences: {
         session: tabSession,
@@ -357,28 +429,16 @@ export class TabManager {
         nodeIntegration: false,
         spellcheck: true,
         disableBlinkFeatures: 'Auxclick',
+        backgroundThrottling: this.currentMode === 'performance',
       },
     });
 
-    const tab: ManagedTab = {
-      id,
-      url,
-      title: initialTitle,
-      isLoading: false,
-      canGoBack: false,
-      canGoForward: false,
-      workspaceId,
-      isPinned: pinnedTab,
-      groupId: tabGroupId,
-      isMuted: false,
-      hasAudio: false,
-      isSecure: url.startsWith('https://'),
-      isPrivate: privateTab,
-      view,
-      hasStartedLoad: false,
-    };
-
     const wc = view.webContents;
+    if (this.currentMode === 'performance') {
+      try {
+        wc.setBackgroundThrottling(true);
+      } catch (e) {}
+    }
 
     if (this.securityManager) {
       this.securityManager.attachToWebContents(wc);
@@ -518,35 +578,26 @@ export class TabManager {
               }
               .badge {
                 display: inline-block;
-                padding: 4px 10px;
-                background: rgba(248, 113, 113, 0.15);
+                padding: 4px 8px;
+                background: rgba(248, 113, 113, 0.1);
                 color: #F87171;
-                border: 1px solid rgba(248, 113, 113, 0.3);
+                border: 1px solid rgba(248, 113, 113, 0.2);
                 border-radius: 4px;
+                font-size: 11px;
+                font-weight: 600;
+                margin-bottom: 16px;
+                font-family: monospace;
+              }
+              h2 { margin: 0 0 8px 0; font-size: 18px; font-weight: 600; }
+              p { margin: 0 0 20px 0; font-size: 13px; color: #9298A8; line-height: 1.5; }
+              .url-display {
                 font-family: monospace;
                 font-size: 11px;
-                margin-bottom: 16px;
-                text-transform: uppercase;
-              }
-              h2 {
-                margin: 0 0 12px;
-                font-size: 18px;
-                font-weight: 600;
-              }
-              p {
-                margin: 0 0 20px;
-                font-size: 13px;
-                color: #9298A8;
-                line-height: 1.5;
-              }
-              .url-display {
-                background: #191D28;
-                padding: 8px 12px;
+                background: #0E1017;
+                padding: 8px;
                 border-radius: 4px;
-                font-family: monospace;
-                font-size: 12px;
-                color: #A78BFA;
                 word-break: break-all;
+                color: #575D6E;
                 margin-bottom: 24px;
                 border: 1px solid #272C3D;
               }
@@ -585,10 +636,70 @@ export class TabManager {
     // Handle target="_blank" window.open requests
     wc.setWindowOpenHandler((details) => {
       if (this.isValidProtocol(details.url)) {
-        this.createTab(details.url, true, workspaceId, isPrivate);
+        this.createTab(details.url, true, tab.workspaceId, tab.isPrivate);
       }
       return { action: 'deny' };
     });
+
+    return view;
+  }
+
+  public createTab(
+    initialUrl?: string,
+    makeActive: boolean = true,
+    workspaceIdOrOptions: string | { workspaceId?: string; isPrivate?: boolean; isPinned?: boolean; groupId?: string } = 'default',
+    isPrivate: boolean = false,
+    isPinned: boolean = false,
+    groupId?: string
+  ): string {
+    let workspaceId = 'default';
+    let privateTab = isPrivate;
+    let pinnedTab = isPinned;
+    let tabGroupId = groupId;
+
+    if (typeof workspaceIdOrOptions === 'object' && workspaceIdOrOptions !== null) {
+      workspaceId = workspaceIdOrOptions.workspaceId || 'default';
+      privateTab = workspaceIdOrOptions.isPrivate ?? isPrivate;
+      pinnedTab = workspaceIdOrOptions.isPinned ?? isPinned;
+      tabGroupId = workspaceIdOrOptions.groupId ?? groupId;
+    } else if (typeof workspaceIdOrOptions === 'string') {
+      workspaceId = workspaceIdOrOptions;
+    }
+
+    const id = `tab-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const url = initialUrl || 'nexus://newtab';
+    const isInternalPage = url.startsWith('nexus://') || url === '';
+
+    let initialTitle = 'New Tab';
+    if (url === 'nexus://extensions') initialTitle = 'Extensions';
+    else if (url === 'nexus://compatibility') initialTitle = 'Compatibility Guide';
+    else if (url === 'nexus://bookmarks') initialTitle = 'Bookmarks';
+    else if (url === 'nexus://history') initialTitle = 'History';
+    else if (url === 'nexus://downloads') initialTitle = 'Downloads';
+    else if (url === 'nexus://permissions') initialTitle = 'Site Permissions';
+    else if (!isInternalPage) initialTitle = 'Loading...';
+
+    const tab: ManagedTab = {
+      id,
+      url,
+      title: initialTitle,
+      isLoading: false,
+      canGoBack: false,
+      canGoForward: false,
+      workspaceId,
+      isPinned: pinnedTab,
+      groupId: tabGroupId,
+      isMuted: false,
+      hasAudio: false,
+      isSecure: url.startsWith('https://'),
+      isPrivate: privateTab,
+      view: null as any,
+      hasStartedLoad: false,
+      isSuspended: false,
+      lastActiveAt: Date.now(),
+    };
+
+    tab.view = this.setupWebContentsView(tab);
 
     this.tabs.set(id, tab);
 
@@ -641,6 +752,11 @@ export class TabManager {
     const currentTab = this.tabs.get(id);
 
     if (currentTab) {
+      currentTab.lastActiveAt = Date.now();
+      if (currentTab.isSuspended) {
+        this.wakeTab(id);
+      }
+
       // Sync active workspace if switching to a tab from another workspace
       if (currentTab.workspaceId) {
         this.activeWorkspaceId = currentTab.workspaceId;
@@ -824,14 +940,16 @@ export class TabManager {
     }
 
     // Clean up private tab session data immediately
-    if (tab.isPrivate) {
+    if (tab.isPrivate && tab.view) {
       try {
         tab.view.webContents.session.clearStorageData();
         tab.view.webContents.session.clearCache();
       } catch (e) {}
     }
     try {
-      this.trackingProtection?.resetTabCounter(tab.view.webContents.id);
+      if (tab.view?.webContents) {
+        this.trackingProtection?.resetTabCounter(tab.view.webContents.id);
+      }
     } catch (e) {}
 
     try {
@@ -839,14 +957,18 @@ export class TabManager {
     } catch (e) {}
 
     try {
-      this.mainWindow.contentView.removeChildView(tab.view);
-      const wc = tab.view.webContents;
-      if (!wc.isDestroyed()) {
-        wc.stop();
-        wc.close();
-      }
-      if (typeof (tab.view as any).destroy === 'function') {
-        (tab.view as any).destroy();
+      if (tab.view) {
+        try {
+          this.mainWindow.contentView.removeChildView(tab.view);
+        } catch (e) {}
+        const wc = tab.view.webContents;
+        if (wc && !wc.isDestroyed()) {
+          wc.stop();
+          wc.close();
+        }
+        if (typeof (tab.view as any).destroy === 'function') {
+          (tab.view as any).destroy();
+        }
       }
     } catch (e) {
       console.warn('Error closing tab view:', e);

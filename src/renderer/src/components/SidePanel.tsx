@@ -8,10 +8,14 @@ import {
   SystemInfo,
   UserProfile,
   TrackingProtectionMode,
+  ModeTelemetry,
+  NexusBrowserMode,
+  ModeBehaviorConfig,
 } from '@shared/types';
 import { SidePanelType } from './RightToolbar';
 import { DeveloperToolsPanel } from './DeveloperToolsPanel';
 import { NexusState } from './NexusState';
+import { ModeBehaviorControls } from './ModeBehaviorControls';
 import {
   X,
   Plus,
@@ -38,6 +42,9 @@ import {
   FileCheck,
   Bookmark as BookmarkIcon,
   User,
+  Sparkles,
+  Zap,
+  Flame,
 } from 'lucide-react';
 
 interface SidePanelProps {
@@ -89,6 +96,12 @@ interface SidePanelProps {
   onOpenReaderMode?: () => void;
   onOpenJsonFormatter?: () => void;
   onOpenDevDashboard?: () => void;
+  telemetry?: ModeTelemetry | null;
+  onOptimizeMemory?: () => Promise<{ freedMemoryMB: number; suspendedCount: number }>;
+  onSelectMode?: (mode: NexusBrowserMode) => void;
+  onUpdateModeConfig?: (config: Partial<ModeBehaviorConfig>) => void;
+  onRestoreDefaults?: () => void;
+  onEnterFocusWorkspace?: () => void;
 }
 
 export const SidePanel: React.FC<SidePanelProps> = ({
@@ -140,6 +153,12 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   onOpenJsonFormatter,
   onOpenDevDashboard,
   currentUrl,
+  telemetry,
+  onOptimizeMemory,
+  onSelectMode,
+  onUpdateModeConfig,
+  onRestoreDefaults,
+  onEnterFocusWorkspace,
 }) => {
   const [bookmarkQuery, setBookmarkQuery] = useState('');
   const [historyQuery, setHistoryQuery] = useState('');
@@ -680,9 +699,111 @@ export const SidePanel: React.FC<SidePanelProps> = ({
         {/* ================= Settings View ================= */}
         {type === 'settings' && (
           <div className="panel-section settings-section">
+            {/* Browser Mode */}
+            <div className="setting-group">
+              <label className="setting-label">Browser Mode</label>
+              <div className="mode-cards-container">
+                {/* Default Mode Card */}
+                <div
+                  className={`mode-card ${(!settings.mode || settings.mode === 'default') ? 'active' : ''}`}
+                  onClick={() => onSelectMode ? onSelectMode('default') : onUpdateSettings({ mode: 'default' })}
+                >
+                  <div className="mode-card-header">
+                    <div className="mode-card-title-group">
+                      <div className="mode-icon-box" style={{ background: '#A78BFA18', border: '1px solid #A78BFA33' }}>
+                        <Shield size={13} className="text-[#A78BFA]" />
+                      </div>
+                      <span className="mode-card-title">Default Mode</span>
+                    </div>
+                    {(!settings.mode || settings.mode === 'default') && (
+                      <span className="mode-active-pill" style={{ background: '#A78BFA', color: '#0B0D12' }}>
+                        Active
+                      </span>
+                    )}
+                  </div>
+                  <p className="mode-card-desc">
+                    Obsidian & Violet default. Original aesthetic, fluid animations, standard tabs.
+                  </p>
+                  <div className="mode-palette-preview">
+                    {['#0B0D12', '#12151D', '#191D28', '#A78BFA'].map((c, i) => (
+                      <div key={i} className="mode-palette-swatch" style={{ backgroundColor: c }} />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Balanced Mode Card */}
+                <div
+                  className={`mode-card ${settings.mode === 'balanced' ? 'active' : ''}`}
+                  onClick={() => onSelectMode ? onSelectMode('balanced') : onUpdateSettings({ mode: 'balanced' })}
+                >
+                  <div className="mode-card-header">
+                    <div className="mode-card-title-group">
+                      <div className="mode-icon-box" style={{ background: '#F5C54218', border: '1px solid #F5C54233' }}>
+                        <Sparkles size={13} style={{ color: '#F5C542' }} />
+                      </div>
+                      <span className="mode-card-title">Balanced Mode</span>
+                    </div>
+                    {settings.mode === 'balanced' && (
+                      <span className="mode-active-pill" style={{ background: '#F5C542', color: '#0C0B08' }}>
+                        Active
+                      </span>
+                    )}
+                  </div>
+                  <p className="mode-card-desc">
+                    Metallic-gold & deep black Super Saiyan aesthetic. Warm highlights, rich contrast.
+                  </p>
+                  <div className="mode-palette-preview">
+                    {['#090909', '#14120C', '#211B0D', '#F5C542'].map((c, i) => (
+                      <div key={i} className="mode-palette-swatch" style={{ backgroundColor: c }} />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Performance Mode Card */}
+                <div
+                  className={`mode-card ${settings.mode === 'performance' ? 'active' : ''}`}
+                  onClick={() => onSelectMode ? onSelectMode('performance') : onUpdateSettings({ mode: 'performance' })}
+                >
+                  <div className="mode-card-header">
+                    <div className="mode-card-title-group">
+                      <div className="mode-icon-box" style={{ background: '#F02D4318', border: '1px solid #F02D4333' }}>
+                        <Flame size={13} style={{ color: '#F02D43' }} />
+                      </div>
+                      <span className="mode-card-title">Performance Mode</span>
+                    </div>
+                    {settings.mode === 'performance' && (
+                      <span className="mode-active-pill" style={{ background: '#F02D43', color: '#FFFFFF' }}>
+                        Active
+                      </span>
+                    )}
+                  </div>
+                  <p className="mode-card-desc">
+                    Redline high-contrast crimson & carbon. Zero latency (0.01ms), auto-suspends idle tabs.
+                  </p>
+                  <div className="mode-palette-preview">
+                    {['#080809', '#121214', '#1C1719', '#F02D43'].map((c, i) => (
+                      <div key={i} className="mode-palette-swatch" style={{ backgroundColor: c }} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Mode Behavioral Settings & Telemetry */}
+              <ModeBehaviorControls
+                currentMode={settings.mode || 'default'}
+                settings={settings}
+                telemetry={telemetry || null}
+                onUpdateSettings={onUpdateSettings}
+                onUpdateModeConfig={onUpdateModeConfig}
+                onRestoreDefaults={onRestoreDefaults}
+                onEnterFocusWorkspace={onEnterFocusWorkspace}
+                onOptimizeMemory={onOptimizeMemory}
+              />
+            </div>
+
             {/* Appearance */}
             <div className="setting-group">
-              <label className="setting-label">Appearance</label>
+              <label className="setting-label">Theme Contrast</label>
               <select
                 className="setting-select"
                 value={settings.theme || 'dark'}

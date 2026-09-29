@@ -1,5 +1,5 @@
 import React from 'react';
-import { TabState } from '@shared/types';
+import { TabState, NexusBrowserMode, ModeTelemetry } from '@shared/types';
 import {
   Lock,
   Globe,
@@ -11,6 +11,8 @@ import {
   Loader2,
   Shield,
   Layers,
+  Sparkles,
+  Zap,
 } from 'lucide-react';
 
 interface StatusBarProps {
@@ -22,6 +24,9 @@ interface StatusBarProps {
   onResetZoom: () => void;
   onToggleDevTools: () => void;
   hoveredUrl: string | null;
+  currentMode?: NexusBrowserMode;
+  telemetry?: ModeTelemetry | null;
+  onToggleModeSelector?: () => void;
 }
 
 export const StatusBar: React.FC<StatusBarProps> = ({
@@ -33,6 +38,9 @@ export const StatusBar: React.FC<StatusBarProps> = ({
   onResetZoom,
   onToggleDevTools,
   hoveredUrl,
+  currentMode = 'default',
+  telemetry,
+  onToggleModeSelector,
 }) => {
   const isHttps = activeTab?.url.startsWith('https://');
   const isNexus = activeTab?.url.startsWith('nexus://') || !activeTab?.url;
@@ -71,6 +79,28 @@ export const StatusBar: React.FC<StatusBarProps> = ({
         <div className="statusbar-workspace-pill">
           <Layers size={11} className="text-accent" />
           <span>Space: {activeWorkspaceName}</span>
+        </div>
+
+        {/* Mode Pill */}
+        <div
+          className={`statusbar-mode-pill active-${currentMode || 'default'}`}
+          onClick={onToggleModeSelector}
+          title={`Active Mode: ${currentMode === 'performance' ? 'Performance' : currentMode === 'balanced' ? 'Balanced' : 'Default'}. Click to switch mode or view telemetry.`}
+        >
+          {currentMode === 'performance' ? (
+            <Zap size={11} className="text-[#EF4444]" />
+          ) : currentMode === 'balanced' ? (
+            <Sparkles size={11} className="text-[#EAB308]" />
+          ) : (
+            <Shield size={11} className="text-[#A78BFA]" />
+          )}
+          <span>
+            {currentMode === 'performance'
+              ? `Performance${telemetry?.suspendedTabsCount ? ` (${telemetry.suspendedTabsCount} suspended)` : ''}`
+              : currentMode === 'balanced'
+              ? 'Balanced'
+              : 'Default'}
+          </span>
         </div>
 
         <div className="statusbar-zoom-controls">

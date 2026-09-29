@@ -19,6 +19,7 @@ import {
   Columns,
   ChevronRight,
   ChevronDown,
+  Moon,
 } from 'lucide-react';
 
 interface TitleBarProps {
@@ -269,7 +270,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                     onDrop={(e) => handleDrop(e, tab.id)}
                     className={`nexus-tab ${isActive ? 'active' : ''} ${
                       tab.errorCode ? 'has-error' : ''
-                    } ${dragOverTabId === tab.id ? 'drag-over' : ''}`}
+                    } ${tab.isSuspended ? 'is-suspended' : ''} ${dragOverTabId === tab.id ? 'drag-over' : ''}`}
                     style={group ? { borderTopColor: group.color } : undefined}
                     onClick={() => onSelectTab(tab.id)}
                     onKeyDown={(e) => {
@@ -288,7 +289,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                         onCloseTab(tab.id);
                       }
                     }}
-                    title={`${tab.title || tab.url}\n${tab.url}`}
+                    title={`${tab.title || tab.url}\n${tab.url}${tab.isSuspended ? '\n(Suspended to save memory — click to wake)' : ''}`}
                   >
                     {isActive && (
                       <div
@@ -308,6 +309,12 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                     </div>
 
                     <span className="tab-title">{tab.title || 'New Tab'}</span>
+
+                    {tab.isSuspended && (
+                      <span className="tab-suspended-badge" title="Tab suspended to save memory. Click to wake.">
+                        <Moon size={10} />
+                      </span>
+                    )}
 
                     {tab.hasAudio && (
                       <button

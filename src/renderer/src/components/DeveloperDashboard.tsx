@@ -235,6 +235,14 @@ export const DeveloperDashboard: React.FC<DeveloperDashboardProps> = ({
                   <div className="dev-tab-row-right">
                     {tab.isSecure && <span className="micro-badge badge-secure">HTTPS</span>}
                     {tab.isPinned && <span className="micro-badge">Pinned</span>}
+                    {tab.isSuspended && (
+                      <span
+                        className="micro-badge"
+                        style={{ color: '#F59E0B', borderColor: 'rgba(245, 158, 11, 0.4)' }}
+                      >
+                        Suspended
+                      </span>
+                    )}
                     {tab.isPrivate && <span className="micro-badge badge-private">Incognito</span>}
                     <span className="dev-tab-url font-mono" title={tab.url}>
                       {tab.url}

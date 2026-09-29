@@ -13,7 +13,8 @@ import { TrackingProtection } from './tracking-protection';
 import { NetworkMonitor } from './network-monitor';
 import { ZoomManager } from './zoom-manager';
 import { DeveloperToolsManager } from './developer-tools-manager';
-import { ClearDataOptions, PermissionType, PermissionDecision, TrackingProtectionMode } from '../shared/types';
+import { ModeOptimizer } from './mode-optimizer';
+import { ClearDataOptions, PermissionType, PermissionDecision, TrackingProtectionMode, NexusBrowserMode, ModeBehaviorConfig } from '../shared/types';
 
 // Ensure smooth launch on Linux systems without hardware GPU or SUID sandbox helper
 if (process.platform === 'linux') {
@@ -36,6 +37,7 @@ let trackingProtection: TrackingProtection | null = null;
 let networkMonitor: NetworkMonitor | null = null;
 let zoomManager: ZoomManager | null = null;
 let developerToolsManager: DeveloperToolsManager | null = null;
+let modeOptimizer: ModeOptimizer | null = null;
 
 const isDev = process.env.ELECTRON_IS_DEV === '1';
 
@@ -85,6 +87,8 @@ function createWindow() {
   tabManager.setNetworkMonitor(networkMonitor);
 
   downloadManager = new DownloadManager(mainWindow, profilePaths.downloads);
+  tabManager.setDownloadManager(downloadManager);
+  modeOptimizer = new ModeOptimizer(mainWindow, tabManager);
   extensionManager = new ExtensionManager(mainWindow);
   extensionManager.init().catch((err) => {
     console.error('[NEXUS] Failed to initialize extension manager:', err);
@@ -479,6 +483,7 @@ function registerIpcHandlers() {
       tabManager?.setHistoryStore(new HistoryStore(profilePaths.history));
       if (mainWindow) {
         downloadManager = new DownloadManager(mainWindow, profilePaths.downloads);
+        tabManager?.setDownloadManager(downloadManager);
       }
       mainWindow?.webContents.send('profile:switched', switched);
       return true;
@@ -622,6 +627,60 @@ function registerIpcHandlers() {
 
   ipcMain.handle('devtools:getAllSiteZooms', async () => {
     return developerToolsManager?.getAllSiteZooms() ?? [];
+  });
+
+  // Mode Management & Performance Optimizations
+  ipcMain.handle('modes:setMode', async (_event, mode: NexusBrowserMode) => {
+    modeOptimizer?.setMode(mode);
+  });
+
+  ipcMain.handle('modes:getMode', async () => {
+    return modeOptimizer?.getMode() ?? 'default';
+  });
+
+  ipcMain.handle('modes:getTelemetry', async () => {
+    return (
+      (await modeOptimizer?.getTelemetry()) ?? {
+        activeMode: 'default',
+        memoryUsageMB: 0,
+        heapUsedMB: 0,
+        suspendedTabsCount: 0,
+        totalTabsCount: 0,
+        estimatedMemorySavedMB: 0,
+        backgroundThrottlingEnabled: false,
+      }
+    );
+  });
+
+  ipcMain.handle('modes:suspendTab', async (_event, tabId: string) => {
+    return tabManager?.suspendTab(tabId) ?? false;
+  });
+
+  ipcMain.handle('modes:wakeTab', async (_event, tabId: string) => {
+    return tabManager?.wakeTab(tabId) ?? false;
+  });
+
+  ipcMain.handle('modes:optimizeMemory', async () => {
+    return (
+      (await modeOptimizer?.optimizeMemory()) ?? {
+        freedMemoryMB: 0,
+        suspendedCount: 0,
+      }
+    );
+  });
+
+  ipcMain.handle('modes:getConfig', async () => {
+    return modeOptimizer?.getConfig();
+  });
+
+  ipcMain.handle('modes:updateConfig', async (_event, config: Partial<ModeBehaviorConfig>) => {
+    modeOptimizer?.updateConfig(config);
+    return modeOptimizer?.getConfig();
+  });
+
+  ipcMain.handle('modes:restoreDefaultBehavior', async () => {
+    modeOptimizer?.restoreDefaultBehavior();
+    return modeOptimizer?.getConfig();
   });
 }
 

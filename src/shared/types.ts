@@ -15,6 +15,8 @@ export interface TabState {
   isPrivate?: boolean;
   errorCode?: number;
   errorDescription?: string;
+  isSuspended?: boolean;
+  suspendedAt?: number;
 }
 
 export interface TabGroup {
@@ -192,10 +194,46 @@ export interface ExtensionValidationResult {
 }
 
 export type ThemePreference = 'dark' | 'light' | 'system';
+export type NexusBrowserMode = 'default' | 'balanced' | 'performance';
+
+export interface ModeBehaviorConfig {
+  tabInactivityThresholdMs: number;
+  autoSuspendEnabled: boolean;
+  backgroundThrottlingEnabled: boolean;
+  suspendPinnedTabs: boolean;
+  lightweightUIEnabled: boolean;
+  distractionReductionEnabled: boolean;
+  minimalToolbarEnabled: boolean;
+}
+
+export interface ModeTelemetry {
+  activeMode: NexusBrowserMode;
+  memoryUsageMB: number;
+  heapUsedMB: number;
+  heapTotalMB: number;
+  suspendedTabsCount: number;
+  totalTabsCount: number;
+  activeTabsCount: number;
+  estimatedMemorySavedMB: number;
+  backgroundThrottlingEnabled: boolean;
+  autoSuspensionEnabled: boolean;
+  inactivityThresholdMs: number;
+  lightweightUIEnabled: boolean;
+  featuresEnabled: {
+    backgroundThrottling: boolean;
+    autoTabSuspension: boolean;
+    lightweightUI: boolean;
+    distractionReduction: boolean;
+    pinnedProtection: boolean;
+    audioProtection: boolean;
+    downloadProtection: boolean;
+  };
+}
 
 export interface BrowserSettings {
   searchEngine: 'duckduckgo' | 'google' | 'brave' | 'bing';
   theme?: ThemePreference;
+  mode?: NexusBrowserMode;
   reducedMotion?: boolean;
   defaultZoom: number;
   openDevToolsOnStart: boolean;
@@ -208,6 +246,13 @@ export interface BrowserSettings {
   javascriptEnabled?: boolean;
   popupsBlocked?: boolean;
   thirdPartyCookiesBlocked?: boolean;
+  performanceTabDiscardTimeout?: number;
+  performanceAutoSuspend?: boolean;
+  performanceBackgroundThrottling?: boolean;
+  performanceSuspendPinned?: boolean;
+  performanceLightweightUI?: boolean;
+  balancedDistractionReduction?: boolean;
+  balancedMinimalToolbar?: boolean;
 }
 
 export interface SystemInfo {
@@ -521,6 +566,17 @@ export interface NexusAPI {
   setSiteZoom: (origin: string, zoomFactor: number) => Promise<void>;
   getAllSiteZooms: () => Promise<SiteZoomPreference[]>;
 
+  // Mode Management & Performance Optimizations
+  setBrowserMode: (mode: NexusBrowserMode) => Promise<void>;
+  getBrowserMode: () => Promise<NexusBrowserMode>;
+  getModeTelemetry: () => Promise<ModeTelemetry>;
+  suspendTab: (tabId: string) => Promise<boolean>;
+  wakeTab: (tabId: string) => Promise<boolean>;
+  optimizeMemory: () => Promise<{ freedMemoryMB: number; suspendedCount: number }>;
+  getModeConfig: () => Promise<ModeBehaviorConfig | undefined>;
+  updateModeConfig: (config: Partial<ModeBehaviorConfig>) => Promise<ModeBehaviorConfig | undefined>;
+  restoreModeDefaults: () => Promise<ModeBehaviorConfig | undefined>;
+
   // Event Listeners
   onTabsUpdated: (callback: (tabs: TabState[], activeTabId: string) => void) => () => void;
   onWindowMaximizedChange: (callback: (isMaximized: boolean) => void) => () => void;
@@ -532,6 +588,8 @@ export interface NexusAPI {
   onPermissionPrompt: (callback: (prompt: PermissionPromptRequest) => void) => () => void;
   onTrackingStatsUpdated: (callback: (stats: { totalBlocked: number }) => void) => () => void;
   onNetworkActivity: (callback: (entry: NetworkLogEntry) => void) => () => void;
+  onModeChanged: (callback: (mode: NexusBrowserMode) => void) => () => void;
+  onTelemetryUpdated: (callback: (telemetry: ModeTelemetry) => void) => () => void;
 }
 
 declare global {

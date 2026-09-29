@@ -605,7 +605,7 @@
   top: 2px;
   right: 2px;
   background: var(--accent-primary);
-  color: #0b0d12;
+  color: var(--accent-contrast, #0B0D12);
   font-size: 9px;
   font-weight: 700;
   padding: 1px 4px;
@@ -715,7 +715,7 @@
 
 .panel-action-btn-primary:hover {
   background: var(--accent-primary);
-  color: #0b0d12;
+  color: var(--accent-contrast, #0B0D12);
 }
 
 .panel-text-btn {
@@ -939,7 +939,7 @@
 
 .toggle-switch input:checked + .toggle-slider:before {
   transform: translateX(14px);
-  background-color: #0b0d12;
+  background-color: var(--accent-contrast, #0B0D12);
 }
 
 /* Profiles view */
@@ -958,7 +958,7 @@
   height: 34px;
   border-radius: var(--radius-xs);
   background: var(--accent-primary);
-  color: #0b0d12;
+  color: var(--accent-contrast, #0B0D12);
   font-weight: 700;
   font-size: 11px;
   display: flex;
@@ -2573,7 +2573,7 @@
 }
 
 .swatch-check {
-  color: #0B0D12;
+  color: var(--accent-contrast, #0B0D12);
 }
 
 .icon-selector-grid {
@@ -2680,7 +2680,7 @@
   border: none;
   border-radius: var(--radius-xs);
   padding: 6px 16px;
-  color: #0B0D12;
+  color: var(--accent-contrast, #0B0D12);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -2925,7 +2925,7 @@
 
 .tab-restore-btn:hover {
   background: var(--accent-primary);
-  color: #0B0D12;
+  color: var(--accent-contrast, #0B0D12);
 }
 
 .tab-search-footer {
@@ -3347,7 +3347,7 @@
 
 .nexus-switch input:checked + .nexus-slider:before {
   transform: translateX(14px);
-  background-color: #0B0D12;
+  background-color: var(--accent-contrast, #0B0D12);
 }
 
 .nexus-btn-sm {
@@ -4360,7 +4360,7 @@
 }
 
 .omnibox-badge-btn.nexus {
-  color: #A78BFA;
+  color: var(--accent-primary);
 }
 
 /* Site Security Popover */
@@ -5892,3 +5892,418 @@
   white-space: nowrap;
   flex: 1;
 }
+
+/* ==========================================================================
+   Three-Mode System UI & Telemetry Styles
+   ========================================================================== */
+
+/* Mode Cards in Settings & Dialogs */
+.mode-cards-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.mode-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 140ms ease;
+  overflow: hidden;
+}
+
+.mode-card:hover {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-medium);
+}
+
+.mode-card.active {
+  background: var(--bg-elevated);
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.mode-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.mode-card-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mode-icon-box {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+}
+
+.mode-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.mode-active-pill {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: var(--accent-primary);
+  color: var(--bg-app);
+}
+
+.mode-card-desc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.mode-palette-preview {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 6px;
+  border-radius: 3px;
+  overflow: hidden;
+  opacity: 0.85;
+}
+
+.mode-palette-swatch {
+  height: 100%;
+  flex: 1;
+}
+
+/* Status Bar Mode Pill */
+.statusbar-mode-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.statusbar-mode-pill:hover {
+  background: var(--bg-surface-active);
+  color: var(--text-primary);
+  border-color: var(--border-medium);
+}
+
+.statusbar-mode-pill.active-default {
+  border-color: rgba(167, 139, 250, 0.4);
+  color: #A78BFA;
+}
+
+.statusbar-mode-pill.active-balanced {
+  border-color: rgba(245, 197, 66, 0.5);
+  color: #F5C542;
+}
+
+.statusbar-mode-pill.active-performance {
+  border-color: rgba(240, 45, 67, 0.6);
+  color: #F02D43;
+}
+
+/* Mode-Specific Atmospheric & Component Enhancements */
+:root[data-mode='balanced'] .titlebar-container {
+  border-top: 1px solid rgba(245, 197, 66, 0.25);
+}
+
+:root[data-mode='balanced'] .nexus-tab.active .tab-active-indicator {
+  box-shadow: 0 0 8px rgba(245, 197, 66, 0.6);
+}
+
+:root[data-mode='balanced'] .omnibox-input-wrapper:focus-within {
+  box-shadow: 0 0 0 2px rgba(245, 197, 66, 0.18), 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+:root[data-mode='balanced'] .palette-card {
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(245, 197, 66, 0.2);
+}
+
+:root[data-mode='performance'] .titlebar-container {
+  border-top: 1px solid rgba(240, 45, 67, 0.4);
+  border-bottom: 1px solid rgba(240, 45, 67, 0.15);
+}
+
+:root[data-mode='performance'] .nexus-tab.active .tab-active-indicator {
+  height: 2px;
+  background: #F02D43;
+  box-shadow: 0 0 8px rgba(240, 45, 67, 0.7);
+}
+
+:root[data-mode='performance'] .omnibox-input-wrapper:focus-within {
+  box-shadow: 0 0 0 2px rgba(240, 45, 67, 0.25);
+}
+
+:root[data-mode='performance'] .statusbar {
+  border-top: 1px solid rgba(240, 45, 67, 0.2);
+}
+
+:root[data-mode='performance'] .palette-card {
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(240, 45, 67, 0.3);
+}
+
+/* Suspended Tab in Tab Bar */
+.tab-item.is-suspended {
+  opacity: 0.55;
+  filter: grayscale(0.2);
+}
+
+.tab-item.is-suspended:hover {
+  opacity: 0.85;
+  filter: none;
+}
+
+.tab-suspended-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 2px;
+  color: var(--text-muted);
+}
+
+/* Performance Telemetry HUD */
+.performance-hud-card {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--radius-sm);
+}
+
+.hud-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.hud-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--status-red);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.hud-metrics-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.hud-metric {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  padding: 6px;
+  text-align: center;
+}
+
+.hud-metric-val {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+}
+
+.hud-metric-label {
+  font-size: 9px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.hud-optimize-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--accent-primary);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--radius-xs);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 120ms;
+}
+
+.hud-optimize-btn:hover {
+  opacity: 0.9;
+}
+
+/* --------------------------------------------------------------------------
+   BALANCED MODE — FOCUS & PRODUCTIVITY STYLES
+   -------------------------------------------------------------------------- */
+:root[data-mode='balanced'] :focus-visible {
+  outline: 2px solid var(--accent-primary) !important;
+  outline-offset: 1px;
+}
+
+:root[data-mode='balanced'][data-distraction-reduction='true'] .minimal-hidden {
+  display: none !important;
+}
+
+:root[data-mode='balanced'][data-distraction-reduction='true'] .toolbar-badge {
+  opacity: 0.7;
+}
+
+.focus-workspace-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  background: rgba(245, 197, 66, 0.15);
+  border: 1px solid rgba(245, 197, 66, 0.35);
+  border-radius: var(--radius-xs);
+  color: #F5C542;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   PERFORMANCE MODE — LIGHTWEIGHT UI
+   -------------------------------------------------------------------------- */
+:root[data-mode='performance'] .modal-backdrop,
+:root[data-mode='performance'] .side-panel,
+:root[data-mode='performance'] .command-palette-backdrop,
+:root[data-mode='performance'] .command-palette-modal,
+:root[data-mode='performance'] .dropdown-menu {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background-color: var(--bg-surface) !important;
+  box-shadow: none !important;
+}
+
+:root[data-mode='performance'] * {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   MODE CONTROLS & BEHAVIOR SECTION IN SETTINGS / MODALS
+   -------------------------------------------------------------------------- */
+.mode-behavior-section {
+  margin-top: 12px;
+  padding: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mode-behavior-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mode-control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.mode-control-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mode-control-sublabel {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.mode-select {
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+  font-size: 12px;
+  outline: none;
+}
+
+.mode-restore-btn {
+  margin-top: 6px;
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-xs);
+  color: var(--text-secondary);
+  font-size: 11px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 120ms;
+}
+
+.mode-restore-btn:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+  border-color: var(--border-focus);
+}
+
+.metric-tag-measured {
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10B981;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.metric-tag-estimated {
+  font-size: 9px;
+  padding: 1px 4px;
+  border-radius: 2px;
+  background: rgba(245, 158, 11, 0.15);
+  color: #F59E0B;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+

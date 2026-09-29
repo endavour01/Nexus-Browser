@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { TabState, Workspace, SidePanelType } from '@shared/types';
+import { TabState, Workspace, SidePanelType, NexusBrowserMode } from '@shared/types';
 import {
   Search,
   Globe,
@@ -24,6 +24,8 @@ import {
   Maximize2,
   FileCode,
   Sparkles,
+  Zap,
+  Flame,
 } from 'lucide-react';
 
 export interface CommandPaletteItem {
@@ -69,6 +71,9 @@ interface CommandPaletteProps {
   onOpenReaderMode?: () => void;
   onOpenJsonFormatter?: () => void;
   onOpenColorPicker?: () => void;
+  onSelectMode?: (mode: NexusBrowserMode) => void;
+  onOptimizeMemory?: () => Promise<{ freedMemoryMB: number; suspendedCount: number }> | void;
+  onOpenModeSelector?: () => void;
 }
 
 // Fuzzy matching algorithm
@@ -120,6 +125,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   onOpenReaderMode,
   onOpenJsonFormatter,
   onOpenColorPicker,
+  onSelectMode,
+  onOptimizeMemory,
+  onOpenModeSelector,
 }) => {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -470,6 +478,50 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         icon: 'Globe',
         action: () => onNavigate('nexus://dev'),
       },
+
+      // --- Browser Modes & Performance ---
+      {
+        id: 'mode-default',
+        title: 'Switch to Default Mode',
+        subtitle: 'Obsidian & violet aesthetic, balanced rendering, normal behavior',
+        category: 'Browser Modes',
+        icon: 'Sparkles',
+        action: () => onSelectMode?.('default'),
+      },
+      {
+        id: 'mode-balanced',
+        title: 'Switch to Balanced Mode',
+        subtitle: 'Metallic gold & warm highlights, Super Saiyan aesthetic, refined rendering',
+        category: 'Browser Modes',
+        icon: 'Zap',
+        action: () => onSelectMode?.('balanced'),
+      },
+      {
+        id: 'mode-performance',
+        title: 'Switch to Performance Mode',
+        subtitle: 'Crimson & carbon theme, instant zero-latency UI, aggressive tab suspension',
+        category: 'Browser Modes',
+        icon: 'Flame',
+        action: () => onSelectMode?.('performance'),
+      },
+      {
+        id: 'mode-open-modal',
+        title: 'Select Browser Mode...',
+        subtitle: 'View detailed comparison of Default, Balanced, and Performance modes',
+        category: 'Browser Modes',
+        icon: 'Layers',
+        action: () => onOpenModeSelector?.(),
+      },
+      {
+        id: 'mode-optimize-memory',
+        title: 'Optimize Memory / Suspend Inactive Tabs',
+        subtitle: 'Free memory by suspending background tabs that have been idle',
+        category: 'Browser Modes',
+        icon: 'Trash2',
+        action: () => {
+          onOptimizeMemory?.();
+        },
+      },
     ];
 
     return cmds;
@@ -502,6 +554,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     onOpenReaderMode,
     onOpenJsonFormatter,
     onOpenColorPicker,
+    onSelectMode,
+    onOptimizeMemory,
+    onOpenModeSelector,
   ]);
 
   // Open Tab items for quick tab switcher
@@ -640,6 +695,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       case 'Maximize2': return <Maximize2 size={15} />;
       case 'FileCode': return <FileCode size={15} />;
       case 'Sparkles': return <Sparkles size={15} />;
+      case 'Zap': return <Zap size={15} />;
+      case 'Flame': return <Flame size={15} />;
       case 'Search': return <Search size={15} />;
       case 'X': return <X size={15} />;
       default: return <Command size={15} />;

@@ -10,6 +10,7 @@ export class DownloadManager {
   private records: Map<string, DownloadRecord> = new Map();
   private activeItems: Map<string, Electron.DownloadItem> = new Map();
   private speedTrackers: Map<string, { lastBytes: number; lastTime: number }> = new Map();
+  private activeWebContents: Map<string, number> = new Map();
   private defaultDownloadDir: string;
 
   constructor(mainWindow?: BrowserWindow | null, customStorageDir?: string) {
@@ -160,6 +161,9 @@ export class DownloadManager {
       this.records.set(id, initialRecord);
       this.activeItems.set(id, item);
       this.speedTrackers.set(id, { lastBytes: 0, lastTime: Date.now() });
+      if (webContents && !webContents.isDestroyed()) {
+        this.activeWebContents.set(id, webContents.id);
+      }
 
       this.save();
       this.notifyUpdated();
@@ -229,6 +233,7 @@ export class DownloadManager {
 
         this.activeItems.delete(id);
         this.speedTrackers.delete(id);
+        this.activeWebContents.delete(id);
         this.save();
         this.notifyUpdated();
       });
@@ -372,12 +377,29 @@ export class DownloadManager {
     if (this.activeItems.has(id)) {
       this.cancel(id);
     }
+    this.activeWebContents.delete(id);
     const existed = this.records.delete(id);
     if (existed) {
       this.save();
       this.notifyUpdated();
     }
     return existed;
+  }
+
+  public hasActiveDownloadForWebContents(wcId: number): boolean {
+    for (const [id, targetWcId] of this.activeWebContents.entries()) {
+      if (targetWcId === wcId) {
+        const record = this.records.get(id);
+        if (record && (record.status === 'progressing' || record.status === 'paused')) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  public hasActiveDownloads(): boolean {
+    return this.activeItems.size > 0;
   }
 
   public clearHistory(): void {

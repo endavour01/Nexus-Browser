@@ -1,5 +1,188 @@
-/* Light theme — mirrors dark token names for one design system */
-:root[data-theme='light'] {
+/* ==========================================================================
+   NEXUS THEMES & THREE-MODE DESIGN SYSTEM
+   Modes: default (Obsidian & Violet), balanced (Metallic Gold), performance (Redline Mode)
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   DEFAULT MODE (:root, :root[data-mode='default'])
+   Obsidian & Violet power-user default palette
+   -------------------------------------------------------------------------- */
+:root,
+:root[data-mode='default'] {
+  --bg-app: #0B0D12;
+  --bg-base: #0B0D12;
+  --bg-surface: #12151D;
+  --bg-elevated: #191D28;
+  --bg-surface-hover: #1A1E29;
+  --bg-surface-active: #222838;
+  --bg-input: #0E1017;
+
+  --accent-primary: #A78BFA;
+  --accent-primary-hover: #906FFA;
+  --accent-secondary: #8B5CF6;
+  --accent-glow: rgba(167, 139, 250, 0.15);
+  --accent-dim: rgba(167, 139, 250, 0.08);
+  --accent-contrast: #0B0D12;
+
+  --text-primary: #F4F4F5;
+  --text-secondary: #9298A8;
+  --text-muted: #575D6E;
+
+  --border-subtle: #1C202C;
+  --border-medium: #272C3D;
+  --border-focus: #3D445D;
+  --border-accent: rgba(167, 139, 250, 0.4);
+
+  --status-green: #34D399;
+  --status-amber: #FBBF24;
+  --status-red: #F87171;
+}
+
+/* --------------------------------------------------------------------------
+   BALANCED MODE (:root[data-mode='balanced'])
+   Premium Metallic-Gold & Black Super Saiyan Aesthetic
+   Warm golden highlights, rich dark surfaces, extended reading comfort
+   -------------------------------------------------------------------------- */
+:root[data-mode='balanced'] {
+  --bg-app: #090909;
+  --bg-base: #090909;
+  --bg-surface: #14120C;
+  --bg-elevated: #211B0D;
+  --bg-surface-hover: #1A170F;
+  --bg-surface-active: #272114;
+  --bg-input: #0E0D08;
+
+  --accent-primary: #F5C542;
+  --accent-primary-hover: #F8D36B;
+  --accent-secondary: #D4A72C;
+  --accent-glow: rgba(245, 197, 66, 0.18);
+  --accent-dim: rgba(245, 197, 66, 0.08);
+  --accent-contrast: #0C0B08;
+
+  --text-primary: #FFF8E5;
+  --text-secondary: #B6A77C;
+  --text-muted: #7A6F4E;
+
+  --border-subtle: #2A2312;
+  --border-medium: #3E3319;
+  --border-focus: #635224;
+  --border-accent: rgba(245, 197, 66, 0.4);
+
+  --status-green: #34D399;
+  --status-amber: #F59E0B;
+  --status-red: #F87171;
+}
+
+:root[data-mode='balanced'][data-theme='light'] {
+  --bg-app: #FBF9F2;
+  --bg-base: #F5F1E6;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-surface-hover: #F0EAD8;
+  --bg-surface-active: #E6DDC4;
+  --bg-input: #FFFFFF;
+
+  --accent-primary: #B45309;
+  --accent-primary-hover: #92400E;
+  --accent-secondary: #D4A72C;
+  --accent-glow: rgba(180, 83, 9, 0.16);
+  --accent-dim: rgba(180, 83, 9, 0.08);
+  --accent-contrast: #FFFFFF;
+
+  --text-primary: #262115;
+  --text-secondary: #5C523A;
+  --text-muted: #8F8265;
+
+  --border-subtle: #E8E0CE;
+  --border-medium: #D4C9AF;
+  --border-focus: #8F8265;
+  --border-accent: rgba(180, 83, 9, 0.4);
+}
+
+/* --------------------------------------------------------------------------
+   PERFORMANCE MODE (:root[data-mode='performance'])
+   Aggressive Red & Carbon Black Aesthetic (Redline Mode)
+   High-energy crimson, deep carbon graphite, precision technical layout
+   -------------------------------------------------------------------------- */
+:root[data-mode='performance'] {
+  --bg-app: #080809;
+  --bg-base: #080809;
+  --bg-surface: #121214;
+  --bg-elevated: #1C1719;
+  --bg-surface-hover: #18171B;
+  --bg-surface-active: #231C20;
+  --bg-input: #0B0B0D;
+
+  --accent-primary: #F02D43;
+  --accent-primary-hover: #F8495E;
+  --accent-secondary: #A9152A;
+  --accent-glow: rgba(240, 45, 67, 0.22);
+  --accent-dim: rgba(240, 45, 67, 0.09);
+  --accent-contrast: #FFFFFF;
+
+  --text-primary: #F5F5F5;
+  --text-secondary: #A6A6AD;
+  --text-muted: #6E6872;
+
+  --border-subtle: #261619;
+  --border-medium: #3B1B21;
+  --border-focus: #5E202A;
+  --border-accent: rgba(240, 45, 67, 0.45);
+
+  --status-green: #10B981;
+  --status-amber: #F59E0B;
+  --status-red: #F02D43;
+}
+
+:root[data-mode='performance'][data-theme='light'] {
+  --bg-app: #FDF4F4;
+  --bg-base: #F8EAEA;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --bg-surface-hover: #F5DADA;
+  --bg-surface-active: #ECC8C8;
+  --bg-input: #FFFFFF;
+
+  --accent-primary: #B91C1C;
+  --accent-primary-hover: #991B1B;
+  --accent-secondary: #A9152A;
+  --accent-glow: rgba(185, 28, 28, 0.16);
+  --accent-dim: rgba(185, 28, 28, 0.08);
+  --accent-contrast: #FFFFFF;
+
+  --text-primary: #2B0E10;
+  --text-secondary: #5E262A;
+  --text-muted: #946065;
+
+  --border-subtle: #ECC8C8;
+  --border-medium: #DC9B9B;
+  --border-focus: #946065;
+  --border-accent: rgba(185, 28, 28, 0.4);
+}
+
+/* Eliminate UI transition and animation latency in performance mode */
+:root[data-mode='performance'] *,
+:root[data-mode='performance'] *::before,
+:root[data-mode='performance'] *::after {
+  transition-duration: 0.01ms !important;
+  animation-duration: 0.01ms !important;
+}
+
+/* Subtle mode-specific surface transitions without delaying user interaction */
+:root:not([data-mode='performance']) body,
+:root:not([data-mode='performance']) .titlebar-container,
+:root:not([data-mode='performance']) .navbar,
+:root:not([data-mode='performance']) .sidebar,
+:root:not([data-mode='performance']) .statusbar,
+:root:not([data-mode='performance']) .side-panel,
+:root:not([data-mode='performance']) .right-toolbar {
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+/* --------------------------------------------------------------------------
+   STANDARD LIGHT THEME (Matches Default Mode)
+   -------------------------------------------------------------------------- */
+:root[data-theme='light']:not([data-mode='balanced']):not([data-mode='performance']) {
   --bg-app: #f4f5f7;
   --bg-base: #eef0f4;
   --bg-surface: #ffffff;
@@ -29,7 +212,7 @@
 
 /* System preference when theme is "system" */
 @media (prefers-color-scheme: light) {
-  :root[data-theme='system'] {
+  :root[data-theme='system']:not([data-mode='balanced']):not([data-mode='performance']) {
     --bg-app: #f4f5f7;
     --bg-base: #eef0f4;
     --bg-surface: #ffffff;

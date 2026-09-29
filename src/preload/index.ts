@@ -216,6 +216,17 @@ const api: NexusAPI = {
   setSiteZoom: (origin: string, zoomFactor: number) => ipcRenderer.invoke('devtools:setSiteZoom', origin, zoomFactor),
   getAllSiteZooms: () => ipcRenderer.invoke('devtools:getAllSiteZooms'),
 
+  // Mode Management & Performance Optimizations
+  setBrowserMode: (mode: any) => ipcRenderer.invoke('modes:setMode', mode),
+  getBrowserMode: () => ipcRenderer.invoke('modes:getMode'),
+  getModeTelemetry: () => ipcRenderer.invoke('modes:getTelemetry'),
+  suspendTab: (tabId: string) => ipcRenderer.invoke('modes:suspendTab', tabId),
+  wakeTab: (tabId: string) => ipcRenderer.invoke('modes:wakeTab', tabId),
+  optimizeMemory: () => ipcRenderer.invoke('modes:optimizeMemory'),
+  getModeConfig: () => ipcRenderer.invoke('modes:getConfig'),
+  updateModeConfig: (config: any) => ipcRenderer.invoke('modes:updateConfig', config),
+  restoreModeDefaults: () => ipcRenderer.invoke('modes:restoreDefaultBehavior'),
+
   onNetworkActivity: (callback: (entry: any) => void) => {
     const handler = (_event: Electron.IpcRendererEvent, entry: any) => {
       callback(entry);
@@ -223,6 +234,26 @@ const api: NexusAPI = {
     ipcRenderer.on('devtools:networkActivity', handler);
     return () => {
       ipcRenderer.removeListener('devtools:networkActivity', handler);
+    };
+  },
+
+  onModeChanged: (callback: (mode: any) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, mode: any) => {
+      callback(mode);
+    };
+    ipcRenderer.on('modes:changed', handler);
+    return () => {
+      ipcRenderer.removeListener('modes:changed', handler);
+    };
+  },
+
+  onTelemetryUpdated: (callback: (telemetry: any) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, telemetry: any) => {
+      callback(telemetry);
+    };
+    ipcRenderer.on('modes:telemetry', handler);
+    return () => {
+      ipcRenderer.removeListener('modes:telemetry', handler);
     };
   },
 };

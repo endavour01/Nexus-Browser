@@ -46,7 +46,9 @@ import { ResponsiveDeviceBar } from './components/ResponsiveDeviceBar';
 import { ReaderView } from './components/ReaderView';
 import { JsonFormatterModal } from './components/JsonFormatterModal';
 import { DeveloperDashboard } from './components/DeveloperDashboard';
+import { ModeSelectorModal } from './components/ModeSelectorModal';
 import { useTheme } from './hooks/useTheme';
+import { useBrowserMode, applyDistractionReduction } from './hooks/useBrowserMode';
 
 const defaultWorkspaces: Workspace[] = [
   { id: 'default', name: 'Personal', icon: 'User', color: '#A78BFA', layout: { sidebarCollapsed: false, tabLayout: 'horizontal' } },
@@ -144,8 +146,26 @@ export const App: React.FC = () => {
       showBookmarksBar: true,
       theme: 'dark',
       reducedMotion: false,
+      mode: 'default',
     };
   });
+
+  const [isModeSelectorOpen, setIsModeSelectorOpen] = useState(false);
+
+  const handleUpdateSettings = useCallback((newSettings: Partial<BrowserSettings>) => {
+    setSettings((prev) => ({ ...prev, ...newSettings }));
+  }, []);
+
+  const {
+    mode: browserMode,
+    setMode: setBrowserMode,
+    telemetry: modeTelemetry,
+    optimizeMemory,
+    suspendTab,
+    wakeTab,
+    updateModeConfig,
+    restoreDefaults: restoreModeDefaults,
+  } = useBrowserMode(settings.mode, handleUpdateSettings);
 
   useTheme(settings.theme);
 
@@ -153,6 +173,34 @@ export const App: React.FC = () => {
     document.documentElement.dataset.reducedMotion =
       settings.reducedMotion ? 'true' : 'false';
   }, [settings.reducedMotion]);
+
+  useEffect(() => {
+    const isDistractionFree = browserMode === 'balanced' && !!settings.balancedDistractionReduction;
+    applyDistractionReduction(isDistractionFree);
+    if (isDistractionFree) {
+      setSidebarCollapsed(true);
+    }
+  }, [browserMode, settings.balancedDistractionReduction]);
+
+  const handleEnterFocusWorkspace = useCallback(() => {
+    const existingFocus = workspaces.find((w) => w.id === 'focus');
+    if (existingFocus) {
+      setActiveWorkspaceId('focus');
+    } else {
+      const focusWs: Workspace = {
+        id: 'focus',
+        name: 'Focus Session',
+        icon: 'Target',
+        color: '#F5C542',
+        layout: { sidebarCollapsed: true, tabLayout: 'horizontal' },
+      };
+      const updated = [...workspaces, focusWs];
+      setWorkspaces(updated);
+      localStorage.setItem('nexus_workspaces', JSON.stringify(updated));
+      setActiveWorkspaceId('focus');
+    }
+    setSidebarCollapsed(true);
+  }, [workspaces]);
 
   // Save workspaces & settings changes to localStorage
   useEffect(() => {
@@ -866,10 +914,6 @@ export const App: React.FC = () => {
     [api]
   );
 
-  const handleUpdateSettings = useCallback((newSettings: Partial<BrowserSettings>) => {
-    setSettings((prev) => ({ ...prev, ...newSettings }));
-  }, []);
-
   const handleClearCache = useCallback(async () => {
     if (api) {
       await api.clearBrowsingData();
@@ -1356,6 +1400,12 @@ export const App: React.FC = () => {
             onOpenReaderMode={handleOpenReaderMode}
             onOpenJsonFormatter={handleOpenJsonFormatter}
             onOpenDevDashboard={handleOpenDevDashboard}
+            telemetry={modeTelemetry}
+            onOptimizeMemory={optimizeMemory}
+            onSelectMode={setBrowserMode}
+            onUpdateModeConfig={updateModeConfig}
+            onRestoreDefaults={restoreModeDefaults}
+            onEnterFocusWorkspace={handleEnterFocusWorkspace}
           />
         )}
 
@@ -1367,6 +1417,7 @@ export const App: React.FC = () => {
           bookmarkCount={bookmarks.length}
           extensions={extensions}
           onOpenExtensionPopup={handleOpenExtensionPopup}
+          minimal={browserMode === 'balanced' && !!settings.balancedMinimalToolbar}
         />
       </div>
 
@@ -1380,6 +1431,9 @@ export const App: React.FC = () => {
         onResetZoom={handleResetZoom}
         onToggleDevTools={handleToggleDevTools}
         hoveredUrl={hoveredUrl}
+        currentMode={browserMode}
+        telemetry={modeTelemetry}
+        onToggleModeSelector={() => setIsModeSelectorOpen(true)}
       />
 
       {/* 7. Command Palette & Quick Tab Switcher Overlay */}
@@ -1416,6 +1470,9 @@ export const App: React.FC = () => {
         onOpenReaderMode={handleOpenReaderMode}
         onOpenJsonFormatter={handleOpenJsonFormatter}
         onOpenColorPicker={handleOpenColorPicker}
+        onSelectMode={setBrowserMode}
+        onOptimizeMemory={optimizeMemory}
+        onOpenModeSelector={() => setIsModeSelectorOpen(true)}
       />
 
       {/* 8. Workspace Management Modal */}
@@ -1505,6 +1562,21 @@ export const App: React.FC = () => {
           setActiveProfile(prof);
           api?.getProfiles().then(setProfiles).catch(() => {});
         }}
+      />
+
+      {/* 16. Browser Mode Selector Modal */}
+      <ModeSelectorModal
+        isOpen={isModeSelectorOpen}
+        onClose={() => setIsModeSelectorOpen(false)}
+        currentMode={browserMode}
+        onSelectMode={setBrowserMode}
+        telemetry={modeTelemetry}
+        settings={settings}
+        onUpdateSettings={handleUpdateSettings}
+        onUpdateModeConfig={updateModeConfig}
+        onRestoreDefaults={restoreModeDefaults}
+        onEnterFocusWorkspace={handleEnterFocusWorkspace}
+        onOptimizeMemory={optimizeMemory}
       />
     </div>
   );

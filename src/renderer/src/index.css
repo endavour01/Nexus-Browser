@@ -10,8 +10,10 @@
 
   --accent-primary: #A78BFA;
   --accent-primary-hover: #906FFA;
+  --accent-secondary: #8B5CF6;
   --accent-glow: rgba(167, 139, 250, 0.15);
   --accent-dim: rgba(167, 139, 250, 0.08);
+  --accent-contrast: #0B0D12;
 
   --text-primary: #F4F4F5;
   --text-secondary: #9298A8;

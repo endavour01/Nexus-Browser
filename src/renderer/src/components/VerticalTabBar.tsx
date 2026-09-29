@@ -15,6 +15,7 @@ import {
   Copy,
   RotateCw,
   FolderKanban,
+  Moon,
 } from 'lucide-react';
 
 interface VerticalTabBarProps {
@@ -220,8 +221,8 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
                       onDragOver={(e) => handleDragOver(e, tab.id)}
                       onDrop={(e) => handleDrop(e, tab.id)}
                       className={`vtab-item ${tab.id === activeTabId ? 'active' : ''} ${
-                        dragOverTabId === tab.id ? 'drag-over' : ''
-                      }`}
+                        tab.isSuspended ? 'is-suspended' : ''
+                      } ${dragOverTabId === tab.id ? 'drag-over' : ''}`}
                       onClick={() => onSelectTab(tab.id)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {
@@ -247,6 +248,12 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
                       <span className="vtab-title-text" title={tab.title}>
                         {tab.title || 'New Tab'}
                       </span>
+
+                      {tab.isSuspended && (
+                        <span className="tab-suspended-badge" title="Tab suspended to save memory. Click to wake.">
+                          <Moon size={10} />
+                        </span>
+                      )}
 
                       <div className="vtab-trailing-actions">
                         {tab.hasAudio && (
@@ -292,8 +299,8 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
             onDragOver={(e) => handleDragOver(e, tab.id)}
             onDrop={(e) => handleDrop(e, tab.id)}
             className={`vtab-item ${tab.id === activeTabId ? 'active' : ''} ${
-              dragOverTabId === tab.id ? 'drag-over' : ''
-            }`}
+              tab.isSuspended ? 'is-suspended' : ''
+            } ${dragOverTabId === tab.id ? 'drag-over' : ''}`}
             onClick={() => onSelectTab(tab.id)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
@@ -319,6 +326,12 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
             <span className="vtab-title-text" title={tab.title}>
               {tab.title || 'New Tab'}
             </span>
+
+            {tab.isSuspended && (
+              <span className="tab-suspended-badge" title="Tab suspended to save memory. Click to wake.">
+                <Moon size={10} />
+              </span>
+            )}
 
             <div className="vtab-trailing-actions">
               {tab.hasAudio && (
