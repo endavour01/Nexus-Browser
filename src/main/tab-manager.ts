@@ -416,8 +416,8 @@ export class TabManager {
 
     wc.on('did-stop-loading', () => {
       tab.isLoading = false;
-      tab.canGoBack = wc.canGoBack();
-      tab.canGoForward = wc.canGoForward();
+      tab.canGoBack = wc.navigationHistory ? wc.navigationHistory.canGoBack() : wc.canGoBack();
+      tab.canGoForward = wc.navigationHistory ? wc.navigationHistory.canGoForward() : wc.canGoForward();
       recordHistory();
       this.notifyTabsUpdated();
     });
@@ -439,8 +439,8 @@ export class TabManager {
     wc.on('did-navigate', (_event, navigatedUrl) => {
       tab.url = navigatedUrl;
       tab.isSecure = navigatedUrl.startsWith('https://');
-      tab.canGoBack = wc.canGoBack();
-      tab.canGoForward = wc.canGoForward();
+      tab.canGoBack = wc.navigationHistory ? wc.navigationHistory.canGoBack() : wc.canGoBack();
+      tab.canGoForward = wc.navigationHistory ? wc.navigationHistory.canGoForward() : wc.canGoForward();
       if (this.zoomManager && navigatedUrl && !navigatedUrl.startsWith('nexus://')) {
         const factor = this.zoomManager.getSiteZoom(navigatedUrl);
         if (factor && Math.abs(factor - 1.0) > 0.001) {
@@ -454,8 +454,8 @@ export class TabManager {
     wc.on('did-navigate-in-page', (_event, inPageUrl) => {
       tab.url = inPageUrl;
       tab.isSecure = inPageUrl.startsWith('https://');
-      tab.canGoBack = wc.canGoBack();
-      tab.canGoForward = wc.canGoForward();
+      tab.canGoBack = wc.navigationHistory ? wc.navigationHistory.canGoBack() : wc.canGoBack();
+      tab.canGoForward = wc.navigationHistory ? wc.navigationHistory.canGoForward() : wc.canGoForward();
       if (this.zoomManager && inPageUrl && !inPageUrl.startsWith('nexus://')) {
         const factor = this.zoomManager.getSiteZoom(inPageUrl);
         if (factor && Math.abs(factor - 1.0) > 0.001) {
@@ -933,15 +933,21 @@ export class TabManager {
 
   public goBack(id: string) {
     const tab = this.tabs.get(id);
-    if (tab && tab.view.webContents.canGoBack()) {
-      tab.view.webContents.goBack();
+    if (tab) {
+      const wc = tab.view.webContents;
+      if (wc.navigationHistory ? wc.navigationHistory.canGoBack() : wc.canGoBack()) {
+        wc.goBack();
+      }
     }
   }
 
   public goForward(id: string) {
     const tab = this.tabs.get(id);
-    if (tab && tab.view.webContents.canGoForward()) {
-      tab.view.webContents.goForward();
+    if (tab) {
+      const wc = tab.view.webContents;
+      if (wc.navigationHistory ? wc.navigationHistory.canGoForward() : wc.canGoForward()) {
+        wc.goForward();
+      }
     }
   }
 

@@ -212,6 +212,9 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
                   {groupTabs.map((tab) => (
                     <div
                       key={tab.id}
+                      role="tab"
+                      tabIndex={0}
+                      aria-selected={tab.id === activeTabId}
                       draggable
                       onDragStart={(e) => handleDragStart(e, tab.id)}
                       onDragOver={(e) => handleDragOver(e, tab.id)}
@@ -220,6 +223,15 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
                         dragOverTabId === tab.id ? 'drag-over' : ''
                       }`}
                       onClick={() => onSelectTab(tab.id)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          onSelectTab(tab.id);
+                        } else if (e.key === 'Delete') {
+                          e.preventDefault();
+                          onCloseTab(tab.id);
+                        }
+                      }}
                       onContextMenu={(e) => handleContextMenu(e, tab.id)}
                     >
                       <div className="vtab-favicon-slot">
@@ -272,6 +284,9 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
         {(groupedTabsMap.get(undefined) || []).map((tab) => (
           <div
             key={tab.id}
+            role="tab"
+            tabIndex={0}
+            aria-selected={tab.id === activeTabId}
             draggable
             onDragStart={(e) => handleDragStart(e, tab.id)}
             onDragOver={(e) => handleDragOver(e, tab.id)}
@@ -280,6 +295,15 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
               dragOverTabId === tab.id ? 'drag-over' : ''
             }`}
             onClick={() => onSelectTab(tab.id)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onSelectTab(tab.id);
+              } else if (e.key === 'Delete') {
+                e.preventDefault();
+                onCloseTab(tab.id);
+              }
+            }}
             onContextMenu={(e) => handleContextMenu(e, tab.id)}
           >
             <div className="vtab-favicon-slot">

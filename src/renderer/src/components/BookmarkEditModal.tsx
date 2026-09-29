@@ -152,7 +152,7 @@ export const BookmarkEditModal: React.FC<BookmarkEditModalProps> = ({
             <select
               value={parentId}
               onChange={(e) => setParentId(e.target.value)}
-              className="nexus-input w-full text-xs bg-[#191D28]"
+              className="nexus-input w-full text-xs bg-[var(--bg-elevated)]"
             >
               <option value="toolbar">Bookmarks Bar</option>
               <option value="other">Other Bookmarks</option>

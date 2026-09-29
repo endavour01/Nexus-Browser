@@ -16,6 +16,7 @@ import {
   LucideIcon,
 } from 'lucide-react';
 import { PermissionType, PermissionDecision, SitePermissionRule } from '@shared/types';
+import { NexusState } from './NexusState';
 
 interface PermissionsPageProps {
   onNavigate?: (url: string) => void;
@@ -264,17 +265,15 @@ export const PermissionsPage: React.FC<PermissionsPageProps> = () => {
         {/* Rules Table */}
         <div className="permissions-table-card">
           {filteredRules.length === 0 ? (
-            <div className="empty-permissions-state">
-              <Shield size={32} className="empty-icon" />
-              <div className="empty-title">
-                {rules.length === 0 ? 'No custom site permissions configured' : 'No matching permission rules'}
-              </div>
-              <p className="empty-desc">
-                {rules.length === 0
+            <NexusState
+              variant="empty"
+              title={rules.length === 0 ? 'No custom site permissions configured' : 'No matching permission rules'}
+              description={
+                rules.length === 0
                   ? 'Websites will prompt you explicitly whenever requesting sensitive capabilities.'
-                  : 'Try modifying your search or filter criteria.'}
-              </p>
-            </div>
+                  : 'Try modifying your search or filter criteria.'
+              }
+            />
           ) : (
             <div className="rules-list">
               {filteredRules.map((rule) => {

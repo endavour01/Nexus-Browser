@@ -747,7 +747,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                   type="text"
                   readOnly
                   value={downloadDirectory || 'Default Downloads folder'}
-                  className="nexus-input text-xs font-mono flex-1 bg-[#191D28] text-muted truncate"
+                  className="nexus-input text-xs font-mono flex-1 bg-[var(--bg-elevated)] text-muted truncate"
                 />
                 {onChangeDownloadDirectory && (
                   <button

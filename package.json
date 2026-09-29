@@ -20,7 +20,11 @@
     "test:library": "esbuild test/verify-browsing-library.ts --platform=node --target=node20 --bundle --outfile=dist/test-lib.js --external:electron && electron --no-sandbox --disable-gpu dist/test-lib.js 2>/dev/null && rm -f dist/test-lib.js",
     "test:privacy-security": "esbuild test/verify-privacy-security.ts --platform=node --target=node20 --bundle --outfile=dist/test-sec.js --external:electron && electron --no-sandbox --disable-gpu dist/test-sec.js 2>/dev/null && rm -f dist/test-sec.js",
     "test:devtools": "esbuild test/verify-developer-tools.ts --platform=node --target=node20 --bundle --outfile=dist/test-devtools.js --external:electron && electron --no-sandbox --disable-gpu dist/test-devtools.js 2>/dev/null && rm -f dist/test-devtools.js",
-    "test": "npm run test:engine && npm run test:commands && npm run test:workspaces && npm run test:extensions && npm run test:library && npm run test:privacy-security && npm run test:devtools"
+    "test:qa": "esbuild test/verify-release-qa.ts --platform=node --target=node20 --bundle --outfile=dist/test-qa.js --external:electron && electron --no-sandbox --disable-gpu dist/test-qa.js 2>/dev/null && rm -f dist/test-qa.js",
+    "test": "npm run test:engine && npm run test:commands && npm run test:workspaces && npm run test:extensions && npm run test:library && npm run test:privacy-security && npm run test:devtools && npm run test:qa",
+    "package": "npm run build && electron-builder --linux AppImage",
+    "package:dir": "npm run build && electron-builder --linux --dir",
+    "package:all": "npm run build && electron-builder"
   },
   "keywords": [
     "browser",
@@ -44,9 +48,43 @@
     "concurrently": "^9.1.0",
     "cross-env": "^7.0.3",
     "electron": "^33.2.1",
+    "electron-builder": "^26.15.3",
     "esbuild": "^0.24.2",
     "typescript": "^5.7.2",
     "vite": "^6.0.3",
     "wait-on": "^8.0.1"
+  },
+  "build": {
+    "appId": "com.nexus.browser",
+    "productName": "NEXUS Browser",
+    "copyright": "Copyright © 2026 NEXUS Core Team",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json"
+    ],
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Network;WebBrowser",
+      "maintainer": "NEXUS Core Team <nexus@local>",
+      "desktopName": "nexus-browser",
+      "syncDesktopName": true
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.developer-tools"
+    }
   }
 }

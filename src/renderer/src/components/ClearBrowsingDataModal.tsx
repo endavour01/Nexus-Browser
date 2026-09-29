@@ -61,7 +61,7 @@ export const ClearBrowsingDataModal: React.FC<ClearBrowsingDataModalProps> = ({
             <select
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value as ClearDataOptions['timeRange'])}
-              className="nexus-input w-full text-xs bg-[#191D28]"
+              className="nexus-input w-full text-xs bg-[var(--bg-elevated)]"
             >
               <option value="1h">Last hour</option>
               <option value="24h">Last 24 hours</option>

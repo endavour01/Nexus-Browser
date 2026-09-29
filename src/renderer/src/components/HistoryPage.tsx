@@ -11,6 +11,7 @@ import {
   CheckSquare,
   Square,
 } from 'lucide-react';
+import { NexusState } from './NexusState';
 
 interface HistoryPageProps {
   history: HistoryEntry[];
@@ -98,7 +99,7 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
       {/* Top Banner */}
       <div className="nexus-page-header">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded bg-[#191D28] border border-[rgba(255,255,255,0.06)] text-accent">
+          <div className="p-2 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-accent">
             <HistoryIcon size={20} />
           </div>
           <div>
@@ -165,10 +166,11 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
         {/* History Timeline */}
         <div className="nexus-history-list">
           {filteredHistory.length === 0 ? (
-            <div className="text-center py-20 text-muted text-xs">
-              <HistoryIcon size={28} className="mx-auto mb-2 opacity-30" />
-              <p>No browsing history records found</p>
-            </div>
+            <NexusState
+              variant="empty"
+              title="No browsing history records found"
+              description={searchQuery ? `No history entries match "${searchQuery}".` : 'Websites you visit in standard workspaces will appear here.'}
+            />
           ) : (
             Object.entries(groupedHistory).map(([groupTitle, items]) => (
               <div key={groupTitle} className="history-group-block">
@@ -178,15 +180,15 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
                   <span className="text-muted text-[10px]">({items.length})</span>
                 </div>
 
-                <div className="divide-y divide-[rgba(255,255,255,0.03)] bg-[#12151D] border border-[rgba(255,255,255,0.06)] rounded-lg overflow-hidden">
+                <div className="divide-y divide-[var(--border-subtle)] bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg overflow-hidden">
                   {items.map((item) => {
                     const isSelected = selectedIds.has(item.id);
 
                     return (
                       <div
                         key={item.id}
-                        className={`manager-item-row group hover:bg-[#191D28] transition-colors ${
-                          isSelected ? 'bg-[rgba(167,139,250,0.08)]' : ''
+                        className={`manager-item-row group hover:bg-[var(--bg-surface-hover)] transition-colors ${
+                          isSelected ? 'bg-[var(--accent-dim)]' : ''
                         }`}
                       >
                         {/* Checkbox */}

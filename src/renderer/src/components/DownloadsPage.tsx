@@ -13,6 +13,7 @@ import {
   Trash2,
   ExternalLink,
 } from 'lucide-react';
+import { NexusState } from './NexusState';
 
 interface DownloadsPageProps {
   downloads: DownloadRecord[];
@@ -82,7 +83,7 @@ export const DownloadsPage: React.FC<DownloadsPageProps> = ({
       {/* Top Banner */}
       <div className="nexus-page-header">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded bg-[#191D28] border border-[rgba(255,255,255,0.06)] text-accent">
+          <div className="p-2 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-accent">
             <DownloadIcon size={20} />
           </div>
           <div>
@@ -107,7 +108,7 @@ export const DownloadsPage: React.FC<DownloadsPageProps> = ({
       </div>
 
       {/* Directory Configuration Card */}
-      <div className="mx-6 mt-4 p-3 bg-[#12151D] border border-[rgba(255,255,255,0.06)] rounded-lg flex items-center justify-between">
+      <div className="mx-6 mt-4 p-3 bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-lg flex items-center justify-between">
         <div className="flex items-center gap-2.5 min-w-0">
           <Folder size={15} className="text-accent flex-shrink-0" />
           <div className="min-w-0">
@@ -129,11 +130,11 @@ export const DownloadsPage: React.FC<DownloadsPageProps> = ({
       <div className="nexus-history-body">
         {/* Controls Toolbar: Tabs & Search */}
         <div className="manager-toolbar">
-          <div className="flex items-center gap-1 bg-[#191D28] p-0.5 rounded border border-[rgba(255,255,255,0.06)]">
+          <div className="flex items-center gap-1 bg-[var(--bg-elevated)] p-0.5 rounded border border-[var(--border-subtle)]">
             <button
               className={`px-2.5 py-1 rounded text-xs transition-colors ${
                 filter === 'all'
-                  ? 'bg-accent text-[#0B0D12] font-semibold'
+                  ? 'bg-accent text-[var(--bg-base)] font-semibold'
                   : 'text-secondary hover:text-primary'
               }`}
               onClick={() => setFilter('all')}
@@ -143,7 +144,7 @@ export const DownloadsPage: React.FC<DownloadsPageProps> = ({
             <button
               className={`px-2.5 py-1 rounded text-xs transition-colors ${
                 filter === 'progressing'
-                  ? 'bg-accent text-[#0B0D12] font-semibold'
+                  ? 'bg-accent text-[var(--bg-base)] font-semibold'
                   : 'text-secondary hover:text-primary'
               }`}
               onClick={() => setFilter('progressing')}
@@ -153,7 +154,7 @@ export const DownloadsPage: React.FC<DownloadsPageProps> = ({
             <button
               className={`px-2.5 py-1 rounded text-xs transition-colors ${
                 filter === 'completed'
-                  ? 'bg-accent text-[#0B0D12] font-semibold'
+                  ? 'bg-accent text-[var(--bg-base)] font-semibold'
                   : 'text-secondary hover:text-primary'
               }`}
               onClick={() => setFilter('completed')}
@@ -163,7 +164,7 @@ export const DownloadsPage: React.FC<DownloadsPageProps> = ({
             <button
               className={`px-2.5 py-1 rounded text-xs transition-colors ${
                 filter === 'interrupted'
-                  ? 'bg-accent text-[#0B0D12] font-semibold'
+                  ? 'bg-accent text-[var(--bg-base)] font-semibold'
                   : 'text-secondary hover:text-primary'
               }`}
               onClick={() => setFilter('interrupted')}
@@ -187,10 +188,11 @@ export const DownloadsPage: React.FC<DownloadsPageProps> = ({
         {/* Download Cards List */}
         <div className="p-6 space-y-3">
           {filteredDownloads.length === 0 ? (
-            <div className="text-center py-20 text-muted text-xs">
-              <DownloadIcon size={28} className="mx-auto mb-2 opacity-30" />
-              <p>No downloads match the current filter</p>
-            </div>
+            <NexusState
+              variant="empty"
+              title="No downloads match the current filter"
+              description={searchQuery ? `No downloads matched "${searchQuery}".` : 'Files you download will appear here.'}
+            />
           ) : (
             filteredDownloads.map((item) => {
               const isProgressing = item.status === 'progressing';
@@ -202,7 +204,7 @@ export const DownloadsPage: React.FC<DownloadsPageProps> = ({
                 <div key={item.id} className="download-card-rich">
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex items-start gap-3 min-w-0 flex-1">
-                      <div className="p-2 rounded bg-[#191D28] border border-[rgba(255,255,255,0.06)] flex-shrink-0 mt-0.5">
+                      <div className="p-2 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] flex-shrink-0 mt-0.5">
                         {isCompleted ? (
                           <FileCheck size={18} className="text-emerald-400" />
                         ) : isFailed ? (
@@ -242,7 +244,7 @@ export const DownloadsPage: React.FC<DownloadsPageProps> = ({
                         {/* Progress bar for progressing or paused */}
                         {(isProgressing || isPaused) && (
                           <div className="mt-2.5">
-                            <div className="w-full bg-[#191D28] h-1.5 rounded-full overflow-hidden border border-[rgba(255,255,255,0.04)]">
+                            <div className="w-full bg-[var(--bg-elevated)] h-1.5 rounded-full overflow-hidden border border-[var(--border-subtle)]">
                               <div
                                 className={`h-full transition-all duration-300 ${
                                   isPaused ? 'bg-amber-400' : 'bg-accent'

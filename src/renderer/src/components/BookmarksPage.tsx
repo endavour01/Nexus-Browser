@@ -16,6 +16,7 @@ import {
   ArrowUpDown,
 } from 'lucide-react';
 import { BookmarkEditModal } from './BookmarkEditModal';
+import { NexusState } from './NexusState';
 
 interface BookmarksPageProps {
   bookmarks: BookmarkItem[];
@@ -173,7 +174,7 @@ export const BookmarksPage: React.FC<BookmarksPageProps> = ({
       {/* Top Banner */}
       <div className="nexus-page-header">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded bg-[#191D28] border border-[rgba(255,255,255,0.06)] text-accent">
+          <div className="p-2 rounded bg-[var(--bg-elevated)] border border-[var(--border-subtle)] text-accent">
             <BookmarkIcon size={20} />
           </div>
           <div>
@@ -316,23 +317,26 @@ export const BookmarksPage: React.FC<BookmarksPageProps> = ({
           {/* Items Table / List */}
           <div className="manager-items-container">
             {displayedItems.length === 0 ? (
-              <div className="text-center py-16 text-muted text-xs">
-                <BookmarkIcon size={24} className="mx-auto mb-2 opacity-30" />
-                <p>No bookmarks found in this folder</p>
-                <button
-                  className="text-accent hover:underline mt-2 inline-flex items-center gap-1 text-xs"
-                  onClick={handleAddBookmark}
-                >
-                  <Plus size={12} />
-                  <span>Add your first bookmark</span>
-                </button>
-              </div>
+              <NexusState
+                variant="empty"
+                title="No bookmarks found in this folder"
+                description={searchQuery ? `No bookmarks matched "${searchQuery}".` : undefined}
+                action={
+                  <button
+                    className="nexus-btn-sm nexus-btn-primary flex items-center gap-1.5 text-xs"
+                    onClick={handleAddBookmark}
+                  >
+                    <Plus size={12} />
+                    <span>Add your first bookmark</span>
+                  </button>
+                }
+              />
             ) : (
-              <div className="divide-y divide-[rgba(255,255,255,0.04)]">
+              <div className="divide-y divide-[var(--border-subtle)]">
                 {displayedItems.map((item) => (
                   <div
                     key={item.id}
-                    className="manager-item-row group hover:bg-[#191D28] transition-colors"
+                    className="manager-item-row group hover:bg-[var(--bg-surface-hover)] transition-colors"
                   >
                     {/* Item Icon */}
                     <div className="flex-shrink-0">

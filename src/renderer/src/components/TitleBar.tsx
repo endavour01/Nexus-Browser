@@ -181,6 +181,9 @@ export const TitleBar: React.FC<TitleBarProps> = ({
               return (
                 <div
                   key={tab.id}
+                  role="tab"
+                  tabIndex={0}
+                  aria-selected={isActive}
                   draggable
                   onDragStart={(e) => handleDragStart(e, tab.id)}
                   onDragOver={(e) => handleDragOver(e, tab.id)}
@@ -189,6 +192,15 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                     dragOverTabId === tab.id ? 'drag-over' : ''
                   }`}
                   onClick={() => onSelectTab(tab.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onSelectTab(tab.id);
+                    } else if (e.key === 'Delete') {
+                      e.preventDefault();
+                      onCloseTab(tab.id);
+                    }
+                  }}
                   onContextMenu={(e) => handleContextMenu(e, tab.id)}
                   onAuxClick={(e) => {
                     if (e.button === 1) {
@@ -248,6 +260,9 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                   )}
 
                   <div
+                    role="tab"
+                    tabIndex={0}
+                    aria-selected={isActive}
                     draggable
                     onDragStart={(e) => handleDragStart(e, tab.id)}
                     onDragOver={(e) => handleDragOver(e, tab.id)}
@@ -257,6 +272,15 @@ export const TitleBar: React.FC<TitleBarProps> = ({
                     } ${dragOverTabId === tab.id ? 'drag-over' : ''}`}
                     style={group ? { borderTopColor: group.color } : undefined}
                     onClick={() => onSelectTab(tab.id)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onSelectTab(tab.id);
+                      } else if (e.key === 'Delete') {
+                        e.preventDefault();
+                        onCloseTab(tab.id);
+                      }
+                    }}
                     onContextMenu={(e) => handleContextMenu(e, tab.id)}
                     onAuxClick={(e) => {
                       if (e.button === 1) {
