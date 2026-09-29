@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bookmark, BrowserSettings, DownloadItem, ExtensionItem, SystemInfo } from '@shared/types';
+import { Bookmark, BrowserSettings, DownloadItem, ExtensionItem, RecentPage, SystemInfo } from '@shared/types';
 import { SidePanelType } from './RightToolbar';
 import {
   X,
@@ -14,6 +14,7 @@ import {
   FolderOpen,
   UserCheck,
   CheckCircle2,
+  Clock,
 } from 'lucide-react';
 
 interface SidePanelProps {
@@ -33,6 +34,8 @@ interface SidePanelProps {
   systemInfo: SystemInfo | null;
   currentUrl?: string;
   isBookmarked: boolean;
+  history?: RecentPage[];
+  onClearHistory?: () => void;
 }
 
 export const SidePanel: React.FC<SidePanelProps> = ({
@@ -51,8 +54,11 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   onClearCache,
   systemInfo,
   isBookmarked,
+  history = [],
+  onClearHistory,
 }) => {
   const [bookmarkQuery, setBookmarkQuery] = useState('');
+  const [historyQuery, setHistoryQuery] = useState('');
   const [clearingCache, setClearingCache] = useState(false);
   const [cacheCleared, setCacheCleared] = useState(false);
 
@@ -72,12 +78,27 @@ export const SidePanel: React.FC<SidePanelProps> = ({
       b.url.toLowerCase().includes(bookmarkQuery.toLowerCase())
   );
 
+  const filteredHistory = history.filter(
+    (h) =>
+      h.title.toLowerCase().includes(historyQuery.toLowerCase()) ||
+      h.url.toLowerCase().includes(historyQuery.toLowerCase())
+  );
+
+  const formatTime = (ts: number) => {
+    const diff = Date.now() - ts;
+    if (diff < 60000) return 'Just now';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+    return new Date(ts).toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
+
   return (
     <div className="nexus-side-panel">
       {/* Header */}
       <div className="side-panel-header">
         <h3 className="side-panel-title">
           {type === 'bookmarks' && 'Bookmarks'}
+          {type === 'history' && 'Browsing History'}
           {type === 'downloads' && 'Downloads'}
           {type === 'extensions' && 'Extensions'}
           {type === 'profiles' && 'Profiles'}
@@ -134,6 +155,56 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                     >
                       <Trash2 size={13} />
                     </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ================= History View ================= */}
+        {type === 'history' && (
+          <div className="panel-section">
+            <div className="panel-actions-row">
+              <div className="panel-search-box">
+                <Search size={13} className="panel-search-icon" />
+                <input
+                  type="text"
+                  placeholder="Search history..."
+                  value={historyQuery}
+                  onChange={(e) => setHistoryQuery(e.target.value)}
+                  className="panel-search-input"
+                />
+              </div>
+              {history.length > 0 && onClearHistory && (
+                <button
+                  className="panel-text-btn"
+                  onClick={onClearHistory}
+                  title="Clear all browsing history"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
+
+            <div className="panel-list">
+              {filteredHistory.length === 0 ? (
+                <div className="panel-empty-state">No history records found</div>
+              ) : (
+                filteredHistory.map((item, idx) => (
+                  <div
+                    key={`${item.url}-${item.timestamp}-${idx}`}
+                    className="panel-list-item history-list-item"
+                    onClick={() => onNavigate(item.url)}
+                  >
+                    <div className="item-meta">
+                      <span className="item-title">{item.title || item.url}</span>
+                      <span className="item-sub">{item.url}</span>
+                    </div>
+                    <div className="history-item-badge">
+                      <Clock size={11} className="text-secondary" />
+                      <span className="history-timestamp">{formatTime(item.timestamp)}</span>
+                    </div>
                   </div>
                 ))
               )}

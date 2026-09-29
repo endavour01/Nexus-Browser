@@ -71,6 +71,24 @@ export interface SystemInfo {
   arch: string;
 }
 
+export interface CommandItem {
+  id: string;
+  title: string;
+  subtitle?: string;
+  category: 'Tabs' | 'Navigation' | 'Workspaces' | 'Tools' | 'Bookmarks & History' | 'Developer';
+  shortcut?: string;
+  icon?: string;
+  action: () => void;
+}
+
+export interface RecentPage {
+  title: string;
+  url: string;
+  timestamp: number;
+}
+
+export type SidePanelType = 'bookmarks' | 'downloads' | 'extensions' | 'profiles' | 'settings' | 'history' | null;
+
 export interface NexusAPI {
   // Tab Management
   createTab: (url?: string, workspaceId?: string) => Promise<string>;
@@ -86,8 +104,9 @@ export interface NexusAPI {
   stop: (id: string) => Promise<void>;
   toggleDevTools: (id?: string) => Promise<void>;
   
-  // Layout Bounds
+  // Layout Bounds & Modal Visibility
   updateContentBounds: (bounds: ContentBounds) => Promise<void>;
+  setModalOpen: (isOpen: boolean) => Promise<void>;
 
   // Zoom & Storage
   setZoomLevel: (level: number) => Promise<number>;

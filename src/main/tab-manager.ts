@@ -35,10 +35,42 @@ export class TabManager {
     bottom: 24,
   };
   private searchEngine: string = 'duckduckgo';
+  private isModalOpen: boolean = false;
 
   constructor(mainWindow: BrowserWindow) {
     this.mainWindow = mainWindow;
     this.setupPermissions();
+  }
+
+  public setModalOpen(isOpen: boolean) {
+    this.isModalOpen = isOpen;
+    if (!this.activeTabId) return;
+    const tab = this.tabs.get(this.activeTabId);
+    if (!tab) return;
+    const isNewTab = tab.url === 'nexus://newtab' || tab.url === '';
+
+    if (isOpen) {
+      try {
+        if (typeof tab.view.setVisible === 'function') {
+          tab.view.setVisible(false);
+        } else {
+          this.mainWindow.contentView.removeChildView(tab.view);
+        }
+      } catch (e) {}
+    } else {
+      if (!isNewTab) {
+        try {
+          const children = this.mainWindow.contentView.children;
+          if (!children.includes(tab.view)) {
+            this.mainWindow.contentView.addChildView(tab.view);
+          }
+          if (typeof tab.view.setVisible === 'function') {
+            tab.view.setVisible(true);
+          }
+          this.updateActiveTabBounds();
+        } catch (e) {}
+      }
+    }
   }
 
   private setupPermissions() {
@@ -94,6 +126,7 @@ export class TabManager {
     if (trimmed.startsWith('nexus://')) return true;
     if (trimmed.startsWith('https://')) return true;
     if (trimmed.startsWith('http://')) return true;
+    if (trimmed.startsWith('view-source:')) return true;
     return false;
   }
 
@@ -385,9 +418,11 @@ export class TabManager {
           }
         } else {
           if (typeof currentTab.view.setVisible === 'function') {
-            currentTab.view.setVisible(true);
+            currentTab.view.setVisible(!this.isModalOpen);
           }
-          this.updateActiveTabBounds();
+          if (!this.isModalOpen) {
+            this.updateActiveTabBounds();
+          }
         }
       } catch (err) {
         console.error('Error switching tab view:', err);
@@ -591,8 +626,10 @@ export class TabManager {
 
   public formatUrl(input: string): string {
     const trimmed = input.trim();
-    if (!trimmed) return 'nexus://newtab';
-    if (trimmed === 'nexus://newtab') return 'nexus://newtab';
+    if (!trimmed || trimmed === 'nexus://newtab') return 'nexus://newtab';
+    if (trimmed.startsWith('view-source:')) {
+      return trimmed;
+    }
 
     // Already has protocol
     if (/^[a-zA-Z]+:\/\//.test(trimmed)) {

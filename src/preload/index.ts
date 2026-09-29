@@ -16,6 +16,7 @@ const api: NexusAPI = {
   toggleDevTools: (id?: string) => ipcRenderer.invoke('tabs:toggleDevTools', id),
 
   updateContentBounds: (bounds: ContentBounds) => ipcRenderer.invoke('bounds:update', bounds),
+  setModalOpen: (isOpen: boolean) => ipcRenderer.invoke('modal:set', isOpen),
 
   setZoomLevel: (level: number) => ipcRenderer.invoke('zoom:set', level),
   getZoomLevel: () => ipcRenderer.invoke('zoom:get'),

@@ -26,6 +26,7 @@ interface NavigationBarProps {
   onToggleDevTools: () => void;
   isBookmarked: boolean;
   onToggleBookmark: () => void;
+  focusOmniboxTrigger?: number;
 }
 
 export const NavigationBar: React.FC<NavigationBarProps> = ({
@@ -39,11 +40,20 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
   onToggleDevTools,
   isBookmarked,
   onToggleBookmark,
+  focusOmniboxTrigger,
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [copied, setCopied] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Focus and select all text when focusOmniboxTrigger changes
+  useEffect(() => {
+    if (focusOmniboxTrigger && focusOmniboxTrigger > 0) {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }
+  }, [focusOmniboxTrigger]);
 
   // Sync input value with activeTab.url when not actively typing/focusing
   useEffect(() => {

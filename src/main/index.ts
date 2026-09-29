@@ -154,6 +154,10 @@ function registerIpcHandlers() {
     }
   });
 
+  ipcMain.handle('modal:set', (_event, isOpen: boolean) => {
+    tabManager?.setModalOpen(isOpen);
+  });
+
   // Zoom & Storage
   ipcMain.handle('zoom:set', (_event, level: number) => {
     return tabManager?.setZoomLevel(level) ?? 0;

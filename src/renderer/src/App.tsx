@@ -4,6 +4,7 @@ import {
   BrowserSettings,
   DownloadItem,
   ExtensionItem,
+  RecentPage,
   SystemInfo,
   TabState,
   Workspace,
@@ -15,12 +16,7 @@ import { RightToolbar, SidePanelType } from './components/RightToolbar';
 import { SidePanel } from './components/SidePanel';
 import { StatusBar } from './components/StatusBar';
 import { NewTabWorkspace } from './components/NewTabWorkspace';
-
-interface RecentPage {
-  title: string;
-  url: string;
-  timestamp: number;
-}
+import { CommandPalette } from './components/CommandPalette';
 
 const defaultWorkspaces: Workspace[] = [
   { id: 'default', name: 'Personal', icon: 'User', color: '#A78BFA' },
@@ -95,6 +91,8 @@ export const App: React.FC = () => {
   const [zoomLevel, setZoomLevel] = useState(0);
   const [hoveredUrl] = useState<string | null>(null);
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [focusOmniboxTrigger, setFocusOmniboxTrigger] = useState(0);
 
   // Persistent user data
   const [bookmarks, setBookmarks] = useState<Bookmark[]>(() => {
@@ -374,11 +372,68 @@ export const App: React.FC = () => {
     }
   }, [api]);
 
+  // Sync modal open state to main process so WebContentsView is hidden/shown cleanly
+  useEffect(() => {
+    if (api && api.setModalOpen) {
+      api.setModalOpen(isCommandPaletteOpen);
+    }
+  }, [api, isCommandPaletteOpen]);
+
+  // Tab Cycling Shortcuts
+  const handleNextTab = useCallback(() => {
+    if (tabs.length <= 1) return;
+    const currentIndex = tabs.findIndex((t) => t.id === activeTabId);
+    const nextIndex = (currentIndex + 1) % tabs.length;
+    handleSelectTab(tabs[nextIndex].id);
+  }, [tabs, activeTabId, handleSelectTab]);
+
+  const handlePrevTab = useCallback(() => {
+    if (tabs.length <= 1) return;
+    const currentIndex = tabs.findIndex((t) => t.id === activeTabId);
+    const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    handleSelectTab(tabs[prevIndex].id);
+  }, [tabs, activeTabId, handleSelectTab]);
+
+  const handleFocusOmnibox = useCallback(() => {
+    setFocusOmniboxTrigger((prev) => prev + 1);
+  }, []);
+
+  const handleViewSource = useCallback(() => {
+    if (activeTab && activeTab.url && activeTab.url !== 'nexus://newtab') {
+      const srcUrl = activeTab.url.startsWith('view-source:')
+        ? activeTab.url
+        : `view-source:${activeTab.url}`;
+      handleNavigate(srcUrl);
+    }
+  }, [activeTab, handleNavigate]);
+
   // Global Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+K or Ctrl+Shift+P: Command Palette
+      if (
+        ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') ||
+        ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'p')
+      ) {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+      // Ctrl+L: Focus address bar
+      else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') {
+        e.preventDefault();
+        handleFocusOmnibox();
+      }
+      // Ctrl+Tab / Ctrl+Shift+Tab: Tab cycling
+      else if ((e.ctrlKey || e.metaKey) && e.key === 'Tab') {
+        e.preventDefault();
+        if (e.shiftKey) {
+          handlePrevTab();
+        } else {
+          handleNextTab();
+        }
+      }
       // Ctrl+Shift+T: Reopen Closed Tab
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 't') {
+      else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 't') {
         e.preventDefault();
         handleReopenClosedTab();
       }
@@ -417,6 +472,11 @@ export const App: React.FC = () => {
         e.preventDefault();
         setActiveSidePanel((prev) => (prev === 'bookmarks' ? null : 'bookmarks'));
       }
+      // Ctrl+H: History panel
+      else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'h') {
+        e.preventDefault();
+        setActiveSidePanel((prev) => (prev === 'history' ? null : 'history'));
+      }
       // Ctrl+J: Downloads panel
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j') {
         e.preventDefault();
@@ -426,6 +486,11 @@ export const App: React.FC = () => {
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
         e.preventDefault();
         handleToggleBookmark();
+      }
+      // Ctrl+U: View Source
+      else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'u') {
+        e.preventDefault();
+        handleViewSource();
       }
       // Ctrl+Shift+S: Toggle sidebar
       else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 's') {
@@ -447,6 +512,13 @@ export const App: React.FC = () => {
         e.preventDefault();
         handleResetZoom();
       }
+      // Escape: Dismiss Command Palette
+      else if (e.key === 'Escape') {
+        if (isCommandPaletteOpen) {
+          e.preventDefault();
+          setIsCommandPaletteOpen(false);
+        }
+      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -462,7 +534,13 @@ export const App: React.FC = () => {
     handleZoomIn,
     handleZoomOut,
     handleResetZoom,
+    handleReopenClosedTab,
+    handleNextTab,
+    handlePrevTab,
+    handleFocusOmnibox,
+    handleViewSource,
     activeTabId,
+    isCommandPaletteOpen,
   ]);
 
   const isNewTab = !activeTab || activeTab.url === 'nexus://newtab' || activeTab.url === '';
@@ -497,6 +575,7 @@ export const App: React.FC = () => {
         onToggleDevTools={handleToggleDevTools}
         isBookmarked={isBookmarked}
         onToggleBookmark={handleToggleBookmark}
+        focusOmniboxTrigger={focusOmniboxTrigger}
       />
 
       {/* Body: Left Sidebar + Central Content + Right Toolbar / SidePanel */}
@@ -543,6 +622,8 @@ export const App: React.FC = () => {
             systemInfo={systemInfo}
             currentUrl={activeTab?.url}
             isBookmarked={isBookmarked}
+            history={recentPages}
+            onClearHistory={() => setRecentPages([])}
           />
         )}
 
@@ -565,6 +646,37 @@ export const App: React.FC = () => {
         onResetZoom={handleResetZoom}
         onToggleDevTools={handleToggleDevTools}
         hoveredUrl={hoveredUrl}
+      />
+
+      {/* 7. Command Palette & Quick Tab Switcher Overlay */}
+      <CommandPalette
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        tabs={tabs}
+        activeTabId={activeTabId}
+        workspaces={workspaces}
+        activeWorkspaceId={activeWorkspaceId}
+        onSelectTab={handleSelectTab}
+        onNewTab={handleNewTab}
+        onDuplicateTab={handleDuplicateTab}
+        onReopenClosedTab={handleReopenClosedTab}
+        onCloseTab={handleCloseTab}
+        onNavigate={handleNavigate}
+        onGoBack={handleGoBack}
+        onGoForward={handleGoForward}
+        onReload={handleReload}
+        onStop={handleStop}
+        onGoHome={handleGoHome}
+        onToggleDevTools={handleToggleDevTools}
+        onClearCache={handleClearCache}
+        onSelectWorkspace={setActiveWorkspaceId}
+        onTogglePanel={(panel) => setActiveSidePanel(panel)}
+        onToggleBookmark={handleToggleBookmark}
+        onToggleSidebar={() => setSidebarCollapsed((prev) => !prev)}
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        onResetZoom={handleResetZoom}
+        onFocusOmnibox={handleFocusOmnibox}
       />
     </div>
   );

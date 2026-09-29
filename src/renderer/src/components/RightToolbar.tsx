@@ -2,12 +2,14 @@ import React from 'react';
 import {
   Bookmark,
   Download,
+  History,
   Puzzle,
   Settings,
   User,
 } from 'lucide-react';
+import { SidePanelType } from '@shared/types';
 
-export type SidePanelType = 'bookmarks' | 'downloads' | 'extensions' | 'profiles' | 'settings' | null;
+export { type SidePanelType };
 
 interface RightToolbarProps {
   activePanel: SidePanelType;
@@ -32,25 +34,6 @@ export const RightToolbar: React.FC<RightToolbarProps> = ({
 
   return (
     <aside className="nexus-right-toolbar">
-      {/* Extensions Button */}
-      <button
-        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'extensions' ? 'active' : ''}`}
-        onClick={() => toggle('extensions')}
-        title="Extensions & Tools"
-      >
-        <Puzzle size={17} />
-      </button>
-
-      {/* Downloads Button */}
-      <button
-        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'downloads' ? 'active' : ''}`}
-        onClick={() => toggle('downloads')}
-        title="Downloads"
-      >
-        <Download size={17} />
-        {downloadCount > 0 && <span className="toolbar-badge">{downloadCount}</span>}
-      </button>
-
       {/* Bookmarks Button */}
       <button
         className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'bookmarks' ? 'active' : ''}`}
@@ -59,6 +42,34 @@ export const RightToolbar: React.FC<RightToolbarProps> = ({
       >
         <Bookmark size={17} />
         {bookmarkCount > 0 && <span className="toolbar-dot-badge" />}
+      </button>
+
+      {/* History Button */}
+      <button
+        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'history' ? 'active' : ''}`}
+        onClick={() => toggle('history')}
+        title="Browsing History (Ctrl+H)"
+      >
+        <History size={17} />
+      </button>
+
+      {/* Downloads Button */}
+      <button
+        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'downloads' ? 'active' : ''}`}
+        onClick={() => toggle('downloads')}
+        title="Downloads (Ctrl+J)"
+      >
+        <Download size={17} />
+        {downloadCount > 0 && <span className="toolbar-badge">{downloadCount}</span>}
+      </button>
+
+      {/* Extensions Button */}
+      <button
+        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'extensions' ? 'active' : ''}`}
+        onClick={() => toggle('extensions')}
+        title="Extensions & Tools"
+      >
+        <Puzzle size={17} />
       </button>
 
       <div className="toolbar-spacer" />
