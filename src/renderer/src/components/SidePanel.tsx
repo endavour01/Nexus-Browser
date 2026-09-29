@@ -15,6 +15,9 @@ import {
   UserCheck,
   CheckCircle2,
   Clock,
+  FolderPlus,
+  HelpCircle,
+  Puzzle,
 } from 'lucide-react';
 
 interface SidePanelProps {
@@ -27,7 +30,12 @@ interface SidePanelProps {
   downloads: DownloadItem[];
   onClearDownloads: () => void;
   extensions: ExtensionItem[];
-  onToggleExtension: (id: string) => void;
+  onToggleExtension: (id: string, enabled?: boolean) => void;
+  onOpenExtensionsPage?: () => void;
+  onInstallUnpacked?: () => void;
+  onOpenCompatibility?: () => void;
+  onReloadExtension?: (id: string) => void;
+  onUninstallExtension?: (id: string) => void;
   settings: BrowserSettings;
   onUpdateSettings: (newSettings: Partial<BrowserSettings>) => void;
   onClearCache: () => Promise<void>;
@@ -49,6 +57,11 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   onClearDownloads,
   extensions,
   onToggleExtension,
+  onOpenExtensionsPage,
+  onInstallUnpacked,
+  onOpenCompatibility,
+  onReloadExtension,
+  onUninstallExtension,
   settings,
   onUpdateSettings,
   onClearCache,
@@ -257,32 +270,120 @@ export const SidePanel: React.FC<SidePanelProps> = ({
         {/* ================= Extensions View ================= */}
         {type === 'extensions' && (
           <div className="panel-section">
-            <div className="panel-banner">
-              <ShieldCheck size={14} className="text-accent" />
-              <span>Developer Extensions Core</span>
+            <div className="panel-banner" style={{ justifyContent: 'space-between' }}>
+              <div className="flex items-center gap-2">
+                <ShieldCheck size={14} className="text-accent" />
+                <span>Developer Extensions</span>
+              </div>
+              <span className="text-[10px] text-muted">
+                {extensions.filter((e) => e.enabled).length}/{extensions.length} active
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 my-2 px-1">
+              <button
+                className="nexus-btn-sm nexus-btn-primary flex-1 flex items-center justify-center gap-1.5 py-1.5"
+                onClick={onInstallUnpacked}
+              >
+                <FolderPlus size={13} />
+                <span>Load Unpacked</span>
+              </button>
+              <button
+                className="nexus-btn-sm nexus-btn-secondary flex items-center justify-center gap-1.5 py-1.5 px-2.5"
+                onClick={onOpenExtensionsPage}
+                title="Open full extensions page (nexus://extensions)"
+              >
+                <ExternalLink size={13} />
+                <span>Full Page</span>
+              </button>
             </div>
 
             <div className="panel-list">
-              {extensions.map((ext) => (
-                <div key={ext.id} className="extension-card">
-                  <div className="extension-header">
-                    <div>
-                      <span className="extension-name">{ext.name}</span>
-                      <span className="extension-version">v{ext.version}</span>
-                    </div>
-                    {/* Toggle Switch */}
-                    <label className="toggle-switch">
-                      <input
-                        type="checkbox"
-                        checked={ext.enabled}
-                        onChange={() => onToggleExtension(ext.id)}
-                      />
-                      <span className="toggle-slider" />
-                    </label>
-                  </div>
-                  <p className="extension-desc">{ext.description}</p>
+              {extensions.length === 0 ? (
+                <div className="text-center py-6 text-xs text-muted">
+                  <p>No extensions installed yet.</p>
+                  <button
+                    className="text-accent hover:underline mt-2 inline-flex items-center gap-1"
+                    onClick={onInstallUnpacked}
+                  >
+                    <FolderPlus size={12} />
+                    <span>Install your first extension</span>
+                  </button>
                 </div>
-              ))}
+              ) : (
+                extensions.map((ext) => (
+                  <div key={ext.id} className="extension-card">
+                    <div className="extension-header">
+                      <div className="flex items-center gap-2 min-w-0">
+                        {ext.iconDataUrl ? (
+                          <img
+                            src={ext.iconDataUrl}
+                            alt={ext.name}
+                            style={{ width: '16px', height: '16px', borderRadius: '2px', objectFit: 'contain' }}
+                          />
+                        ) : (
+                          <Puzzle size={14} className="text-accent flex-shrink-0" />
+                        )}
+                        <span className="extension-name truncate" title={ext.name}>
+                          {ext.name}
+                        </span>
+                        <span className="extension-version">v{ext.version}</span>
+                      </div>
+                      {/* Toggle Switch */}
+                      <label className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={ext.enabled}
+                          onChange={(e) => onToggleExtension(ext.id, e.target.checked)}
+                        />
+                        <span className="toggle-slider" />
+                      </label>
+                    </div>
+                    {ext.description && <p className="extension-desc">{ext.description}</p>}
+                    <div className="flex items-center justify-between mt-2 pt-2 border-t border-[rgba(255,255,255,0.06)]">
+                      <span
+                        className={`text-[10px] ${
+                          ext.compatibility?.status === 'compatible'
+                            ? 'text-emerald-400'
+                            : 'text-amber-400'
+                        }`}
+                      >
+                        {ext.compatibility?.status === 'compatible' ? 'Compatible' : 'Partial'}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        {onReloadExtension && (
+                          <button
+                            className="text-xs text-muted hover:text-primary"
+                            onClick={() => onReloadExtension(ext.id)}
+                            title="Reload"
+                          >
+                            <RotateCw size={12} />
+                          </button>
+                        )}
+                        {onUninstallExtension && (
+                          <button
+                            className="text-xs text-muted hover:text-red-400"
+                            onClick={() => onUninstallExtension(ext.id)}
+                            title="Remove"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            <div className="mt-3 px-1">
+              <button
+                className="w-full text-center text-xs text-muted hover:text-accent flex items-center justify-center gap-1 py-1"
+                onClick={onOpenCompatibility}
+              >
+                <HelpCircle size={12} />
+                <span>View Electron API Compatibility Guide</span>
+              </button>
             </div>
           </div>
         )}
@@ -373,6 +474,29 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                 <option value="horizontal">Horizontal Tabs (Top)</option>
                 <option value="vertical">Vertical Tabs (Left Sidebar)</option>
               </select>
+            </div>
+
+            {/* Extensions & Tools Management */}
+            <div className="setting-group">
+              <label className="setting-label">Extensions & Plugins</label>
+              <div className="flex gap-2">
+                <button
+                  className="setting-action-btn flex-1"
+                  onClick={onOpenExtensionsPage}
+                  title="Open Extensions Manager (nexus://extensions)"
+                >
+                  <Puzzle size={13} />
+                  <span>Manage</span>
+                </button>
+                <button
+                  className="setting-action-btn flex-1"
+                  onClick={onOpenCompatibility}
+                  title="View Electron API Compatibility Guide"
+                >
+                  <HelpCircle size={13} />
+                  <span>API Guide</span>
+                </button>
+              </div>
             </div>
 
             {/* Default Zoom Preset */}

@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Incompatible Extension Test",
+  "version": "2.0.0",
+  "description": "Extension requesting unsupported browser shell APIs.",
+  "permissions": [
+    "bookmarks",
+    "history",
+    "downloads",
+    "management"
+  ]
+}

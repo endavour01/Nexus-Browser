@@ -101,13 +101,62 @@ export interface DownloadItem {
   timestamp: number;
 }
 
-export interface ExtensionItem {
+export interface ExtensionCompatibility {
+  status: 'compatible' | 'partially_compatible' | 'incompatible';
+  notes: string[];
+  unsupportedPermissions: string[];
+}
+
+export interface ExtensionPermissionWarning {
+  permission: string;
+  title: string;
+  description: string;
+  severity: 'low' | 'medium' | 'high';
+}
+
+export interface InstalledExtension {
   id: string;
   name: string;
   version: string;
   description: string;
+  path: string;
   enabled: boolean;
-  icon: string;
+  manifestVersion: number;
+  permissions: string[];
+  hostPermissions: string[];
+  icons?: Record<string, string>;
+  iconDataUrl?: string;
+  action?: {
+    title?: string;
+    popup?: string;
+    icon?: string;
+  };
+  homepageUrl?: string;
+  installedAt: number;
+  compatibility: ExtensionCompatibility;
+  error?: string;
+}
+
+export type ExtensionItem = InstalledExtension;
+
+export interface ExtensionValidationResult {
+  valid: boolean;
+  name: string;
+  version: string;
+  description: string;
+  manifestVersion: number;
+  path: string;
+  permissions: string[];
+  hostPermissions: string[];
+  warnings: ExtensionPermissionWarning[];
+  compatibility: ExtensionCompatibility;
+  action?: {
+    title?: string;
+    popup?: string;
+    icon?: string;
+  };
+  iconDataUrl?: string;
+  error?: string;
 }
 
 export interface BrowserSettings {
@@ -189,9 +238,20 @@ export interface NexusAPI {
   closeWindow: () => Promise<void>;
   isWindowMaximized: () => Promise<boolean>;
 
+  // Extensions Management
+  selectExtensionDirectory: () => Promise<string | null>;
+  validateExtension: (folderPath: string) => Promise<ExtensionValidationResult>;
+  installExtension: (folderPath: string) => Promise<InstalledExtension>;
+  uninstallExtension: (extensionId: string) => Promise<boolean>;
+  toggleExtension: (extensionId: string, enabled: boolean) => Promise<boolean>;
+  reloadExtension: (extensionId: string) => Promise<boolean>;
+  getInstalledExtensions: () => Promise<InstalledExtension[]>;
+  openExtensionPopup: (extensionId: string) => Promise<void>;
+
   // Event Listeners
   onTabsUpdated: (callback: (tabs: TabState[], activeTabId: string) => void) => () => void;
   onWindowMaximizedChange: (callback: (isMaximized: boolean) => void) => () => void;
+  onExtensionsUpdated: (callback: (extensions: InstalledExtension[]) => void) => () => void;
 }
 
 declare global {

@@ -209,7 +209,12 @@ export class TabManager {
 
     const id = `tab-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
     const url = initialUrl || 'nexus://newtab';
-    const isNewTab = url === 'nexus://newtab' || url === '';
+    const isInternalPage = url.startsWith('nexus://') || url === '';
+
+    let initialTitle = 'New Tab';
+    if (url === 'nexus://extensions') initialTitle = 'Extensions';
+    else if (url === 'nexus://compatibility') initialTitle = 'Compatibility Guide';
+    else if (!isInternalPage) initialTitle = 'Loading...';
 
     // Separate session partition for isolated workspaces or private tabs
     let tabSession: Electron.Session = session.defaultSession;
@@ -233,7 +238,7 @@ export class TabManager {
     const tab: ManagedTab = {
       id,
       url,
-      title: isNewTab ? 'New Tab' : 'Loading...',
+      title: initialTitle,
       isLoading: false,
       canGoBack: false,
       canGoForward: false,
@@ -435,7 +440,7 @@ export class TabManager {
     this.tabs.set(id, tab);
 
     // Initial load
-    if (!isNewTab) {
+    if (!isInternalPage) {
       const formatted = this.formatUrl(url);
       wc.loadURL(formatted).catch((err) => {
         console.warn('Initial load error for', formatted, err);
@@ -477,7 +482,7 @@ export class TabManager {
         this.activeWorkspaceId = currentTab.workspaceId;
       }
 
-      const isNewTab = currentTab.url === 'nexus://newtab' || currentTab.url === '';
+      const isInternalPage = currentTab.url.startsWith('nexus://') || currentTab.url === '';
 
       try {
         const children = this.mainWindow.contentView.children;
@@ -485,7 +490,7 @@ export class TabManager {
           this.mainWindow.contentView.addChildView(currentTab.view);
         }
 
-        if (isNewTab) {
+        if (isInternalPage) {
           if (typeof currentTab.view.setVisible === 'function') {
             currentTab.view.setVisible(false);
           } else {
@@ -690,8 +695,14 @@ export class TabManager {
     tab.url = formatted;
     tab.isSecure = formatted.startsWith('https://');
 
-    if (formatted === 'nexus://newtab') {
-      tab.title = 'New Tab';
+    if (formatted.startsWith('nexus://')) {
+      if (formatted === 'nexus://extensions') {
+        tab.title = 'Extensions';
+      } else if (formatted === 'nexus://compatibility') {
+        tab.title = 'Compatibility Guide';
+      } else {
+        tab.title = 'New Tab';
+      }
       try {
         if (typeof tab.view.setVisible === 'function') {
           tab.view.setVisible(false);
@@ -803,7 +814,7 @@ export class TabManager {
   public updateActiveTabBounds() {
     if (!this.activeTabId) return;
     const tab = this.tabs.get(this.activeTabId);
-    if (!tab || tab.url === 'nexus://newtab') return;
+    if (!tab || tab.url.startsWith('nexus://')) return;
 
     try {
       const [width, height] = this.mainWindow.getContentSize();

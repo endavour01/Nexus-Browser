@@ -1,7 +1,8 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import { TabManager } from './tab-manager';
+import { ExtensionManager } from './extension-manager';
 
 // Ensure smooth launch on Linux systems without hardware GPU or SUID sandbox helper
 if (process.platform === 'linux') {
@@ -14,6 +15,7 @@ if (process.platform === 'linux') {
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 let mainWindow: BrowserWindow | null = null;
 let tabManager: TabManager | null = null;
+let extensionManager: ExtensionManager | null = null;
 
 const isDev = process.env.ELECTRON_IS_DEV === '1';
 
@@ -35,6 +37,10 @@ function createWindow() {
   });
 
   tabManager = new TabManager(mainWindow);
+  extensionManager = new ExtensionManager(mainWindow);
+  extensionManager.init().catch((err) => {
+    console.error('[NEXUS] Failed to initialize extension manager:', err);
+  });
 
   // Show window when ready
   mainWindow.once('ready-to-show', () => {
@@ -73,6 +79,7 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null;
     tabManager = null;
+    extensionManager = null;
   });
 }
 
@@ -207,6 +214,51 @@ function registerIpcHandlers() {
 
   ipcMain.handle('storage:clear', async () => {
     await tabManager?.clearBrowsingData();
+  });
+
+  // Extensions Management
+  ipcMain.handle('extensions:select-directory', async () => {
+    if (!mainWindow) return null;
+    const result = await dialog.showOpenDialog(mainWindow, {
+      title: 'Select Unpacked Extension Directory',
+      properties: ['openDirectory'],
+    });
+    if (result.canceled || result.filePaths.length === 0) {
+      return null;
+    }
+    return result.filePaths[0];
+  });
+
+  ipcMain.handle('extensions:validate', async (_event, folderPath: string) => {
+    return extensionManager?.validateManifest(folderPath);
+  });
+
+  ipcMain.handle('extensions:install', async (_event, folderPath: string) => {
+    return extensionManager?.install(folderPath);
+  });
+
+  ipcMain.handle('extensions:uninstall', async (_event, extensionId: string) => {
+    return extensionManager?.uninstall(extensionId) ?? false;
+  });
+
+  ipcMain.handle('extensions:toggle', async (_event, extensionId: string, enabled: boolean) => {
+    if (enabled) {
+      return extensionManager?.enable(extensionId) ?? false;
+    } else {
+      return extensionManager?.disable(extensionId) ?? false;
+    }
+  });
+
+  ipcMain.handle('extensions:reload', async (_event, extensionId: string) => {
+    return extensionManager?.reload(extensionId) ?? false;
+  });
+
+  ipcMain.handle('extensions:list', () => {
+    return extensionManager?.list() ?? [];
+  });
+
+  ipcMain.handle('extensions:open-popup', async (_event, extensionId: string) => {
+    return extensionManager?.openPopup(extensionId);
   });
 
   ipcMain.handle('system:info', () => {

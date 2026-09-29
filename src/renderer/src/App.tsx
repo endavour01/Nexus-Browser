@@ -23,6 +23,10 @@ import { NewTabWorkspace } from './components/NewTabWorkspace';
 import { CommandPalette } from './components/CommandPalette';
 import { WorkspaceModal } from './components/WorkspaceModal';
 import { TabSearchModal } from './components/TabSearchModal';
+import { ExtensionsPage } from './components/ExtensionsPage';
+import { ExtensionPermissionModal } from './components/ExtensionPermissionModal';
+import { ExtensionCompatibilityModal } from './components/ExtensionCompatibilityModal';
+import { ExtensionValidationResult, InstalledExtension } from '@shared/types';
 
 const defaultWorkspaces: Workspace[] = [
   { id: 'default', name: 'Personal', icon: 'User', color: '#A78BFA', layout: { sidebarCollapsed: false, tabLayout: 'horizontal' } },
@@ -30,40 +34,7 @@ const defaultWorkspaces: Workspace[] = [
   { id: 'research', name: 'Research', icon: 'BookOpen', color: '#34D399', layout: { sidebarCollapsed: false, tabLayout: 'horizontal' } },
 ];
 
-const initialExtensions: ExtensionItem[] = [
-  {
-    id: 'react-devtools',
-    name: 'React Developer Tools',
-    version: '5.2.0',
-    description: 'Inspect React component hierarchies, props, state and hooks.',
-    enabled: true,
-    icon: 'Code2',
-  },
-  {
-    id: 'ublock-core',
-    name: 'uBlock Core Defender',
-    version: '1.58.0',
-    description: 'High-performance ad & tracker blocking engine.',
-    enabled: true,
-    icon: 'Shield',
-  },
-  {
-    id: 'json-viewer',
-    name: 'JSON Viewer Pro',
-    version: '2.1.4',
-    description: 'Syntax highlighting, folding, and path copying for JSON endpoints.',
-    enabled: true,
-    icon: 'FileCode',
-  },
-  {
-    id: 'dark-reader',
-    name: 'Dark Reader Mode',
-    version: '4.9.80',
-    description: 'Inverts colors on websites without native dark mode support.',
-    enabled: false,
-    icon: 'Moon',
-  },
-];
+const initialExtensions: InstalledExtension[] = [];
 
 const initialDownloads: DownloadItem[] = [
   {
@@ -152,13 +123,11 @@ export const App: React.FC = () => {
     return initialDownloads;
   });
 
-  const [extensions, setExtensions] = useState<ExtensionItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('nexus_extensions');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return initialExtensions;
-  });
+  const [extensions, setExtensions] = useState<InstalledExtension[]>([]);
+  const [permissionValidation, setPermissionValidation] = useState<ExtensionValidationResult | null>(null);
+  const [isPermissionModalOpen, setIsPermissionModalOpen] = useState(false);
+  const [isCompatibilityModalOpen, setIsCompatibilityModalOpen] = useState(false);
+  const [isInstallingExtension, setIsInstallingExtension] = useState(false);
 
   const [settings, setSettings] = useState<BrowserSettings>(() => {
     try {
@@ -208,10 +177,6 @@ export const App: React.FC = () => {
   }, [downloads]);
 
   useEffect(() => {
-    localStorage.setItem('nexus_extensions', JSON.stringify(extensions));
-  }, [extensions]);
-
-  useEffect(() => {
     localStorage.setItem('nexus_settings', JSON.stringify(settings));
   }, [settings]);
 
@@ -242,6 +207,12 @@ export const App: React.FC = () => {
 
     api.getSystemInfo().then(setSystemInfo).catch(console.error);
 
+    api.getInstalledExtensions().then((extList) => {
+      if (Array.isArray(extList)) {
+        setExtensions(extList);
+      }
+    }).catch(console.error);
+
     const unsubscribeTabs = api.onTabsUpdated((updatedTabs, activeId) => {
       setTabs(updatedTabs);
       setActiveTabId(activeId);
@@ -267,11 +238,16 @@ export const App: React.FC = () => {
       setIsMaximized(maximized);
     });
 
+    const unsubscribeExtensions = api.onExtensionsUpdated ? api.onExtensionsUpdated((updatedList) => {
+      setExtensions(updatedList);
+    }) : () => {};
+
     api.isWindowMaximized().then(setIsMaximized).catch(console.error);
 
     return () => {
       unsubscribeTabs();
       unsubscribeMax();
+      unsubscribeExtensions();
     };
   }, [api]);
 
@@ -317,7 +293,12 @@ export const App: React.FC = () => {
   }, [api, sidebarCollapsed, activeSidePanel, settings.tabLayout]);
 
   // Modal Visibility Sync to prevent WebContentsView occlusion
-  const isAnyModalOpen = isCommandPaletteOpen || isWorkspaceModalOpen || isTabSearchOpen;
+  const isAnyModalOpen =
+    isCommandPaletteOpen ||
+    isWorkspaceModalOpen ||
+    isTabSearchOpen ||
+    isPermissionModalOpen ||
+    isCompatibilityModalOpen;
   useEffect(() => {
     if (api && api.setModalOpen) {
       api.setModalOpen(isAnyModalOpen);
@@ -563,11 +544,84 @@ export const App: React.FC = () => {
     setDownloads([]);
   }, []);
 
-  const handleToggleExtension = useCallback((id: string) => {
-    setExtensions((prev) =>
-      prev.map((ext) => (ext.id === id ? { ...ext, enabled: !ext.enabled } : ext))
-    );
+  // Extensions Handlers
+  const handleOpenExtensionsPage = useCallback(() => {
+    if (activeTabId) {
+      api?.navigate(activeTabId, 'nexus://extensions');
+    } else {
+      api?.createTab('nexus://extensions', activeWorkspaceId);
+    }
+  }, [api, activeTabId, activeWorkspaceId]);
+
+  const handleOpenCompatibilityGuide = useCallback(() => {
+    setIsCompatibilityModalOpen(true);
   }, []);
+
+  const handleInstallUnpacked = useCallback(async () => {
+    if (!api) return;
+    try {
+      const folderPath = await api.selectExtensionDirectory();
+      if (!folderPath) return;
+
+      const validation = await api.validateExtension(folderPath);
+      if (!validation.valid) {
+        alert(validation.error || 'Invalid extension directory or manifest.json');
+        return;
+      }
+
+      setPermissionValidation(validation);
+      setIsPermissionModalOpen(true);
+    } catch (err: any) {
+      console.error('Failed to validate extension:', err);
+      alert(err.message || 'Error validating extension directory');
+    }
+  }, [api]);
+
+  const handleConfirmInstall = useCallback(async () => {
+    if (!api || !permissionValidation) return;
+    setIsInstallingExtension(true);
+    try {
+      await api.installExtension(permissionValidation.path);
+      setIsPermissionModalOpen(false);
+      setPermissionValidation(null);
+    } catch (err: any) {
+      console.error('Failed to install extension:', err);
+      alert(err.message || 'Error installing extension');
+    } finally {
+      setIsInstallingExtension(false);
+    }
+  }, [api, permissionValidation]);
+
+  const handleToggleExtension = useCallback(
+    (id: string, enabled?: boolean) => {
+      if (!api) return;
+      const ext = extensions.find((e) => e.id === id);
+      const targetEnabled = typeof enabled === 'boolean' ? enabled : !(ext?.enabled);
+      api.toggleExtension(id, targetEnabled).catch(console.error);
+    },
+    [api, extensions]
+  );
+
+  const handleReloadExtension = useCallback(
+    (id: string) => {
+      api?.reloadExtension(id).catch(console.error);
+    },
+    [api]
+  );
+
+  const handleUninstallExtension = useCallback(
+    (id: string) => {
+      api?.uninstallExtension(id).catch(console.error);
+    },
+    [api]
+  );
+
+  const handleOpenExtensionPopup = useCallback(
+    (id: string) => {
+      api?.openExtensionPopup(id).catch(console.error);
+    },
+    [api]
+  );
 
   const handleUpdateSettings = useCallback((newSettings: Partial<BrowserSettings>) => {
     setSettings((prev) => ({ ...prev, ...newSettings }));
@@ -762,6 +816,10 @@ export const App: React.FC = () => {
   ]);
 
   const isNewTab = !activeTab || activeTab.url === 'nexus://newtab' || activeTab.url === '';
+  const isExtensionsPage =
+    activeTab?.url === 'nexus://extensions' || activeTab?.url?.startsWith('nexus://extensions');
+  const isCompatibilityPage =
+    activeTab?.url === 'nexus://compatibility' || activeTab?.url?.startsWith('nexus://compatibility');
 
   return (
     <div className="nexus-app">
@@ -870,6 +928,18 @@ export const App: React.FC = () => {
               onClearRecentPages={() => setRecentPages([])}
             />
           )}
+
+          {(isExtensionsPage || isCompatibilityPage) && (
+            <ExtensionsPage
+              extensions={extensions}
+              onInstallUnpacked={handleInstallUnpacked}
+              onToggleExtension={handleToggleExtension}
+              onReloadExtension={handleReloadExtension}
+              onUninstallExtension={handleUninstallExtension}
+              onOpenPopup={handleOpenExtensionPopup}
+              onOpenCompatibility={handleOpenCompatibilityGuide}
+            />
+          )}
         </main>
 
         {/* 3. Right Side Panel (Flyout drawer) */}
@@ -885,6 +955,11 @@ export const App: React.FC = () => {
             onClearDownloads={handleClearDownloads}
             extensions={extensions}
             onToggleExtension={handleToggleExtension}
+            onOpenExtensionsPage={handleOpenExtensionsPage}
+            onInstallUnpacked={handleInstallUnpacked}
+            onOpenCompatibility={handleOpenCompatibilityGuide}
+            onReloadExtension={handleReloadExtension}
+            onUninstallExtension={handleUninstallExtension}
             settings={settings}
             onUpdateSettings={handleUpdateSettings}
             onClearCache={handleClearCache}
@@ -902,6 +977,8 @@ export const App: React.FC = () => {
           onTogglePanel={setActiveSidePanel}
           downloadCount={downloads.filter((d) => d.status === 'in_progress').length}
           bookmarkCount={bookmarks.length}
+          extensions={extensions}
+          onOpenExtensionPopup={handleOpenExtensionPopup}
         />
       </div>
 
@@ -977,6 +1054,24 @@ export const App: React.FC = () => {
           setRecentlyClosed((prev) => prev.filter((c) => c !== closedTab));
         }}
         onClearRecentlyClosed={() => setRecentlyClosed([])}
+      />
+
+      {/* 10. Extension Permission Warning Modal */}
+      <ExtensionPermissionModal
+        isOpen={isPermissionModalOpen}
+        validation={permissionValidation}
+        onConfirm={handleConfirmInstall}
+        onCancel={() => {
+          setIsPermissionModalOpen(false);
+          setPermissionValidation(null);
+        }}
+        isInstalling={isInstallingExtension}
+      />
+
+      {/* 11. Extension Compatibility Guide Modal */}
+      <ExtensionCompatibilityModal
+        isOpen={isCompatibilityModalOpen}
+        onClose={() => setIsCompatibilityModalOpen(false)}
       />
     </div>
   );

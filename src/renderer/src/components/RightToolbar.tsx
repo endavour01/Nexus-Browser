@@ -7,7 +7,7 @@ import {
   Settings,
   User,
 } from 'lucide-react';
-import { SidePanelType } from '@shared/types';
+import { InstalledExtension, SidePanelType } from '@shared/types';
 
 export { type SidePanelType };
 
@@ -16,6 +16,8 @@ interface RightToolbarProps {
   onTogglePanel: (panel: SidePanelType) => void;
   downloadCount: number;
   bookmarkCount: number;
+  extensions?: InstalledExtension[];
+  onOpenExtensionPopup?: (id: string) => void;
 }
 
 export const RightToolbar: React.FC<RightToolbarProps> = ({
@@ -23,6 +25,8 @@ export const RightToolbar: React.FC<RightToolbarProps> = ({
   onTogglePanel,
   downloadCount,
   bookmarkCount,
+  extensions = [],
+  onOpenExtensionPopup,
 }) => {
   const toggle = (panel: SidePanelType) => {
     if (activePanel === panel) {
@@ -62,6 +66,28 @@ export const RightToolbar: React.FC<RightToolbarProps> = ({
         <Download size={17} />
         {downloadCount > 0 && <span className="toolbar-badge">{downloadCount}</span>}
       </button>
+
+      {/* Extension Action Buttons */}
+      {extensions
+        .filter((ext) => ext.enabled && ext.action?.popup)
+        .map((ext) => (
+          <button
+            key={ext.id}
+            className="nexus-icon-btn toolbar-action-btn extension-action-btn"
+            onClick={() => onOpenExtensionPopup?.(ext.id)}
+            title={`${ext.name}${ext.action?.title ? ` - ${ext.action.title}` : ''}`}
+          >
+            {ext.iconDataUrl ? (
+              <img
+                src={ext.iconDataUrl}
+                alt={ext.name}
+                style={{ width: '16px', height: '16px', borderRadius: '2px', objectFit: 'contain' }}
+              />
+            ) : (
+              <Puzzle size={16} className="text-accent" />
+            )}
+          </button>
+        ))}
 
       {/* Extensions Button */}
       <button

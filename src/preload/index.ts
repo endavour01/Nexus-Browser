@@ -60,6 +60,26 @@ const api: NexusAPI = {
       ipcRenderer.removeListener('window:maximizedChange', handler);
     };
   },
+
+  // Extensions
+  selectExtensionDirectory: () => ipcRenderer.invoke('extensions:select-directory'),
+  validateExtension: (folderPath: string) => ipcRenderer.invoke('extensions:validate', folderPath),
+  installExtension: (folderPath: string) => ipcRenderer.invoke('extensions:install', folderPath),
+  uninstallExtension: (extensionId: string) => ipcRenderer.invoke('extensions:uninstall', extensionId),
+  toggleExtension: (extensionId: string, enabled: boolean) => ipcRenderer.invoke('extensions:toggle', extensionId, enabled),
+  reloadExtension: (extensionId: string) => ipcRenderer.invoke('extensions:reload', extensionId),
+  getInstalledExtensions: () => ipcRenderer.invoke('extensions:list'),
+  openExtensionPopup: (extensionId: string) => ipcRenderer.invoke('extensions:open-popup', extensionId),
+
+  onExtensionsUpdated: (callback: (extensions: any[]) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, extensions: any[]) => {
+      callback(extensions);
+    };
+    ipcRenderer.on('extensions:updated', handler);
+    return () => {
+      ipcRenderer.removeListener('extensions:updated', handler);
+    };
+  },
 };
 
 contextBridge.exposeInMainWorld('nexusAPI', api);
