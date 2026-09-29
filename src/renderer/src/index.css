@@ -1,0 +1,154 @@
+:root {
+  /* Exact Design System Tokens */
+  --bg-app: #0B0D12;
+  --bg-base: #0B0D12;
+  --bg-surface: #12151D;
+  --bg-elevated: #191D28;
+  --bg-surface-hover: #1A1E29;
+  --bg-surface-active: #222838;
+  --bg-input: #0E1017;
+
+  --accent-primary: #A78BFA;
+  --accent-primary-hover: #906FFA;
+  --accent-glow: rgba(167, 139, 250, 0.15);
+  --accent-dim: rgba(167, 139, 250, 0.08);
+
+  --text-primary: #F4F4F5;
+  --text-secondary: #9298A8;
+  --text-muted: #575D6E;
+
+  --border-subtle: #1C202C;
+  --border-medium: #272C3D;
+  --border-focus: #3D445D;
+  --border-accent: rgba(167, 139, 250, 0.4);
+
+  --status-green: #34D399;
+  --status-amber: #FBBF24;
+  --status-red: #F87171;
+
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 7px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Dimensions */
+  --titlebar-height: 40px;
+  --navbar-height: 44px;
+  --header-total-height: 84px;
+  --statusbar-height: 24px;
+  --sidebar-expanded-width: 210px;
+  --sidebar-collapsed-width: 48px;
+  --right-toolbar-width: 44px;
+  --side-panel-width: 310px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  user-select: none;
+}
+
+/* App Shell */
+.nexus-app {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  background: var(--bg-app);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Draggable regions for Electron frameless window */
+.drag-region {
+  -webkit-app-region: drag;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: var(--radius-xs);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-focus);
+}
+
+/* Buttons */
+.nexus-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  padding: 6px;
+  transition: all 120ms ease;
+}
+
+.nexus-icon-btn:hover:not(:disabled) {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+
+.nexus-icon-btn:active:not(:disabled) {
+  background: var(--bg-surface-active);
+  transform: scale(0.97);
+}
+
+.nexus-icon-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.nexus-icon-btn.active {
+  background: var(--accent-dim);
+  color: var(--accent-primary);
+  border-color: var(--border-accent);
+}
+
+/* Keyboard badge helper */
+.kbd-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 5px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xs);
+  color: var(--text-muted);
+}

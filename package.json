@@ -1,0 +1,45 @@
+{
+  "name": "nexus-browser",
+  "version": "1.0.0",
+  "description": "Minimal, premium, nerd-friendly desktop web browser for power users",
+  "main": "dist/main/index.js",
+  "scripts": {
+    "dev": "concurrently -k -p \"[{name}]\" -n \"VITE,MAIN,APP\" -c \"cyan,magenta,green\" \"npm run dev:renderer\" \"npm run dev:main\" \"npm run dev:electron\"",
+    "dev:renderer": "vite --port 5173",
+    "dev:main": "esbuild src/main/index.ts src/preload/index.ts --platform=node --target=node20 --bundle --outdir=dist --sourcemap --watch --external:electron",
+    "dev:electron": "wait-on tcp:5173 && cross-env ELECTRON_IS_DEV=1 electron --no-sandbox --disable-gpu .",
+    "build": "npm run build:renderer && npm run build:main",
+    "build:renderer": "vite build",
+    "build:main": "esbuild src/main/index.ts src/preload/index.ts --platform=node --target=node20 --bundle --outdir=dist --sourcemap --external:electron",
+    "start": "electron --no-sandbox --disable-gpu .",
+    "typecheck": "tsc --noEmit",
+    "test": "esbuild test/verify-engine.ts --platform=node --target=node20 --bundle --outfile=dist/test-verify.js --external:electron && electron --no-sandbox --disable-gpu dist/test-verify.js && rm -f dist/test-verify.js"
+  },
+  "keywords": [
+    "browser",
+    "electron",
+    "react",
+    "webcontentsview",
+    "developer-tools"
+  ],
+  "author": "NEXUS Core Team",
+  "license": "MIT",
+  "dependencies": {
+    "lucide-react": "^1.16.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^9.1.0",
+    "cross-env": "^7.0.3",
+    "electron": "^33.2.1",
+    "esbuild": "^0.24.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.3",
+    "wait-on": "^8.0.1"
+  }
+}

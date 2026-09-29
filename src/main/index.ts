@@ -1,0 +1,185 @@
+import { app, BrowserWindow, ipcMain } from 'electron';
+import path from 'path';
+import fs from 'fs';
+import { TabManager } from './tab-manager';
+
+// Ensure smooth launch on Linux systems without hardware GPU or SUID sandbox helper
+if (process.platform === 'linux') {
+  app.commandLine.appendSwitch('no-sandbox');
+  app.commandLine.appendSwitch('disable-gpu');
+  app.commandLine.appendSwitch('disable-dev-shm-usage');
+  app.disableHardwareAcceleration();
+}
+
+// Handle creating/removing shortcuts on Windows when installing/uninstalling.
+let mainWindow: BrowserWindow | null = null;
+let tabManager: TabManager | null = null;
+
+const isDev = process.env.ELECTRON_IS_DEV === '1';
+
+function createWindow() {
+  mainWindow = new BrowserWindow({
+    width: 1300,
+    height: 880,
+    minWidth: 840,
+    minHeight: 520,
+    frame: false, // Frameless window for custom dark power-user titlebar
+    backgroundColor: '#0b0d11',
+    show: false,
+    webPreferences: {
+      preload: path.join(__dirname, '../preload/index.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
+  });
+
+  tabManager = new TabManager(mainWindow);
+
+  // Show window when ready
+  mainWindow.once('ready-to-show', () => {
+    if (mainWindow) {
+      mainWindow.show();
+      // Initialize with a default new tab
+      tabManager?.createTab('nexus://newtab', true);
+    }
+  });
+
+  // Track window resizing for WebContentsView bounds
+  mainWindow.on('resize', () => {
+    tabManager?.updateActiveTabBounds();
+  });
+
+  mainWindow.on('maximize', () => {
+    mainWindow?.webContents.send('window:maximizedChange', true);
+    tabManager?.updateActiveTabBounds();
+  });
+
+  mainWindow.on('unmaximize', () => {
+    mainWindow?.webContents.send('window:maximizedChange', false);
+    tabManager?.updateActiveTabBounds();
+  });
+
+  // Load the React UI
+  const prodHtml = path.join(__dirname, '../renderer/index.html');
+  if (isDev) {
+    mainWindow.loadURL('http://localhost:5173');
+  } else if (fs.existsSync(prodHtml)) {
+    mainWindow.loadFile(prodHtml);
+  } else {
+    mainWindow.loadURL('http://localhost:5173');
+  }
+
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+    tabManager = null;
+  });
+}
+
+// Register IPC handlers
+function registerIpcHandlers() {
+  // Window controls
+  ipcMain.handle('window:minimize', () => {
+    mainWindow?.minimize();
+  });
+
+  ipcMain.handle('window:maximize', () => {
+    if (mainWindow?.isMaximized()) {
+      mainWindow.unmaximize();
+    } else {
+      mainWindow?.maximize();
+    }
+  });
+
+  ipcMain.handle('window:close', () => {
+    mainWindow?.close();
+  });
+
+  ipcMain.handle('window:isMaximized', () => {
+    return mainWindow?.isMaximized() ?? false;
+  });
+
+  // Tab operations
+  ipcMain.handle('tabs:create', (_event, url?: string, workspaceId?: string) => {
+    return tabManager?.createTab(url, true, workspaceId);
+  });
+
+  ipcMain.handle('tabs:close', (_event, id: string) => {
+    tabManager?.closeTab(id);
+  });
+
+  ipcMain.handle('tabs:switch', (_event, id: string) => {
+    tabManager?.switchTab(id);
+  });
+
+  ipcMain.handle('tabs:navigate', (_event, id: string, url: string) => {
+    tabManager?.navigate(id, url);
+  });
+
+  ipcMain.handle('tabs:goBack', (_event, id: string) => {
+    tabManager?.goBack(id);
+  });
+
+  ipcMain.handle('tabs:goForward', (_event, id: string) => {
+    tabManager?.goForward(id);
+  });
+
+  ipcMain.handle('tabs:reload', (_event, id: string) => {
+    tabManager?.reload(id);
+  });
+
+  ipcMain.handle('tabs:stop', (_event, id: string) => {
+    tabManager?.stop(id);
+  });
+
+  ipcMain.handle('tabs:toggleDevTools', (_event, id?: string) => {
+    tabManager?.toggleDevTools(id);
+  });
+
+  ipcMain.handle('bounds:update', (_event, bounds: any) => {
+    if (bounds) {
+      tabManager?.setContentBounds(bounds);
+    }
+  });
+
+  // Zoom & Storage
+  ipcMain.handle('zoom:set', (_event, level: number) => {
+    return tabManager?.setZoomLevel(level) ?? 0;
+  });
+
+  ipcMain.handle('zoom:get', () => {
+    return tabManager?.getZoomLevel() ?? 0;
+  });
+
+  ipcMain.handle('storage:clear', async () => {
+    await tabManager?.clearBrowsingData();
+  });
+
+  ipcMain.handle('system:info', () => {
+    return {
+      electron: process.versions.electron || 'unknown',
+      chrome: process.versions.chrome || 'unknown',
+      node: process.versions.node || 'unknown',
+      platform: process.platform,
+      arch: process.arch,
+    };
+  });
+}
+
+// App lifecycle
+app.whenReady().then(() => {
+  registerIpcHandlers();
+  createWindow();
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+    }
+  });
+});
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
