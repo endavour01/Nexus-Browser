@@ -6,9 +6,9 @@ import {
   ModeBehaviorConfig,
 } from '@shared/types';
 import {
-  Sparkles,
+  Compass,
+  Sun,
   Zap,
-  Shield,
   X,
   Check,
   Cpu,
@@ -80,7 +80,7 @@ export const ModeSelectorModal: React.FC<ModeSelectorModalProps> = ({
       subtitle: 'Obsidian & Violet',
       description:
         'The original NEXUS power-user dark theme. Balanced contrast with fluid animations and standard resource management.',
-      icon: <Shield size={16} style={{ color: '#A78BFA' }} />,
+      icon: <Compass size={16} style={{ color: '#A78BFA' }} />,
       swatches: ['#0B0D12', '#12151D', '#191D28', '#A78BFA'],
       accentColor: '#A78BFA',
     },
@@ -90,7 +90,7 @@ export const ModeSelectorModal: React.FC<ModeSelectorModalProps> = ({
       subtitle: 'Golden Mode — Metallic Gold & Deep Black',
       description:
         'Premium metallic gold, deep black, and warm dark surfaces. Elegant Super Saiyan energy with comfortable contrast for long browsing sessions.',
-      icon: <Sparkles size={16} style={{ color: '#F5C542' }} />,
+      icon: <Sun size={16} style={{ color: '#F5C542' }} />,
       swatches: ['#090909', '#14120C', '#211B0D', '#F5C542'],
       accentColor: '#F5C542',
     },
@@ -100,7 +100,7 @@ export const ModeSelectorModal: React.FC<ModeSelectorModalProps> = ({
       subtitle: 'Redline Mode — Crimson & Carbon',
       description:
         'High-contrast crimson and deep carbon black. Zero UI transition latency (0.01ms), aggressive idle tab suspension, and maximum memory recovery.',
-      icon: <Flame size={16} style={{ color: '#F02D43' }} />,
+      icon: <Zap size={16} style={{ color: '#F02D43' }} />,
       swatches: ['#080809', '#121214', '#1C1719', '#F02D43'],
       accentColor: '#F02D43',
     },

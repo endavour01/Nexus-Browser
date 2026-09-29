@@ -9,9 +9,9 @@ import {
   RotateCcw,
   Code2,
   Loader2,
-  Shield,
   Layers,
-  Sparkles,
+  Compass,
+  Sun,
   Zap,
 } from 'lucide-react';
 
@@ -90,9 +90,9 @@ export const StatusBar: React.FC<StatusBarProps> = ({
           {currentMode === 'performance' ? (
             <Zap size={11} className="text-[#EF4444]" />
           ) : currentMode === 'balanced' ? (
-            <Sparkles size={11} className="text-[#EAB308]" />
+            <Sun size={11} className="text-[#EAB308]" />
           ) : (
-            <Shield size={11} className="text-[#A78BFA]" />
+            <Compass size={11} className="text-[#A78BFA]" />
           )}
           <span>
             {currentMode === 'performance'

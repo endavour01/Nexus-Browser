@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { TabState } from '@shared/types';
+import { TabState, NexusBrowserMode } from '@shared/types';
 import {
   ArrowLeft,
   ArrowRight,
@@ -13,7 +13,11 @@ import {
   Copy,
   Check,
   Star,
+  Compass,
+  Sun,
+  Zap,
 } from 'lucide-react';
+import { ModePopover } from './ModePopover';
 
 interface NavigationBarProps {
   activeTab: TabState | null;
@@ -28,6 +32,9 @@ interface NavigationBarProps {
   onToggleBookmark: () => void;
   focusOmniboxTrigger?: number;
   onToggleSecurityPopover?: () => void;
+  currentMode?: NexusBrowserMode;
+  onSelectMode?: (mode: NexusBrowserMode) => void;
+  onOpenSettings?: () => void;
 }
 
 export const NavigationBar: React.FC<NavigationBarProps> = ({
@@ -43,10 +50,14 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
   onToggleBookmark,
   focusOmniboxTrigger,
   onToggleSecurityPopover,
+  currentMode = 'default',
+  onSelectMode,
+  onOpenSettings,
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isModePopoverOpen, setIsModePopoverOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Focus and select all text when focusOmniboxTrigger changes
@@ -228,6 +239,64 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
 
       {/* Power Tools Group */}
       <div className="nav-tools-group">
+        {/* Browser Mode Switcher & Popover */}
+        <div className="mode-switcher-wrapper">
+          <button
+            type="button"
+            className={`nexus-icon-btn mode-switcher-btn mode-switcher-${currentMode || 'default'} ${
+              isModePopoverOpen ? 'active' : ''
+            }`}
+            onClick={() => setIsModePopoverOpen((prev) => !prev)}
+            title={`Current Mode: ${
+              currentMode === 'performance'
+                ? 'Performance'
+                : currentMode === 'balanced'
+                ? 'Balanced'
+                : 'Default'
+            }. Click to switch.`}
+            aria-haspopup="dialog"
+            aria-expanded={isModePopoverOpen}
+            aria-label={`Switch browser mode. Currently ${
+              currentMode === 'performance'
+                ? 'Performance'
+                : currentMode === 'balanced'
+                ? 'Balanced'
+                : 'Default'
+            }`}
+          >
+            {currentMode === 'performance' ? (
+              <Zap size={14} className="text-[#F02D43]" />
+            ) : currentMode === 'balanced' ? (
+              <Sun size={14} className="text-[#F5C542]" />
+            ) : (
+              <Compass size={14} className="text-[#A78BFA]" />
+            )}
+            <span className="mode-switcher-label">
+              {currentMode === 'performance'
+                ? 'Performance'
+                : currentMode === 'balanced'
+                ? 'Balanced'
+                : 'Default'}
+            </span>
+          </button>
+
+          {isModePopoverOpen && (
+            <ModePopover
+              isOpen={isModePopoverOpen}
+              onClose={() => setIsModePopoverOpen(false)}
+              currentMode={currentMode || 'default'}
+              onSelectMode={(mode) => {
+                onSelectMode?.(mode);
+                setIsModePopoverOpen(false);
+              }}
+              onOpenSettings={() => {
+                setIsModePopoverOpen(false);
+                onOpenSettings?.();
+              }}
+            />
+          )}
+        </div>
+
         <button
           className="nexus-icon-btn devtools-btn"
           onClick={onToggleDevTools}

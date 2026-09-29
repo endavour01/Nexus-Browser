@@ -171,12 +171,15 @@
 /* Subtle mode-specific surface transitions without delaying user interaction */
 :root:not([data-mode='performance']) body,
 :root:not([data-mode='performance']) .titlebar-container,
-:root:not([data-mode='performance']) .navbar,
-:root:not([data-mode='performance']) .sidebar,
-:root:not([data-mode='performance']) .statusbar,
-:root:not([data-mode='performance']) .side-panel,
-:root:not([data-mode='performance']) .right-toolbar {
-  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+:root:not([data-mode='performance']) .navbar-container,
+:root:not([data-mode='performance']) .sidebar-container,
+:root:not([data-mode='performance']) .nexus-statusbar,
+:root:not([data-mode='performance']) .nexus-side-panel,
+:root:not([data-mode='performance']) .nexus-right-toolbar,
+:root:not([data-mode='performance']) .modal-card,
+:root:not([data-mode='performance']) .mode-card,
+:root:not([data-mode='performance']) .mode-popover {
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
 }
 
 /* --------------------------------------------------------------------------

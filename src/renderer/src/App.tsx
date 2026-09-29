@@ -1174,6 +1174,9 @@ export const App: React.FC = () => {
           onToggleBookmark={handleToggleBookmark}
           focusOmniboxTrigger={focusOmniboxTrigger}
           onToggleSecurityPopover={() => setIsSecurityPopoverOpen((prev) => !prev)}
+          currentMode={browserMode}
+          onSelectMode={setBrowserMode}
+          onOpenSettings={() => setActiveSidePanel('settings')}
         />
 
         <SiteSecurityPopover

@@ -45,6 +45,8 @@ import {
   Sparkles,
   Zap,
   Flame,
+  Compass,
+  Sun,
 } from 'lucide-react';
 
 interface SidePanelProps {
@@ -700,89 +702,230 @@ export const SidePanel: React.FC<SidePanelProps> = ({
         {type === 'settings' && (
           <div className="panel-section settings-section">
             {/* Browser Mode */}
-            <div className="setting-group">
-              <label className="setting-label">Browser Mode</label>
-              <div className="mode-cards-container">
+            <div className="setting-group modes-settings-group">
+              <div className="flex items-center justify-between mb-2">
+                <label className="setting-label text-[13px] font-semibold text-primary">Browser Modes</label>
+                <span className="text-[11px] text-muted">1-Click Visual & Behavioral Profiles</span>
+              </div>
+              <div className="mode-cards-container" role="radiogroup" aria-label="Browser Modes">
                 {/* Default Mode Card */}
                 <div
-                  className={`mode-card ${(!settings.mode || settings.mode === 'default') ? 'active' : ''}`}
+                  tabIndex={0}
+                  role="radio"
+                  aria-checked={!settings.mode || settings.mode === 'default'}
+                  aria-label="Default Mode: Obsidian & Violet"
+                  className={`mode-card mode-card-default ${(!settings.mode || settings.mode === 'default') ? 'active' : ''}`}
                   onClick={() => onSelectMode ? onSelectMode('default') : onUpdateSettings({ mode: 'default' })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onSelectMode ? onSelectMode('default') : onUpdateSettings({ mode: 'default' });
+                    }
+                  }}
                 >
                   <div className="mode-card-header">
                     <div className="mode-card-title-group">
-                      <div className="mode-icon-box" style={{ background: '#A78BFA18', border: '1px solid #A78BFA33' }}>
-                        <Shield size={13} className="text-[#A78BFA]" />
+                      <div className="mode-icon-box" style={{ background: '#A78BFA18', borderColor: '#A78BFA33' }}>
+                        <Compass size={14} className="text-[#A78BFA]" />
                       </div>
-                      <span className="mode-card-title">Default Mode</span>
+                      <div>
+                        <span className="mode-card-title">Default Mode</span>
+                        <div className="text-[10px] text-muted">Obsidian & Violet</div>
+                      </div>
                     </div>
                     {(!settings.mode || settings.mode === 'default') && (
                       <span className="mode-active-pill" style={{ background: '#A78BFA', color: '#0B0D12' }}>
-                        Active
+                        <Check size={10} strokeWidth={2.5} /> Active
                       </span>
                     )}
                   </div>
-                  <p className="mode-card-desc">
-                    Obsidian & Violet default. Original aesthetic, fluid animations, standard tabs.
-                  </p>
+
+                  {/* Large Miniature Browser Chrome Preview */}
+                  <div className="mode-mini-browser mode-mini-default">
+                    <div className="mini-browser-bar">
+                      <div className="mini-dots">
+                        <span className="mini-dot red" />
+                        <span className="mini-dot yellow" />
+                        <span className="mini-dot green" />
+                      </div>
+                      <div className="mini-tabs">
+                        <div className="mini-tab active-default">NEXUS</div>
+                        <div className="mini-tab">Tab</div>
+                      </div>
+                    </div>
+                    <div className="mini-browser-content">
+                      <div className="mini-omnibox mini-omnibox-default">
+                        <span className="mini-badge-dot" style={{ backgroundColor: '#A78BFA' }} />
+                        <span className="mini-url">nexus://newtab</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Visual & Functional Breakdown */}
+                  <div className="mode-details-block">
+                    <div className="mode-detail-item">
+                      <span className="mode-detail-tag">Visual:</span>
+                      <span className="mode-detail-text">Obsidian & Violet surfaces, fluid 150ms transitions, full backdrop blur and glowing accents.</span>
+                    </div>
+                    <div className="mode-detail-item">
+                      <span className="mode-detail-tag">Functional:</span>
+                      <span className="mode-detail-text">Standard Chromium background timers. Retains all background tabs in renderer memory.</span>
+                    </div>
+                  </div>
+
                   <div className="mode-palette-preview">
                     {['#0B0D12', '#12151D', '#191D28', '#A78BFA'].map((c, i) => (
-                      <div key={i} className="mode-palette-swatch" style={{ backgroundColor: c }} />
+                      <div key={i} className="mode-palette-swatch" style={{ backgroundColor: c }} title={c}>
+                        <span className="swatch-hex">{c}</span>
+                      </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Balanced Mode Card */}
                 <div
-                  className={`mode-card ${settings.mode === 'balanced' ? 'active' : ''}`}
+                  tabIndex={0}
+                  role="radio"
+                  aria-checked={settings.mode === 'balanced'}
+                  aria-label="Balanced Mode: Metallic Gold & Deep Black"
+                  className={`mode-card mode-card-balanced ${settings.mode === 'balanced' ? 'active' : ''}`}
                   onClick={() => onSelectMode ? onSelectMode('balanced') : onUpdateSettings({ mode: 'balanced' })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onSelectMode ? onSelectMode('balanced') : onUpdateSettings({ mode: 'balanced' });
+                    }
+                  }}
                 >
                   <div className="mode-card-header">
                     <div className="mode-card-title-group">
-                      <div className="mode-icon-box" style={{ background: '#F5C54218', border: '1px solid #F5C54233' }}>
-                        <Sparkles size={13} style={{ color: '#F5C542' }} />
+                      <div className="mode-icon-box" style={{ background: '#F5C54218', borderColor: '#F5C54233' }}>
+                        <Sun size={14} style={{ color: '#F5C542' }} />
                       </div>
-                      <span className="mode-card-title">Balanced Mode</span>
+                      <div>
+                        <span className="mode-card-title">Balanced Mode</span>
+                        <div className="text-[10px] text-muted">Metallic Gold & Deep Black</div>
+                      </div>
                     </div>
                     {settings.mode === 'balanced' && (
                       <span className="mode-active-pill" style={{ background: '#F5C542', color: '#0C0B08' }}>
-                        Active
+                        <Check size={10} strokeWidth={2.5} /> Active
                       </span>
                     )}
                   </div>
-                  <p className="mode-card-desc">
-                    Metallic-gold & deep black Super Saiyan aesthetic. Warm highlights, rich contrast.
-                  </p>
+
+                  {/* Large Miniature Browser Chrome Preview */}
+                  <div className="mode-mini-browser mode-mini-balanced">
+                    <div className="mini-browser-bar">
+                      <div className="mini-dots">
+                        <span className="mini-dot red" />
+                        <span className="mini-dot yellow" />
+                        <span className="mini-dot green" />
+                      </div>
+                      <div className="mini-tabs">
+                        <div className="mini-tab active-balanced">Focus</div>
+                        <div className="mini-tab">Study</div>
+                      </div>
+                    </div>
+                    <div className="mini-browser-content">
+                      <div className="mini-omnibox mini-omnibox-balanced">
+                        <span className="mini-badge-dot" style={{ backgroundColor: '#F5C542' }} />
+                        <span className="mini-url">nexus://focus</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Visual & Functional Breakdown */}
+                  <div className="mode-details-block">
+                    <div className="mode-detail-item">
+                      <span className="mode-detail-tag">Visual:</span>
+                      <span className="mode-detail-text">Super Saiyan aesthetic with rich gold accents, warm dark surfaces, and 2px golden focus rings.</span>
+                    </div>
+                    <div className="mode-detail-item">
+                      <span className="mode-detail-tag">Functional:</span>
+                      <span className="mode-detail-text">Distraction reduction, optional Focus Session workspace, and collapsible minimalist toolbar.</span>
+                    </div>
+                  </div>
+
                   <div className="mode-palette-preview">
                     {['#090909', '#14120C', '#211B0D', '#F5C542'].map((c, i) => (
-                      <div key={i} className="mode-palette-swatch" style={{ backgroundColor: c }} />
+                      <div key={i} className="mode-palette-swatch" style={{ backgroundColor: c }} title={c}>
+                        <span className="swatch-hex">{c}</span>
+                      </div>
                     ))}
                   </div>
                 </div>
 
                 {/* Performance Mode Card */}
                 <div
-                  className={`mode-card ${settings.mode === 'performance' ? 'active' : ''}`}
+                  tabIndex={0}
+                  role="radio"
+                  aria-checked={settings.mode === 'performance'}
+                  aria-label="Performance Mode: Crimson & Carbon"
+                  className={`mode-card mode-card-performance ${settings.mode === 'performance' ? 'active' : ''}`}
                   onClick={() => onSelectMode ? onSelectMode('performance') : onUpdateSettings({ mode: 'performance' })}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onSelectMode ? onSelectMode('performance') : onUpdateSettings({ mode: 'performance' });
+                    }
+                  }}
                 >
                   <div className="mode-card-header">
                     <div className="mode-card-title-group">
-                      <div className="mode-icon-box" style={{ background: '#F02D4318', border: '1px solid #F02D4333' }}>
-                        <Flame size={13} style={{ color: '#F02D43' }} />
+                      <div className="mode-icon-box" style={{ background: '#F02D4318', borderColor: '#F02D4333' }}>
+                        <Zap size={14} style={{ color: '#F02D43' }} />
                       </div>
-                      <span className="mode-card-title">Performance Mode</span>
+                      <div>
+                        <span className="mode-card-title">Performance Mode</span>
+                        <div className="text-[10px] text-muted">Crimson & Carbon</div>
+                      </div>
                     </div>
                     {settings.mode === 'performance' && (
                       <span className="mode-active-pill" style={{ background: '#F02D43', color: '#FFFFFF' }}>
-                        Active
+                        <Check size={10} strokeWidth={2.5} /> Active
                       </span>
                     )}
                   </div>
-                  <p className="mode-card-desc">
-                    Redline high-contrast crimson & carbon. Zero latency (0.01ms), auto-suspends idle tabs.
-                  </p>
+
+                  {/* Large Miniature Browser Chrome Preview */}
+                  <div className="mode-mini-browser mode-mini-performance">
+                    <div className="mini-browser-bar">
+                      <div className="mini-dots">
+                        <span className="mini-dot red" />
+                        <span className="mini-dot yellow" />
+                        <span className="mini-dot green" />
+                      </div>
+                      <div className="mini-tabs">
+                        <div className="mini-tab active-performance">Fast</div>
+                        <div className="mini-tab">Sleep</div>
+                      </div>
+                    </div>
+                    <div className="mini-browser-content">
+                      <div className="mini-omnibox mini-omnibox-performance">
+                        <span className="mini-badge-dot" style={{ backgroundColor: '#F02D43' }} />
+                        <span className="mini-url">0.01ms latency</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Visual & Functional Breakdown */}
+                  <div className="mode-details-block">
+                    <div className="mode-detail-item">
+                      <span className="mode-detail-tag">Visual:</span>
+                      <span className="mode-detail-text">Redline crimson & deep carbon black. Zero-latency (0.01ms) instant bypass; disables GPU filters and shadows.</span>
+                    </div>
+                    <div className="mode-detail-item">
+                      <span className="mode-detail-tag">Functional:</span>
+                      <span className="mode-detail-text">Aggressive background tab throttling and configurable inactivity tab memory unloading.</span>
+                    </div>
+                  </div>
+
                   <div className="mode-palette-preview">
                     {['#080809', '#121214', '#1C1719', '#F02D43'].map((c, i) => (
-                      <div key={i} className="mode-palette-swatch" style={{ backgroundColor: c }} />
+                      <div key={i} className="mode-palette-swatch" style={{ backgroundColor: c }} title={c}>
+                        <span className="swatch-hex">{c}</span>
+                      </div>
                     ))}
                   </div>
                 </div>

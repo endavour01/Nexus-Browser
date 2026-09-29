@@ -9,7 +9,8 @@ import {
   Zap,
   Flame,
   Target,
-  Shield,
+  Compass,
+  Sun,
   RotateCcw,
   CheckCircle2,
   Clock,
@@ -105,7 +106,7 @@ export const ModeBehaviorControls: React.FC<ModeBehaviorControlsProps> = ({
       {currentMode === 'balanced' && (
         <>
           <div className="mode-behavior-title">
-            <Sparkles size={13} style={{ color: '#F5C542' }} />
+            <Sun size={13} style={{ color: '#F5C542' }} />
             <span>Focus & Productivity Settings</span>
           </div>
 
@@ -162,30 +163,24 @@ export const ModeBehaviorControls: React.FC<ModeBehaviorControlsProps> = ({
       {currentMode === 'performance' && (
         <>
           <div className="mode-behavior-title">
-            <Flame size={13} style={{ color: '#F02D43' }} />
+            <Zap size={13} style={{ color: '#F02D43' }} />
             <span>Resource Efficiency Controls</span>
           </div>
 
           <div className="mode-control-row">
             <div className="mode-control-label">
-              <span>Idle Tab Suspension</span>
+              <span>Reduced Motion</span>
               <span className="mode-control-sublabel">
-                Unloads background renderer memory after inactivity
+                Disables CSS transitions and animations for instant response
               </span>
             </div>
-            <select
-              className="mode-select"
-              value={settings.performanceTabDiscardTimeout ?? 180000}
-              onChange={(e) => handleTimeoutChange(Number(e.target.value))}
-              aria-label="Inactivity Timeout"
-            >
-              <option value={60000}>After 1 minute</option>
-              <option value={180000}>After 3 minutes (recommended)</option>
-              <option value={300000}>After 5 minutes</option>
-              <option value={900000}>After 15 minutes</option>
-              <option value={1800000}>After 30 minutes</option>
-              <option value={0}>Disabled</option>
-            </select>
+            <input
+              type="checkbox"
+              className="nexus-checkbox"
+              checked={!!settings.reducedMotion}
+              onChange={(e) => onUpdateSettings({ reducedMotion: e.target.checked })}
+              aria-label="Reduced Motion"
+            />
           </div>
 
           <div className="mode-control-row">
@@ -200,7 +195,45 @@ export const ModeBehaviorControls: React.FC<ModeBehaviorControlsProps> = ({
               className="nexus-checkbox"
               checked={settings.performanceBackgroundThrottling !== false}
               onChange={(e) => handleToggleThrottling(e.target.checked)}
-              aria-label="Background Throttling"
+              aria-label="Background Tab Throttling"
+            />
+          </div>
+
+          <div className="mode-control-row">
+            <div className="mode-control-label">
+              <span>Put Inactive Tabs to Sleep</span>
+              <span className="mode-control-sublabel">
+                Unloads background renderer memory after inactivity
+              </span>
+            </div>
+            <select
+              className="mode-select"
+              value={settings.performanceTabDiscardTimeout ?? 180000}
+              onChange={(e) => handleTimeoutChange(Number(e.target.value))}
+              aria-label="Tab Inactivity Timeout"
+            >
+              <option value={60000}>After 1 minute</option>
+              <option value={180000}>After 3 minutes</option>
+              <option value={300000}>After 5 minutes (recommended)</option>
+              <option value={900000}>After 15 minutes</option>
+              <option value={1800000}>After 30 minutes</option>
+              <option value={0}>Never (Keep tabs awake)</option>
+            </select>
+          </div>
+
+          <div className="mode-control-row">
+            <div className="mode-control-label">
+              <span>Protect Pinned Tabs</span>
+              <span className="mode-control-sublabel">
+                Prevent pinned tabs from being put to sleep
+              </span>
+            </div>
+            <input
+              type="checkbox"
+              className="nexus-checkbox"
+              checked={!settings.performanceSuspendPinned}
+              onChange={(e) => handleToggleSuspendPinned(!e.target.checked)}
+              aria-label="Protect Pinned Tabs from Sleeping"
             />
           </div>
 
@@ -220,22 +253,6 @@ export const ModeBehaviorControls: React.FC<ModeBehaviorControlsProps> = ({
             />
           </div>
 
-          <div className="mode-control-row">
-            <div className="mode-control-label">
-              <span>Protect Pinned Tabs</span>
-              <span className="mode-control-sublabel">
-                Exclude pinned tabs from automatic memory suspension
-              </span>
-            </div>
-            <input
-              type="checkbox"
-              className="nexus-checkbox"
-              checked={!settings.performanceSuspendPinned}
-              onChange={(e) => handleToggleSuspendPinned(!e.target.checked)}
-              aria-label="Protect Pinned Tabs"
-            />
-          </div>
-
           {/* Active Safeguards Banner */}
           <div
             style={{
@@ -252,7 +269,7 @@ export const ModeBehaviorControls: React.FC<ModeBehaviorControlsProps> = ({
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <CheckCircle2 size={12} style={{ color: 'var(--status-green)' }} />
-              <span>Playing audio & video are never suspended</span>
+              <span>Playing audio & video are never put to sleep</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <CheckCircle2 size={12} style={{ color: 'var(--status-green)' }} />
@@ -262,6 +279,17 @@ export const ModeBehaviorControls: React.FC<ModeBehaviorControlsProps> = ({
               <CheckCircle2 size={12} style={{ color: 'var(--status-green)' }} />
               <span>Foreground active tab is always responsive</span>
             </div>
+          </div>
+
+          {/* Transparent Resource Optimization Disclaimer */}
+          <div className="mode-disclaimer-card">
+            <div className="mode-disclaimer-header">
+              <Info size={13} className="text-[#F02D43]" />
+              <span className="mode-disclaimer-title">Resource Optimization Notice</span>
+            </div>
+            <p className="mode-disclaimer-text">
+              Performance Mode prioritizes system resource conservation by sleeping inactive background tabs and eliminating GPU compositing overhead. It optimizes available RAM and CPU for active work rather than magically accelerating internet connection speed or overclocking hardware.
+            </p>
           </div>
 
           {onOptimizeMemory && (
