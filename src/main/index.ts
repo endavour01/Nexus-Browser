@@ -10,6 +10,9 @@ import { ProfileManager } from './profile-manager';
 import { PermissionManager } from './permission-manager';
 import { SecurityManager } from './security-manager';
 import { TrackingProtection } from './tracking-protection';
+import { NetworkMonitor } from './network-monitor';
+import { ZoomManager } from './zoom-manager';
+import { DeveloperToolsManager } from './developer-tools-manager';
 import { ClearDataOptions, PermissionType, PermissionDecision, TrackingProtectionMode } from '../shared/types';
 
 // Ensure smooth launch on Linux systems without hardware GPU or SUID sandbox helper
@@ -30,6 +33,9 @@ let profileManager: ProfileManager | null = null;
 let permissionManager: PermissionManager | null = null;
 let securityManager: SecurityManager | null = null;
 let trackingProtection: TrackingProtection | null = null;
+let networkMonitor: NetworkMonitor | null = null;
+let zoomManager: ZoomManager | null = null;
+let developerToolsManager: DeveloperToolsManager | null = null;
 
 const isDev = process.env.ELECTRON_IS_DEV === '1';
 
@@ -65,6 +71,18 @@ function createWindow() {
   tabManager.setPermissionManager(permissionManager);
   tabManager.setSecurityManager(securityManager);
   tabManager.setTrackingProtection(trackingProtection);
+
+  networkMonitor = new NetworkMonitor(mainWindow);
+  zoomManager = new ZoomManager();
+  developerToolsManager = new DeveloperToolsManager(
+    mainWindow,
+    tabManager,
+    networkMonitor,
+    zoomManager,
+    securityManager
+  );
+  tabManager.setZoomManager(zoomManager);
+  tabManager.setNetworkMonitor(networkMonitor);
 
   downloadManager = new DownloadManager(mainWindow, profilePaths.downloads);
   extensionManager = new ExtensionManager(mainWindow);
@@ -112,6 +130,9 @@ function createWindow() {
     extensionManager = null;
     bookmarksStore = null;
     downloadManager = null;
+    networkMonitor = null;
+    zoomManager = null;
+    developerToolsManager = null;
   });
 }
 
@@ -531,6 +552,73 @@ function registerIpcHandlers() {
 
   ipcMain.handle('tracking:toggleException', (_event, origin: string) => {
     return trackingProtection?.toggleException(origin) ?? false;
+  });
+
+  // Developer Tools
+  ipcMain.handle('devtools:inspectElement', async (_event, tabId?: string) => {
+    return developerToolsManager?.inspectElement(tabId);
+  });
+
+  ipcMain.handle('devtools:getPageInfo', async (_event, tabId?: string) => {
+    return developerToolsManager?.getPageInfo(tabId);
+  });
+
+  ipcMain.handle('devtools:setDeviceEmulation', async (_event, tabId: string, preset: any) => {
+    return developerToolsManager?.setDeviceEmulation(tabId, preset);
+  });
+
+  ipcMain.handle('devtools:viewPageSource', async (_event, tabId?: string) => {
+    return developerToolsManager?.viewPageSource(tabId);
+  });
+
+  ipcMain.handle('devtools:getCookies', async (_event, tabId?: string) => {
+    return developerToolsManager?.getCookiesForTab(tabId) ?? [];
+  });
+
+  ipcMain.handle('devtools:removeCookie', async (_event, url: string, name: string) => {
+    return developerToolsManager?.removeCookie(url, name) ?? false;
+  });
+
+  ipcMain.handle('devtools:getStorage', async (_event, tabId?: string) => {
+    return (
+      (await developerToolsManager?.getStorageForTab(tabId)) ?? {
+        localStorage: [],
+        sessionStorage: [],
+      }
+    );
+  });
+
+  ipcMain.handle('devtools:clearStorage', async (_event, tabId?: string, type?: any) => {
+    return developerToolsManager?.clearStorageForTab(tabId, type) ?? false;
+  });
+
+  ipcMain.handle('devtools:getNetworkLogs', async (_event, tabId?: string) => {
+    return developerToolsManager?.getNetworkLogs(tabId) ?? [];
+  });
+
+  ipcMain.handle('devtools:clearNetworkLogs', async (_event, tabId?: string) => {
+    developerToolsManager?.clearNetworkLogs(tabId);
+  });
+
+  ipcMain.handle('devtools:extractReaderMode', async (_event, tabId?: string) => {
+    return (
+      (await developerToolsManager?.extractReaderMode(tabId)) ?? {
+        success: false,
+        reason: 'Developer tools manager not ready.',
+      }
+    );
+  });
+
+  ipcMain.handle('devtools:getSiteZoom', async (_event, origin: string) => {
+    return developerToolsManager?.getSiteZoom(origin) ?? 1.0;
+  });
+
+  ipcMain.handle('devtools:setSiteZoom', async (_event, origin: string, zoomFactor: number) => {
+    developerToolsManager?.setSiteZoom(origin, zoomFactor);
+  });
+
+  ipcMain.handle('devtools:getAllSiteZooms', async () => {
+    return developerToolsManager?.getAllSiteZooms() ?? [];
   });
 }
 

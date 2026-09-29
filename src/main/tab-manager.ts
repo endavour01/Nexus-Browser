@@ -6,6 +6,8 @@ import { ProfileManager } from './profile-manager';
 import { PermissionManager } from './permission-manager';
 import { SecurityManager } from './security-manager';
 import { TrackingProtection } from './tracking-protection';
+import { ZoomManager } from './zoom-manager';
+import { NetworkMonitor } from './network-monitor';
 
 interface ManagedTab {
   id: string;
@@ -49,6 +51,8 @@ export class TabManager {
   private permissionManager?: PermissionManager;
   private securityManager?: SecurityManager;
   private trackingProtection?: TrackingProtection;
+  private zoomManager?: ZoomManager;
+  private networkMonitor?: NetworkMonitor;
   private bounds: ContentBounds = {
     top: 84,
     left: 210,
@@ -90,6 +94,30 @@ export class TabManager {
   }
   public getTrackingProtection(): TrackingProtection | undefined {
     return this.trackingProtection;
+  }
+
+  public setZoomManager(zm: ZoomManager) {
+    this.zoomManager = zm;
+  }
+  public getZoomManager(): ZoomManager | undefined {
+    return this.zoomManager;
+  }
+
+  public setNetworkMonitor(nm: NetworkMonitor) {
+    this.networkMonitor = nm;
+    this.networkMonitor.setTabResolver((wcId: number) => this.getTabIdForWebContents(wcId));
+  }
+  public getNetworkMonitor(): NetworkMonitor | undefined {
+    return this.networkMonitor;
+  }
+
+  public getTabIdForWebContents(wcId: number): string | undefined {
+    for (const [tabId, tab] of this.tabs.entries()) {
+      if (tab.view && !tab.view.webContents.isDestroyed() && tab.view.webContents.id === wcId) {
+        return tabId;
+      }
+    }
+    return undefined;
   }
 
   public setModalOpen(isOpen: boolean) {
@@ -316,6 +344,9 @@ export class TabManager {
     if (this.trackingProtection) {
       this.trackingProtection.attachToSession(tabSession);
     }
+    if (this.networkMonitor) {
+      this.networkMonitor.attachToSession(tabSession);
+    }
 
     const view = new WebContentsView({
       webPreferences: {
@@ -408,6 +439,12 @@ export class TabManager {
       tab.isSecure = navigatedUrl.startsWith('https://');
       tab.canGoBack = wc.canGoBack();
       tab.canGoForward = wc.canGoForward();
+      if (this.zoomManager && navigatedUrl && !navigatedUrl.startsWith('nexus://')) {
+        const factor = this.zoomManager.getSiteZoom(navigatedUrl);
+        if (factor && Math.abs(factor - 1.0) > 0.001) {
+          wc.setZoomFactor(factor);
+        }
+      }
       recordHistory();
       this.notifyTabsUpdated();
     });
@@ -417,6 +454,12 @@ export class TabManager {
       tab.isSecure = inPageUrl.startsWith('https://');
       tab.canGoBack = wc.canGoBack();
       tab.canGoForward = wc.canGoForward();
+      if (this.zoomManager && inPageUrl && !inPageUrl.startsWith('nexus://')) {
+        const factor = this.zoomManager.getSiteZoom(inPageUrl);
+        if (factor && Math.abs(factor - 1.0) > 0.001) {
+          wc.setZoomFactor(factor);
+        }
+      }
       recordHistory();
       this.notifyTabsUpdated();
     });
@@ -610,6 +653,12 @@ export class TabManager {
           }
           if (!this.isModalOpen) {
             this.updateActiveTabBounds();
+          }
+          if (this.zoomManager && currentTab.url && !currentTab.url.startsWith('nexus://')) {
+            const factor = this.zoomManager.getSiteZoom(currentTab.url);
+            if (factor && Math.abs(factor - 1.0) > 0.001) {
+              currentTab.view.webContents.setZoomFactor(factor);
+            }
           }
         }
       } catch (err) {

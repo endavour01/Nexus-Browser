@@ -64,6 +64,11 @@ interface CommandPaletteProps {
   onZoomOut: () => void;
   onResetZoom: () => void;
   onFocusOmnibox: () => void;
+  onInspectElement?: () => void;
+  onToggleResponsive?: () => void;
+  onOpenReaderMode?: () => void;
+  onOpenJsonFormatter?: () => void;
+  onOpenColorPicker?: () => void;
 }
 
 // Fuzzy matching algorithm
@@ -110,6 +115,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   onZoomOut,
   onResetZoom,
   onFocusOmnibox,
+  onInspectElement,
+  onToggleResponsive,
+  onOpenReaderMode,
+  onOpenJsonFormatter,
+  onOpenColorPicker,
 }) => {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -400,6 +410,66 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
           onClearCache();
         },
       },
+
+      // --- Developer Toolkit ---
+      {
+        id: 'dev-open-toolkit',
+        title: 'Open Developer Toolkit Panel',
+        subtitle: 'Network monitor, cookies, storage inspector, zoom controls',
+        category: 'Developer & Tools',
+        icon: 'Code2',
+        action: () => onTogglePanel('devtools'),
+      },
+      {
+        id: 'dev-inspect',
+        title: 'Inspect Element',
+        subtitle: 'Open DevTools focused on the selected element',
+        category: 'Developer & Tools',
+        shortcut: 'Ctrl+Shift+C',
+        icon: 'Code2',
+        action: () => onInspectElement?.(),
+      },
+      {
+        id: 'dev-responsive',
+        title: 'Responsive / Device Emulation Mode',
+        subtitle: 'Preview current page in mobile and tablet viewports',
+        category: 'Developer & Tools',
+        shortcut: 'Ctrl+Shift+M',
+        icon: 'Maximize2',
+        action: () => onToggleResponsive?.(),
+      },
+      {
+        id: 'dev-reader',
+        title: 'Reader Mode',
+        subtitle: 'Extract article content in a distraction-free layout',
+        category: 'Developer & Tools',
+        icon: 'Globe',
+        action: () => onOpenReaderMode?.(),
+      },
+      {
+        id: 'dev-json',
+        title: 'JSON Formatter & Inspector',
+        subtitle: 'Paste, validate, format and inspect raw JSON',
+        category: 'Developer & Tools',
+        icon: 'FileCode',
+        action: () => onOpenJsonFormatter?.(),
+      },
+      {
+        id: 'dev-color-picker',
+        title: 'Color Picker — EyeDropper',
+        subtitle: 'Pick any pixel color from screen with Chromium EyeDropper API',
+        category: 'Developer & Tools',
+        icon: 'Sparkles',
+        action: () => onOpenColorPicker?.(),
+      },
+      {
+        id: 'dev-dashboard',
+        title: 'Developer Dashboard (nexus://dev)',
+        subtitle: 'Open the full developer workbench page',
+        category: 'Developer & Tools',
+        icon: 'Globe',
+        action: () => onNavigate('nexus://dev'),
+      },
     ];
 
     return cmds;
@@ -427,6 +497,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     onZoomOut,
     onResetZoom,
     onClearCache,
+    onInspectElement,
+    onToggleResponsive,
+    onOpenReaderMode,
+    onOpenJsonFormatter,
+    onOpenColorPicker,
   ]);
 
   // Open Tab items for quick tab switcher

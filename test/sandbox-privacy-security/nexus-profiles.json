@@ -1,0 +1,27 @@
+{
+  "activeProfileId": "personal",
+  "profiles": [
+    {
+      "id": "personal",
+      "name": "Personal",
+      "icon": "User",
+      "color": "#A78BFA",
+      "createdAt": 1790686966575,
+      "isDefault": true
+    },
+    {
+      "id": "work",
+      "name": "Work",
+      "icon": "Briefcase",
+      "color": "#38BDF8",
+      "createdAt": 1790686966576
+    },
+    {
+      "id": "dev",
+      "name": "Developer",
+      "icon": "Code",
+      "color": "#34D399",
+      "createdAt": 1790686966577
+    }
+  ]
+}

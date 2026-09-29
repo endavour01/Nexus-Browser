@@ -199,6 +199,32 @@ const api: NexusAPI = {
       ipcRenderer.removeListener('tracking:statsUpdated', handler);
     };
   },
+
+  // Developer Tools
+  inspectElement: (tabId?: string) => ipcRenderer.invoke('devtools:inspectElement', tabId),
+  getPageInfo: (tabId?: string) => ipcRenderer.invoke('devtools:getPageInfo', tabId),
+  setDeviceEmulation: (tabId: string, preset: any) => ipcRenderer.invoke('devtools:setDeviceEmulation', tabId, preset),
+  viewPageSource: (tabId?: string) => ipcRenderer.invoke('devtools:viewPageSource', tabId),
+  getCookiesForTab: (tabId?: string) => ipcRenderer.invoke('devtools:getCookies', tabId),
+  removeCookie: (url: string, name: string) => ipcRenderer.invoke('devtools:removeCookie', url, name),
+  getStorageForTab: (tabId?: string) => ipcRenderer.invoke('devtools:getStorage', tabId),
+  clearStorageForTab: (tabId?: string, type?: any) => ipcRenderer.invoke('devtools:clearStorage', tabId, type),
+  getNetworkLogs: (tabId?: string) => ipcRenderer.invoke('devtools:getNetworkLogs', tabId),
+  clearNetworkLogs: (tabId?: string) => ipcRenderer.invoke('devtools:clearNetworkLogs', tabId),
+  extractReaderMode: (tabId?: string) => ipcRenderer.invoke('devtools:extractReaderMode', tabId),
+  getSiteZoom: (origin: string) => ipcRenderer.invoke('devtools:getSiteZoom', origin),
+  setSiteZoom: (origin: string, zoomFactor: number) => ipcRenderer.invoke('devtools:setSiteZoom', origin, zoomFactor),
+  getAllSiteZooms: () => ipcRenderer.invoke('devtools:getAllSiteZooms'),
+
+  onNetworkActivity: (callback: (entry: any) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, entry: any) => {
+      callback(entry);
+    };
+    ipcRenderer.on('devtools:networkActivity', handler);
+    return () => {
+      ipcRenderer.removeListener('devtools:networkActivity', handler);
+    };
+  },
 };
 
 contextBridge.exposeInMainWorld('nexusAPI', api);

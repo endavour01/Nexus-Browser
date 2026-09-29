@@ -6,6 +6,7 @@ import {
   Puzzle,
   Settings,
   User,
+  Terminal,
 } from 'lucide-react';
 import { InstalledExtension, SidePanelType } from '@shared/types';
 
@@ -96,6 +97,15 @@ export const RightToolbar: React.FC<RightToolbarProps> = ({
         title="Extensions & Tools"
       >
         <Puzzle size={17} />
+      </button>
+
+      {/* Developer Toolkit Button */}
+      <button
+        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'devtools' ? 'active' : ''}`}
+        onClick={() => toggle('devtools')}
+        title="Developer Toolkit"
+      >
+        <Terminal size={17} />
       </button>
 
       <div className="toolbar-spacer" />

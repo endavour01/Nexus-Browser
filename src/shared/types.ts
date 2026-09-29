@@ -312,7 +312,89 @@ export interface RecentPage {
   timestamp: number;
 }
 
-export type SidePanelType = 'bookmarks' | 'downloads' | 'extensions' | 'profiles' | 'settings' | 'history' | null;
+export type SidePanelType = 'bookmarks' | 'downloads' | 'extensions' | 'profiles' | 'settings' | 'history' | 'devtools' | null;
+
+// Developer Tools Types
+export interface NetworkLogEntry {
+  id: string;
+  tabId: string;
+  url: string;
+  method: string;
+  statusCode?: number;
+  statusLine?: string;
+  resourceType: string;
+  startTime: number;
+  endTime?: number;
+  duration?: number;
+  size?: number;
+  error?: string;
+  ip?: string;
+}
+
+export interface CookieItem {
+  name: string;
+  value: string;
+  domain: string;
+  path: string;
+  secure: boolean;
+  httpOnly: boolean;
+  session: boolean;
+  expirationDate?: number;
+  sameSite: 'unspecified' | 'no_restriction' | 'lax' | 'strict';
+}
+
+export interface StorageItem {
+  key: string;
+  value: string;
+}
+
+export interface StorageData {
+  localStorage: StorageItem[];
+  sessionStorage: StorageItem[];
+}
+
+export interface PageInfoDetails {
+  url: string;
+  title: string;
+  viewportSize: { width: number; height: number };
+  contentType?: string;
+  security: SiteSecurityInfo;
+  cookieCount: number;
+  storageCount: number;
+}
+
+export interface DevicePreset {
+  id: string;
+  name: string;
+  width: number;
+  height: number;
+  deviceScaleFactor: number;
+  mobile: boolean;
+  userAgent?: string;
+}
+
+export interface ReaderArticle {
+  title: string;
+  byline?: string;
+  siteName?: string;
+  content: string;
+  textContent: string;
+  length: number;
+  excerpt?: string;
+  readingTimeMinutes: number;
+}
+
+export interface ReaderResult {
+  success: boolean;
+  article?: ReaderArticle;
+  reason?: string;
+}
+
+export interface SiteZoomPreference {
+  origin: string;
+  zoomFactor: number;
+  updatedAt: number;
+}
 
 export interface NexusAPI {
   // Tab Management
@@ -419,6 +501,22 @@ export interface NexusAPI {
   setTrackingMode: (mode: TrackingProtectionMode) => Promise<void>;
   toggleTrackingException: (origin: string) => Promise<boolean>;
 
+  // Developer Tools
+  inspectElement: (tabId?: string) => Promise<void>;
+  getPageInfo: (tabId?: string) => Promise<PageInfoDetails | null>;
+  setDeviceEmulation: (tabId: string, preset: DevicePreset | null) => Promise<void>;
+  viewPageSource: (tabId?: string) => Promise<void>;
+  getCookiesForTab: (tabId?: string) => Promise<CookieItem[]>;
+  removeCookie: (url: string, name: string) => Promise<boolean>;
+  getStorageForTab: (tabId?: string) => Promise<StorageData>;
+  clearStorageForTab: (tabId?: string, type?: 'all' | 'localStorage' | 'sessionStorage') => Promise<boolean>;
+  getNetworkLogs: (tabId?: string) => Promise<NetworkLogEntry[]>;
+  clearNetworkLogs: (tabId?: string) => Promise<void>;
+  extractReaderMode: (tabId?: string) => Promise<ReaderResult>;
+  getSiteZoom: (origin: string) => Promise<number>;
+  setSiteZoom: (origin: string, zoomFactor: number) => Promise<void>;
+  getAllSiteZooms: () => Promise<SiteZoomPreference[]>;
+
   // Event Listeners
   onTabsUpdated: (callback: (tabs: TabState[], activeTabId: string) => void) => () => void;
   onWindowMaximizedChange: (callback: (isMaximized: boolean) => void) => () => void;
@@ -429,6 +527,7 @@ export interface NexusAPI {
   onProfileSwitched: (callback: (profile: UserProfile) => void) => () => void;
   onPermissionPrompt: (callback: (prompt: PermissionPromptRequest) => void) => () => void;
   onTrackingStatsUpdated: (callback: (stats: { totalBlocked: number }) => void) => () => void;
+  onNetworkActivity: (callback: (entry: NetworkLogEntry) => void) => () => void;
 }
 
 declare global {

@@ -19,7 +19,8 @@
     "test:extensions": "esbuild test/verify-extensions.ts --platform=node --target=node20 --bundle --outfile=dist/test-ext.js --external:electron && electron --no-sandbox --disable-gpu dist/test-ext.js 2>/dev/null && rm -f dist/test-ext.js",
     "test:library": "esbuild test/verify-browsing-library.ts --platform=node --target=node20 --bundle --outfile=dist/test-lib.js --external:electron && electron --no-sandbox --disable-gpu dist/test-lib.js 2>/dev/null && rm -f dist/test-lib.js",
     "test:privacy-security": "esbuild test/verify-privacy-security.ts --platform=node --target=node20 --bundle --outfile=dist/test-sec.js --external:electron && electron --no-sandbox --disable-gpu dist/test-sec.js 2>/dev/null && rm -f dist/test-sec.js",
-    "test": "npm run test:engine && npm run test:commands && npm run test:workspaces && npm run test:extensions && npm run test:library && npm run test:privacy-security"
+    "test:devtools": "esbuild test/verify-developer-tools.ts --platform=node --target=node20 --bundle --outfile=dist/test-devtools.js --external:electron && electron --no-sandbox --disable-gpu dist/test-devtools.js 2>/dev/null && rm -f dist/test-devtools.js",
+    "test": "npm run test:engine && npm run test:commands && npm run test:workspaces && npm run test:extensions && npm run test:library && npm run test:privacy-security && npm run test:devtools"
   },
   "keywords": [
     "browser",

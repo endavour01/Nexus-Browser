@@ -10,6 +10,7 @@ import {
   TrackingProtectionMode,
 } from '@shared/types';
 import { SidePanelType } from './RightToolbar';
+import { DeveloperToolsPanel } from './DeveloperToolsPanel';
 import {
   X,
   Plus,
@@ -79,6 +80,14 @@ interface SidePanelProps {
   onOpenProfileModal?: () => void;
   onSwitchProfile?: (id: string) => void;
   onOpenPermissionsPage?: () => void;
+  activeTabId?: string | null;
+  onToggleDevTools?: () => void;
+  onInspectElement?: () => void;
+  onViewSource?: () => void;
+  onToggleResponsive?: () => void;
+  onOpenReaderMode?: () => void;
+  onOpenJsonFormatter?: () => void;
+  onOpenDevDashboard?: () => void;
 }
 
 export const SidePanel: React.FC<SidePanelProps> = ({
@@ -121,6 +130,15 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   onOpenProfileModal,
   onSwitchProfile,
   onOpenPermissionsPage,
+  activeTabId,
+  onToggleDevTools,
+  onInspectElement,
+  onViewSource,
+  onToggleResponsive,
+  onOpenReaderMode,
+  onOpenJsonFormatter,
+  onOpenDevDashboard,
+  currentUrl,
 }) => {
   const [bookmarkQuery, setBookmarkQuery] = useState('');
   const [historyQuery, setHistoryQuery] = useState('');
@@ -168,6 +186,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
           {type === 'extensions' && 'Extensions'}
           {type === 'profiles' && 'Profiles'}
           {type === 'settings' && 'Settings'}
+          {type === 'devtools' && 'Developer Toolkit'}
         </h3>
         <button className="nexus-icon-btn panel-close-btn" onClick={onClose} title="Close panel">
           <X size={15} />
@@ -840,6 +859,21 @@ export const SidePanel: React.FC<SidePanelProps> = ({
               </div>
             )}
           </div>
+        )}
+
+        {type === 'devtools' && (
+          <DeveloperToolsPanel
+            currentUrl={currentUrl}
+            activeTabId={activeTabId || null}
+            onNavigate={onNavigate}
+            onToggleDevTools={onToggleDevTools || (() => {})}
+            onInspectElement={onInspectElement || (() => {})}
+            onViewSource={onViewSource || (() => {})}
+            onToggleResponsive={onToggleResponsive || (() => {})}
+            onOpenReaderMode={onOpenReaderMode || (() => {})}
+            onOpenJsonFormatter={onOpenJsonFormatter || (() => {})}
+            onOpenDevDashboard={onOpenDevDashboard || (() => onNavigate('nexus://dev'))}
+          />
         )}
       </div>
     </div>

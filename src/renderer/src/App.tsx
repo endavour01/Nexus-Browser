@@ -42,6 +42,10 @@ import { SiteSecurityPopover } from './components/SiteSecurityPopover';
 import { SitePermissionPromptModal } from './components/SitePermissionPromptModal';
 import { ProfileModal } from './components/ProfileModal';
 import { PermissionsPage } from './components/PermissionsPage';
+import { ResponsiveDeviceBar } from './components/ResponsiveDeviceBar';
+import { ReaderView } from './components/ReaderView';
+import { JsonFormatterModal } from './components/JsonFormatterModal';
+import { DeveloperDashboard } from './components/DeveloperDashboard';
 
 const defaultWorkspaces: Workspace[] = [
   { id: 'default', name: 'Personal', icon: 'User', color: '#A78BFA', layout: { sidebarCollapsed: false, tabLayout: 'horizontal' } },
@@ -117,6 +121,12 @@ export const App: React.FC = () => {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [permissionPrompt, setPermissionPrompt] = useState<PermissionPromptRequest | null>(null);
   const [isSecurityPopoverOpen, setIsSecurityPopoverOpen] = useState(false);
+
+  // Developer Toolkit State
+  const [isResponsiveBarOpen, setIsResponsiveBarOpen] = useState(false);
+  const [isReaderModeOpen, setIsReaderModeOpen] = useState(false);
+  const [readerArticle, setReaderArticle] = useState<import('@shared/types').ReaderArticle | null>(null);
+  const [isJsonFormatterOpen, setIsJsonFormatterOpen] = useState(false);
 
   const [settings, setSettings] = useState<BrowserSettings>(() => {
     try {
@@ -514,6 +524,41 @@ export const App: React.FC = () => {
   const handleToggleDevTools = useCallback(() => {
     api?.toggleDevTools(activeTabId || undefined);
   }, [api, activeTabId]);
+
+  const handleInspectElement = useCallback(() => {
+    if (activeTabId) api?.inspectElement(activeTabId);
+  }, [api, activeTabId]);
+
+  const handleOpenReaderMode = useCallback(async () => {
+    if (!api || !activeTabId) return;
+    const result = await api.extractReaderMode(activeTabId);
+    if (result?.success && result.article) {
+      setReaderArticle(result.article);
+      setIsReaderModeOpen(true);
+    }
+  }, [api, activeTabId]);
+
+  const handleToggleResponsive = useCallback(() => {
+    setIsResponsiveBarOpen((prev) => !prev);
+  }, []);
+
+  const handleOpenJsonFormatter = useCallback(() => {
+    setIsJsonFormatterOpen(true);
+  }, []);
+
+  const handleOpenDevDashboard = useCallback(() => {
+    if (activeTabId) api?.navigate(activeTabId, 'nexus://dev');
+  }, [api, activeTabId]);
+
+  const handleOpenColorPicker = useCallback(async () => {
+    // Use Chromium EyeDropper API if available
+    try {
+      const eyeDropper = new (window as any).EyeDropper();
+      await eyeDropper.open();
+    } catch {
+      // EyeDropper not supported or cancelled — silently ignore
+    }
+  }, []);
 
   const handleZoomIn = useCallback(async () => {
     if (!api) return;
@@ -949,6 +994,11 @@ export const App: React.FC = () => {
         e.preventDefault();
         setSidebarCollapsed((prev) => !prev);
       }
+      // Ctrl+Shift+M: Toggle responsive device preview bar
+      else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'm') {
+        e.preventDefault();
+        handleToggleResponsive();
+      }
       // Ctrl+Plus: Zoom In
       else if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) {
         e.preventDefault();
@@ -997,6 +1047,7 @@ export const App: React.FC = () => {
     handlePrevTab,
     handleFocusOmnibox,
     handleViewSource,
+    handleToggleResponsive,
     activeTabId,
     isCommandPaletteOpen,
     isTabSearchOpen,
@@ -1016,6 +1067,8 @@ export const App: React.FC = () => {
     activeTab?.url === 'nexus://downloads' || activeTab?.url?.startsWith('nexus://downloads');
   const isPermissionsPage =
     activeTab?.url === 'nexus://permissions' || activeTab?.url?.startsWith('nexus://permissions');
+  const isDevDashboard =
+    activeTab?.url === 'nexus://dev' || activeTab?.url?.startsWith('nexus://dev');
 
   return (
     <div className="nexus-app">
@@ -1205,7 +1258,42 @@ export const App: React.FC = () => {
           {isPermissionsPage && (
             <PermissionsPage onNavigate={handleNavigate} />
           )}
+
+          {isDevDashboard && (
+            <DeveloperDashboard
+              systemInfo={systemInfo}
+              tabs={tabs}
+              onSelectTab={handleSelectTab}
+              onNavigate={handleNavigate}
+              onToggleDevTools={handleToggleDevTools}
+              onInspectElement={handleInspectElement}
+              onToggleResponsive={handleToggleResponsive}
+              onOpenJsonFormatter={handleOpenJsonFormatter}
+            />
+          )}
         </main>
+
+        {/* Responsive Device Emulation Bar */}
+        {isResponsiveBarOpen && activeTabId && (
+          <ResponsiveDeviceBar
+            activeTabId={activeTabId}
+            onClose={() => setIsResponsiveBarOpen(false)}
+          />
+        )}
+
+        {/* Reader Mode Overlay */}
+        {isReaderModeOpen && readerArticle && (
+          <ReaderView
+            article={readerArticle}
+            onClose={() => { setIsReaderModeOpen(false); setReaderArticle(null); }}
+          />
+        )}
+
+        {/* JSON Formatter Modal */}
+        <JsonFormatterModal
+          isOpen={isJsonFormatterOpen}
+          onClose={() => setIsJsonFormatterOpen(false)}
+        />
 
         {/* 3. Right Side Panel (Flyout drawer) */}
         {activeSidePanel && (
@@ -1250,6 +1338,14 @@ export const App: React.FC = () => {
             onOpenProfileModal={() => setIsProfileModalOpen(true)}
             onSwitchProfile={handleSwitchProfile}
             onOpenPermissionsPage={() => handleNavigate('nexus://permissions')}
+            activeTabId={activeTabId}
+            onToggleDevTools={handleToggleDevTools}
+            onInspectElement={handleInspectElement}
+            onViewSource={handleViewSource}
+            onToggleResponsive={handleToggleResponsive}
+            onOpenReaderMode={handleOpenReaderMode}
+            onOpenJsonFormatter={handleOpenJsonFormatter}
+            onOpenDevDashboard={handleOpenDevDashboard}
           />
         )}
 
@@ -1305,6 +1401,11 @@ export const App: React.FC = () => {
         onZoomOut={handleZoomOut}
         onResetZoom={handleResetZoom}
         onFocusOmnibox={handleFocusOmnibox}
+        onInspectElement={handleInspectElement}
+        onToggleResponsive={handleToggleResponsive}
+        onOpenReaderMode={handleOpenReaderMode}
+        onOpenJsonFormatter={handleOpenJsonFormatter}
+        onOpenColorPicker={handleOpenColorPicker}
       />
 
       {/* 8. Workspace Management Modal */}
