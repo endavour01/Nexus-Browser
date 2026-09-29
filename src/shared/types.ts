@@ -110,6 +110,7 @@ export interface ClearDataOptions {
   downloads: boolean;
   cookies: boolean;
   cache: boolean;
+  sitePermissions?: boolean;
 }
 
 export interface DownloadRecord {
@@ -199,6 +200,10 @@ export interface BrowserSettings {
   tabLayout: 'horizontal' | 'vertical';
   showBookmarksBar?: boolean;
   defaultDownloadDirectory?: string;
+  trackingProtectionMode?: TrackingProtectionMode;
+  javascriptEnabled?: boolean;
+  popupsBlocked?: boolean;
+  thirdPartyCookiesBlocked?: boolean;
 }
 
 export interface SystemInfo {
@@ -207,6 +212,88 @@ export interface SystemInfo {
   node: string;
   platform: string;
   arch: string;
+}
+
+// User Profiles
+export interface UserProfile {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  createdAt: number;
+  isDefault?: boolean;
+}
+
+// Site Permissions & Content Settings
+export type PermissionType =
+  | 'camera'
+  | 'microphone'
+  | 'geolocation'
+  | 'notifications'
+  | 'midi'
+  | 'pointerLock'
+  | 'fullscreen'
+  | 'openExternal';
+
+export type PermissionDecision = 'allow' | 'deny' | 'ask';
+
+export interface SitePermissionRule {
+  origin: string;
+  permission: PermissionType;
+  decision: PermissionDecision;
+  updatedAt: number;
+}
+
+export interface PermissionPromptRequest {
+  requestId: string;
+  tabId: string;
+  origin: string;
+  permission: PermissionType;
+  title: string;
+}
+
+// Security & Certificate Info
+export interface CertificateInfo {
+  subjectName: string;
+  issuerName: string;
+  validFrom: number;
+  validTo: number;
+  fingerprint: string;
+  serialNumber: string;
+  protocol?: string;
+  cipher?: string;
+}
+
+export interface SiteSecurityInfo {
+  url: string;
+  origin: string;
+  isSecure: boolean;
+  status: 'secure' | 'insecure' | 'warning';
+  certificate?: CertificateInfo;
+  error?: string;
+  blockedTrackersCount: number;
+}
+
+export interface CertificateErrorDetails {
+  url: string;
+  error: string;
+  errorDescription: string;
+  certificate?: CertificateInfo;
+}
+
+// Tracking Protection
+export type TrackingProtectionMode = 'off' | 'standard' | 'strict';
+
+export interface TrackingProtectionSettings {
+  mode: TrackingProtectionMode;
+  totalBlocked: number;
+  exceptions: string[];
+}
+
+export interface ContentSettings {
+  javascriptEnabled: boolean;
+  popupsBlocked: boolean;
+  thirdPartyCookiesBlocked: boolean;
 }
 
 export interface CommandItem {
@@ -309,6 +396,29 @@ export interface NexusAPI {
   clearDownloadsList: () => Promise<void>;
   removeDownloadEntry: (id: string) => Promise<boolean>;
 
+  // Profiles Management
+  getProfiles: () => Promise<UserProfile[]>;
+  getActiveProfile: () => Promise<UserProfile>;
+  createProfile: (name: string, icon: string, color: string) => Promise<UserProfile>;
+  updateProfile: (id: string, updates: Partial<Pick<UserProfile, 'name' | 'icon' | 'color'>>) => Promise<UserProfile | null>;
+  deleteProfile: (id: string) => Promise<boolean>;
+  switchProfile: (id: string) => Promise<boolean>;
+
+  // Site Permissions & Content Settings
+  getSitePermissions: () => Promise<SitePermissionRule[]>;
+  setSitePermission: (origin: string, permission: PermissionType, decision: PermissionDecision) => Promise<SitePermissionRule>;
+  removeSitePermission: (origin: string, permission: PermissionType) => Promise<boolean>;
+  clearAllSitePermissions: () => Promise<boolean>;
+  respondPermissionPrompt: (requestId: string, allow: boolean, remember: boolean) => Promise<void>;
+
+  // Security & Certificates
+  getSiteSecurityInfo: (url: string) => Promise<SiteSecurityInfo>;
+
+  // Tracking Protection
+  getTrackingSettings: () => Promise<TrackingProtectionSettings>;
+  setTrackingMode: (mode: TrackingProtectionMode) => Promise<void>;
+  toggleTrackingException: (origin: string) => Promise<boolean>;
+
   // Event Listeners
   onTabsUpdated: (callback: (tabs: TabState[], activeTabId: string) => void) => () => void;
   onWindowMaximizedChange: (callback: (isMaximized: boolean) => void) => () => void;
@@ -316,6 +426,9 @@ export interface NexusAPI {
   onBookmarksUpdated: (callback: (bookmarks: BookmarkItem[]) => void) => () => void;
   onHistoryUpdated: (callback: (history: HistoryEntry[]) => void) => () => void;
   onDownloadsUpdated: (callback: (downloads: DownloadRecord[]) => void) => () => void;
+  onProfileSwitched: (callback: (profile: UserProfile) => void) => () => void;
+  onPermissionPrompt: (callback: (prompt: PermissionPromptRequest) => void) => () => void;
+  onTrackingStatsUpdated: (callback: (stats: { totalBlocked: number }) => void) => () => void;
 }
 
 declare global {

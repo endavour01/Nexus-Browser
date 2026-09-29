@@ -2,6 +2,10 @@ import { BrowserWindow, WebContentsView, session } from 'electron';
 import { ContentBounds, SavedSessionData, TabState } from '../shared/types';
 import { SessionStore } from './session-store';
 import { HistoryStore } from './history-store';
+import { ProfileManager } from './profile-manager';
+import { PermissionManager } from './permission-manager';
+import { SecurityManager } from './security-manager';
+import { TrackingProtection } from './tracking-protection';
 
 interface ManagedTab {
   id: string;
@@ -41,6 +45,10 @@ export class TabManager {
   private mainWindow: BrowserWindow;
   private sessionStore: SessionStore = new SessionStore();
   private historyStore: HistoryStore = new HistoryStore();
+  private profileManager?: ProfileManager;
+  private permissionManager?: PermissionManager;
+  private securityManager?: SecurityManager;
+  private trackingProtection?: TrackingProtection;
   private bounds: ContentBounds = {
     top: 84,
     left: 210,
@@ -53,6 +61,35 @@ export class TabManager {
   constructor(mainWindow: BrowserWindow) {
     this.mainWindow = mainWindow;
     this.setupPermissions();
+  }
+
+  public setProfileManager(pm: ProfileManager) {
+    this.profileManager = pm;
+  }
+  public getProfileManager(): ProfileManager | undefined {
+    return this.profileManager;
+  }
+
+  public setPermissionManager(pm: PermissionManager) {
+    this.permissionManager = pm;
+    this.setupPermissions();
+  }
+  public getPermissionManager(): PermissionManager | undefined {
+    return this.permissionManager;
+  }
+
+  public setSecurityManager(sm: SecurityManager) {
+    this.securityManager = sm;
+  }
+  public getSecurityManager(): SecurityManager | undefined {
+    return this.securityManager;
+  }
+
+  public setTrackingProtection(tp: TrackingProtection) {
+    this.trackingProtection = tp;
+  }
+  public getTrackingProtection(): TrackingProtection | undefined {
+    return this.trackingProtection;
   }
 
   public setModalOpen(isOpen: boolean) {
@@ -87,6 +124,11 @@ export class TabManager {
   }
 
   private setupPermissions() {
+    if (this.permissionManager) {
+      this.permissionManager.attachToSession(session.defaultSession);
+      return;
+    }
+
     session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
       const allowedPermissions = ['fullscreen', 'clipboard-read', 'clipboard-sanitized-write'];
       if (allowedPermissions.includes(permission)) {
@@ -250,14 +292,29 @@ export class TabManager {
     else if (url === 'nexus://bookmarks') initialTitle = 'Bookmarks';
     else if (url === 'nexus://history') initialTitle = 'History';
     else if (url === 'nexus://downloads') initialTitle = 'Downloads';
+    else if (url === 'nexus://permissions') initialTitle = 'Site Permissions';
     else if (!isInternalPage) initialTitle = 'Loading...';
 
-    // Separate session partition for isolated workspaces or private tabs
+    // Separate session partition for isolated workspaces, profiles, or private tabs
     let tabSession: Electron.Session = session.defaultSession;
+    const activeProfile = this.profileManager?.getActiveProfile();
+
     if (privateTab) {
-      tabSession = session.fromPartition(`private_${id}`);
+      tabSession = session.fromPartition(`private_${id}`, { cache: false });
+    } else if (activeProfile && activeProfile.id !== 'default') {
+      tabSession = session.fromPartition(`persist:profile_${activeProfile.id}`);
     } else if (this.isolatedWorkspaces.has(workspaceId)) {
       tabSession = session.fromPartition(`persist:workspace_${workspaceId}`);
+    }
+
+    if (this.permissionManager) {
+      this.permissionManager.attachToSession(tabSession);
+    }
+    if (this.securityManager) {
+      this.securityManager.attachToSession(tabSession);
+    }
+    if (this.trackingProtection) {
+      this.trackingProtection.attachToSession(tabSession);
     }
 
     const view = new WebContentsView({
@@ -289,6 +346,10 @@ export class TabManager {
     };
 
     const wc = view.webContents;
+
+    if (this.securityManager) {
+      this.securityManager.attachToWebContents(wc);
+    }
 
     // Security: Block unsafe protocols on will-navigate
     wc.on('will-navigate', (event, destinationUrl) => {
@@ -699,6 +760,17 @@ export class TabManager {
       }
     }
 
+    // Clean up private tab session data immediately
+    if (tab.isPrivate) {
+      try {
+        tab.view.webContents.session.clearStorageData();
+        tab.view.webContents.session.clearCache();
+      } catch (e) {}
+    }
+    try {
+      this.trackingProtection?.resetTabCounter(tab.view.webContents.id);
+    } catch (e) {}
+
     try {
       this.mainWindow.contentView.removeChildView(tab.view);
       (tab.view.webContents as any).close?.();
@@ -753,6 +825,8 @@ export class TabManager {
         tab.title = 'History';
       } else if (formatted === 'nexus://downloads') {
         tab.title = 'Downloads';
+      } else if (formatted === 'nexus://permissions') {
+        tab.title = 'Site Permissions';
       } else {
         tab.title = 'New Tab';
       }
@@ -843,10 +917,44 @@ export class TabManager {
     return 0;
   }
 
-  public async clearBrowsingData(): Promise<void> {
+  public async clearBrowsingData(options?: {
+    history?: boolean;
+    downloads?: boolean;
+    cookies?: boolean;
+    cache?: boolean;
+    sitePermissions?: boolean;
+    timeRangeMs?: number;
+  }): Promise<void> {
     try {
-      await session.defaultSession.clearCache();
-      await session.defaultSession.clearStorageData();
+      const activeProfile = this.profileManager?.getActiveProfile();
+      const sessionsToClear = [session.defaultSession];
+      if (activeProfile && activeProfile.id !== 'default') {
+        sessionsToClear.push(session.fromPartition(`persist:profile_${activeProfile.id}`));
+      }
+
+      for (const sess of sessionsToClear) {
+        if (!options || options.cache) {
+          await sess.clearCache();
+        }
+        if (!options || options.cookies) {
+          await sess.clearStorageData({
+            storages: ['cookies', 'localstorage', 'indexdb', 'websql', 'serviceworkers', 'cachestorage'],
+          });
+        }
+      }
+
+      if (options?.history !== false && this.historyStore) {
+        if (options?.timeRangeMs) {
+          const since = Date.now() - options.timeRangeMs;
+          this.historyStore.deleteRange(since, Date.now());
+        } else {
+          this.historyStore.clearAll();
+        }
+      }
+
+      if (options?.sitePermissions && this.permissionManager) {
+        this.permissionManager.clearAll();
+      }
     } catch (e) {
       console.error('Failed to clear browsing data:', e);
     }

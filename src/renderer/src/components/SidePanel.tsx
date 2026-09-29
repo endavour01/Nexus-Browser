@@ -6,6 +6,8 @@ import {
   ExtensionItem,
   HistoryEntry,
   SystemInfo,
+  UserProfile,
+  TrackingProtectionMode,
 } from '@shared/types';
 import { SidePanelType } from './RightToolbar';
 import {
@@ -16,6 +18,7 @@ import {
   Search,
   Check,
   ShieldCheck,
+  Shield,
   RotateCw,
   HardDrive,
   FolderOpen,
@@ -32,6 +35,7 @@ import {
   Globe,
   FileCheck,
   Bookmark as BookmarkIcon,
+  User,
 } from 'lucide-react';
 
 interface SidePanelProps {
@@ -70,6 +74,11 @@ interface SidePanelProps {
   onClearHistory?: () => void;
   onOpenHistoryPage?: () => void;
   onOpenClearDataModal?: () => void;
+  profiles?: UserProfile[];
+  activeProfile?: UserProfile | null;
+  onOpenProfileModal?: () => void;
+  onSwitchProfile?: (id: string) => void;
+  onOpenPermissionsPage?: () => void;
 }
 
 export const SidePanel: React.FC<SidePanelProps> = ({
@@ -107,6 +116,11 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   onClearHistory,
   onOpenHistoryPage,
   onOpenClearDataModal,
+  profiles = [],
+  activeProfile,
+  onOpenProfileModal,
+  onSwitchProfile,
+  onOpenPermissionsPage,
 }) => {
   const [bookmarkQuery, setBookmarkQuery] = useState('');
   const [historyQuery, setHistoryQuery] = useState('');
@@ -572,31 +586,73 @@ export const SidePanel: React.FC<SidePanelProps> = ({
         {/* ================= Profiles View ================= */}
         {type === 'profiles' && (
           <div className="panel-section">
-            <div className="profile-active-card">
-              <div className="profile-avatar">DEV</div>
-              <div className="profile-details">
-                <span className="profile-name">Developer Workspace</span>
-                <span className="profile-role">Primary Profile (Isolated)</span>
+            {activeProfile && (
+              <div
+                className="profile-active-card"
+                style={{ borderLeft: `3px solid ${activeProfile.color}` }}
+              >
+                <div
+                  className="profile-avatar"
+                  style={{
+                    backgroundColor: `${activeProfile.color}25`,
+                    color: activeProfile.color,
+                  }}
+                >
+                  <User size={16} />
+                </div>
+                <div className="profile-details">
+                  <span className="profile-name">{activeProfile.name}</span>
+                  <span className="profile-role">Active Session & Data</span>
+                </div>
+                <UserCheck size={16} style={{ color: activeProfile.color }} />
               </div>
-              <UserCheck size={16} className="text-accent" />
-            </div>
+            )}
 
             <div className="panel-sub-header">Switch Profile</div>
             <div className="panel-list">
-              <div className="profile-option-card">
-                <div className="profile-opt-avatar">P</div>
-                <div className="profile-opt-info">
-                  <span className="profile-opt-name">Personal</span>
-                  <span className="profile-opt-desc">Standard cookies & history</span>
-                </div>
-              </div>
-              <div className="profile-option-card">
-                <div className="profile-opt-avatar">G</div>
-                <div className="profile-opt-info">
-                  <span className="profile-opt-name">Guest / Ephemeral</span>
-                  <span className="profile-opt-desc">Zero tracking, temporary session</span>
-                </div>
-              </div>
+              {profiles
+                .filter((p) => p.id !== activeProfile?.id)
+                .map((p) => (
+                  <div
+                    key={p.id}
+                    className="profile-option-card"
+                    onClick={() => onSwitchProfile?.(p.id)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <div
+                      className="profile-opt-avatar"
+                      style={{
+                        backgroundColor: `${p.color}20`,
+                        color: p.color,
+                      }}
+                    >
+                      <User size={14} />
+                    </div>
+                    <div className="profile-opt-info">
+                      <span className="profile-opt-name">{p.name}</span>
+                      <span className="profile-opt-desc">Isolated cookies & history</span>
+                    </div>
+                    <button
+                      className="nexus-btn-ghost text-xs px-2 py-0.5"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSwitchProfile?.(p.id);
+                      }}
+                    >
+                      Switch
+                    </button>
+                  </div>
+                ))}
+            </div>
+
+            <div className="pt-3">
+              <button
+                className="nexus-btn-secondary w-full flex items-center justify-center gap-1.5 py-1.5 text-xs"
+                onClick={onOpenProfileModal}
+              >
+                <Plus size={13} />
+                <span>Manage & Create Profiles...</span>
+              </button>
             </div>
           </div>
         )}
@@ -712,6 +768,37 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                   <span>API Guide</span>
                 </button>
               </div>
+            </div>
+
+            {/* Tracking Protection */}
+            <div className="setting-group">
+              <label className="setting-label">Enhanced Tracking Protection</label>
+              <select
+                className="setting-select"
+                value={settings.trackingProtectionMode || 'standard'}
+                onChange={(e) => {
+                  const mode = e.target.value as TrackingProtectionMode;
+                  onUpdateSettings({ trackingProtectionMode: mode });
+                  window.nexusAPI.setTrackingMode(mode);
+                }}
+              >
+                <option value="standard">Standard (Recommended - Blocks known trackers)</option>
+                <option value="strict">Strict (Maximum Privacy Protection)</option>
+                <option value="off">Off (Allow All Trackers)</option>
+              </select>
+            </div>
+
+            {/* Site Permissions */}
+            <div className="setting-group">
+              <label className="setting-label">Site Permissions</label>
+              <button
+                className="setting-action-btn"
+                onClick={onOpenPermissionsPage || (() => onNavigate('nexus://permissions'))}
+                title="Manage camera, microphone, geolocation, and notification permissions"
+              >
+                <Shield size={13} className="text-accent" />
+                <span>Manage Site Permissions (nexus://permissions)</span>
+              </button>
             </div>
 
             {/* Clear Browsing Data Dialog Button */}

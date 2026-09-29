@@ -4,8 +4,13 @@ import fs from 'fs';
 import { TabManager } from './tab-manager';
 import { ExtensionManager } from './extension-manager';
 import { BookmarksStore } from './bookmarks-store';
+import { HistoryStore } from './history-store';
 import { DownloadManager } from './download-manager';
-import { ClearDataOptions } from '../shared/types';
+import { ProfileManager } from './profile-manager';
+import { PermissionManager } from './permission-manager';
+import { SecurityManager } from './security-manager';
+import { TrackingProtection } from './tracking-protection';
+import { ClearDataOptions, PermissionType, PermissionDecision, TrackingProtectionMode } from '../shared/types';
 
 // Ensure smooth launch on Linux systems without hardware GPU or SUID sandbox helper
 if (process.platform === 'linux') {
@@ -21,6 +26,10 @@ let tabManager: TabManager | null = null;
 let extensionManager: ExtensionManager | null = null;
 let bookmarksStore: BookmarksStore | null = null;
 let downloadManager: DownloadManager | null = null;
+let profileManager: ProfileManager | null = null;
+let permissionManager: PermissionManager | null = null;
+let securityManager: SecurityManager | null = null;
+let trackingProtection: TrackingProtection | null = null;
 
 const isDev = process.env.ELECTRON_IS_DEV === '1';
 
@@ -41,9 +50,23 @@ function createWindow() {
     },
   });
 
+  profileManager = new ProfileManager();
+  permissionManager = new PermissionManager(undefined, mainWindow);
+  securityManager = new SecurityManager(mainWindow);
+  trackingProtection = new TrackingProtection(mainWindow);
+
+  const activeProfile = profileManager.getActiveProfile();
+  const profilePaths = profileManager.getProfileDataPaths(activeProfile.id);
+
+  bookmarksStore = new BookmarksStore(profilePaths.bookmarks);
   tabManager = new TabManager(mainWindow);
-  bookmarksStore = new BookmarksStore();
-  downloadManager = new DownloadManager(mainWindow);
+  tabManager.setHistoryStore(new HistoryStore(profilePaths.history));
+  tabManager.setProfileManager(profileManager);
+  tabManager.setPermissionManager(permissionManager);
+  tabManager.setSecurityManager(securityManager);
+  tabManager.setTrackingProtection(trackingProtection);
+
+  downloadManager = new DownloadManager(mainWindow, profilePaths.downloads);
   extensionManager = new ExtensionManager(mainWindow);
   extensionManager.init().catch((err) => {
     console.error('[NEXUS] Failed to initialize extension manager:', err);
@@ -234,34 +257,16 @@ function registerIpcHandlers() {
     else if (options.timeRange === '4w') startTime = now - 28 * 24 * 3600 * 1000;
     else if (options.timeRange === 'all') startTime = 0;
 
-    if (options.history) {
-      if (options.timeRange === 'all') {
-        tabManager?.getHistoryStore().clearAll();
-      } else {
-        tabManager?.getHistoryStore().deleteRange(startTime, now);
-      }
-    }
+    await tabManager?.clearBrowsingData({
+      history: options.history,
+      cookies: options.cookies,
+      cache: options.cache,
+      sitePermissions: options.sitePermissions,
+      timeRangeMs: startTime > 0 ? now - startTime : undefined,
+    });
 
     if (options.downloads) {
       downloadManager?.clearHistory();
-    }
-
-    if (options.cookies) {
-      try {
-        await session.defaultSession.clearStorageData({
-          storages: ['cookies', 'localstorage', 'websql', 'indexdb'],
-        });
-      } catch (err) {
-        console.warn('Failed to clear storage data:', err);
-      }
-    }
-
-    if (options.cache) {
-      try {
-        await session.defaultSession.clearCache();
-      } catch (err) {
-        console.warn('Failed to clear cache:', err);
-      }
     }
   });
 
@@ -409,6 +414,123 @@ function registerIpcHandlers() {
       platform: process.platform,
       arch: process.arch,
     };
+  });
+
+  // Profiles Management
+  ipcMain.handle('profiles:get', () => {
+    return profileManager?.getAll() ?? [];
+  });
+
+  ipcMain.handle('profiles:getActive', () => {
+    return (
+      profileManager?.getActiveProfile() ?? {
+        id: 'default',
+        name: 'Default',
+        icon: 'User',
+        color: '#A78BFA',
+        createdAt: Date.now(),
+        isDefault: true,
+      }
+    );
+  });
+
+  ipcMain.handle('profiles:create', (_event, name: string, icon: string, color: string) => {
+    return profileManager?.createProfile(name, icon, color);
+  });
+
+  ipcMain.handle('profiles:update', (_event, id: string, updates: any) => {
+    return profileManager?.updateProfile(id, updates) ?? null;
+  });
+
+  ipcMain.handle('profiles:delete', (_event, id: string) => {
+    return profileManager?.deleteProfile(id) ?? false;
+  });
+
+  ipcMain.handle('profiles:switch', async (_event, id: string) => {
+    if (!profileManager) return false;
+    const switched = profileManager.switchProfile(id);
+    if (switched) {
+      const profilePaths = profileManager.getProfileDataPaths(switched.id);
+      bookmarksStore = new BookmarksStore(profilePaths.bookmarks);
+      tabManager?.setHistoryStore(new HistoryStore(profilePaths.history));
+      if (mainWindow) {
+        downloadManager = new DownloadManager(mainWindow, profilePaths.downloads);
+      }
+      mainWindow?.webContents.send('profile:switched', switched);
+      return true;
+    }
+    return false;
+  });
+
+  // Site Permissions
+  ipcMain.handle('permissions:get', () => {
+    return permissionManager?.getAll() ?? [];
+  });
+
+  ipcMain.handle(
+    'permissions:set',
+    (_event, origin: string, permission: PermissionType, decision: PermissionDecision) => {
+      return (
+        permissionManager?.setRule(origin, permission, decision) ?? {
+          origin,
+          permission,
+          decision,
+          updatedAt: Date.now(),
+        }
+      );
+    }
+  );
+
+  ipcMain.handle('permissions:remove', (_event, origin: string, permission: PermissionType) => {
+    return permissionManager?.removeRule(origin, permission) ?? false;
+  });
+
+  ipcMain.handle('permissions:clearAll', () => {
+    return permissionManager?.clearAll() ?? false;
+  });
+
+  ipcMain.handle(
+    'permissions:respondPrompt',
+    (_event, requestId: string, allow: boolean, remember: boolean) => {
+      permissionManager?.resolvePrompt(requestId, allow, remember);
+    }
+  );
+
+  // Security & Site Details
+  ipcMain.handle('security:getSiteDetails', (_event, url: string) => {
+    const activeTabId = tabManager?.getActiveTabId();
+    const activeTab = activeTabId ? tabManager?.getTabState(activeTabId) : undefined;
+    const view = activeTabId ? tabManager?.getView(activeTabId) : undefined;
+    const wcId = view?.webContents?.id;
+    const blockedCount = wcId ? trackingProtection?.getBlockedCountForTab(wcId) ?? 0 : 0;
+    return (
+      securityManager?.getSiteSecurityInfo(url || activeTab?.url || '', blockedCount) ?? {
+        url: url || '',
+        origin: 'unknown',
+        isSecure: false,
+        status: 'insecure',
+        blockedTrackersCount: 0,
+      }
+    );
+  });
+
+  // Tracking Protection
+  ipcMain.handle('tracking:getSettings', () => {
+    return (
+      trackingProtection?.getSettings() ?? {
+        mode: 'standard',
+        totalBlocked: 0,
+        exceptions: [],
+      }
+    );
+  });
+
+  ipcMain.handle('tracking:setMode', (_event, mode: TrackingProtectionMode) => {
+    trackingProtection?.setMode(mode);
+  });
+
+  ipcMain.handle('tracking:toggleException', (_event, origin: string) => {
+    return trackingProtection?.toggleException(origin) ?? false;
   });
 }
 

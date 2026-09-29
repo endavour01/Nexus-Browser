@@ -138,6 +138,67 @@ const api: NexusAPI = {
       ipcRenderer.removeListener('downloads:updated', handler);
     };
   },
+
+  // Profiles Management
+  getProfiles: () => ipcRenderer.invoke('profiles:get'),
+  getActiveProfile: () => ipcRenderer.invoke('profiles:getActive'),
+  createProfile: (name: string, icon: string, color: string) =>
+    ipcRenderer.invoke('profiles:create', name, icon, color),
+  updateProfile: (id: string, updates: any) =>
+    ipcRenderer.invoke('profiles:update', id, updates),
+  deleteProfile: (id: string) => ipcRenderer.invoke('profiles:delete', id),
+  switchProfile: (id: string) => ipcRenderer.invoke('profiles:switch', id),
+
+  // Site Permissions & Content Settings
+  getSitePermissions: () => ipcRenderer.invoke('permissions:get'),
+  setSitePermission: (origin: string, permission: any, decision: any) =>
+    ipcRenderer.invoke('permissions:set', origin, permission, decision),
+  removeSitePermission: (origin: string, permission: any) =>
+    ipcRenderer.invoke('permissions:remove', origin, permission),
+  clearAllSitePermissions: () => ipcRenderer.invoke('permissions:clearAll'),
+  respondPermissionPrompt: (requestId: string, allow: boolean, remember: boolean) =>
+    ipcRenderer.invoke('permissions:respondPrompt', requestId, allow, remember),
+
+  // Security & Certificates
+  getSiteSecurityInfo: (url: string) =>
+    ipcRenderer.invoke('security:getSiteDetails', url),
+
+  // Tracking Protection
+  getTrackingSettings: () => ipcRenderer.invoke('tracking:getSettings'),
+  setTrackingMode: (mode: any) => ipcRenderer.invoke('tracking:setMode', mode),
+  toggleTrackingException: (origin: string) =>
+    ipcRenderer.invoke('tracking:toggleException', origin),
+
+  // Listeners
+  onProfileSwitched: (callback: (profile: any) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, profile: any) => {
+      callback(profile);
+    };
+    ipcRenderer.on('profile:switched', handler);
+    return () => {
+      ipcRenderer.removeListener('profile:switched', handler);
+    };
+  },
+
+  onPermissionPrompt: (callback: (prompt: any) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, prompt: any) => {
+      callback(prompt);
+    };
+    ipcRenderer.on('permissions:prompt', handler);
+    return () => {
+      ipcRenderer.removeListener('permissions:prompt', handler);
+    };
+  },
+
+  onTrackingStatsUpdated: (callback: (stats: { totalBlocked: number }) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, stats: { totalBlocked: number }) => {
+      callback(stats);
+    };
+    ipcRenderer.on('tracking:statsUpdated', handler);
+    return () => {
+      ipcRenderer.removeListener('tracking:statsUpdated', handler);
+    };
+  },
 };
 
 contextBridge.exposeInMainWorld('nexusAPI', api);

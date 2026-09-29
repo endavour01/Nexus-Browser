@@ -15,6 +15,8 @@ import {
   Workspace,
   ExtensionValidationResult,
   InstalledExtension,
+  UserProfile,
+  PermissionPromptRequest,
 } from '@shared/types';
 import { TitleBar } from './components/TitleBar';
 import { NavigationBar } from './components/NavigationBar';
@@ -36,6 +38,10 @@ import { BookmarkEditModal } from './components/BookmarkEditModal';
 import { HistoryPage } from './components/HistoryPage';
 import { ClearBrowsingDataModal } from './components/ClearBrowsingDataModal';
 import { DownloadsPage } from './components/DownloadsPage';
+import { SiteSecurityPopover } from './components/SiteSecurityPopover';
+import { SitePermissionPromptModal } from './components/SitePermissionPromptModal';
+import { ProfileModal } from './components/ProfileModal';
+import { PermissionsPage } from './components/PermissionsPage';
 
 const defaultWorkspaces: Workspace[] = [
   { id: 'default', name: 'Personal', icon: 'User', color: '#A78BFA', layout: { sidebarCollapsed: false, tabLayout: 'horizontal' } },
@@ -105,6 +111,13 @@ export const App: React.FC = () => {
   const [isCompatibilityModalOpen, setIsCompatibilityModalOpen] = useState(false);
   const [isInstallingExtension, setIsInstallingExtension] = useState(false);
 
+  // Profiles, Permissions & Security
+  const [profiles, setProfiles] = useState<UserProfile[]>([]);
+  const [activeProfile, setActiveProfile] = useState<UserProfile | null>(null);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [permissionPrompt, setPermissionPrompt] = useState<PermissionPromptRequest | null>(null);
+  const [isSecurityPopoverOpen, setIsSecurityPopoverOpen] = useState(false);
+
   const [settings, setSettings] = useState<BrowserSettings>(() => {
     try {
       const saved = localStorage.getItem('nexus_settings');
@@ -171,11 +184,17 @@ export const App: React.FC = () => {
       }
     }).catch(console.error);
 
-    // Initial load for browsing library
+    // Initial load for browsing library & profiles
     api.getBookmarks().then(setBookmarks).catch(console.error);
     api.getHistory().then(setHistoryEntries).catch(console.error);
     api.getDownloads().then(setDownloads).catch(console.error);
     api.getDownloadDirectory().then(setDownloadDirectory).catch(console.error);
+    if (api.getProfiles) {
+      api.getProfiles().then(setProfiles).catch(console.error);
+    }
+    if (api.getActiveProfile) {
+      api.getActiveProfile().then(setActiveProfile).catch(console.error);
+    }
 
     const unsubscribeTabs = api.onTabsUpdated((updatedTabs, activeId) => {
       setTabs(updatedTabs);
@@ -205,6 +224,18 @@ export const App: React.FC = () => {
       setDownloads(dList);
     }) : () => {};
 
+    const unsubscribeProfile = api.onProfileSwitched ? api.onProfileSwitched((prof) => {
+      setActiveProfile(prof);
+      api.getProfiles().then(setProfiles).catch(() => {});
+      api.getBookmarks().then(setBookmarks).catch(() => {});
+      api.getHistory().then(setHistoryEntries).catch(() => {});
+      api.getDownloads().then(setDownloads).catch(() => {});
+    }) : () => {};
+
+    const unsubscribePrompt = api.onPermissionPrompt ? api.onPermissionPrompt((req) => {
+      setPermissionPrompt(req);
+    }) : () => {};
+
     api.isWindowMaximized().then(setIsMaximized).catch(console.error);
 
     return () => {
@@ -214,6 +245,8 @@ export const App: React.FC = () => {
       unsubscribeBookmarks();
       unsubscribeHistory();
       unsubscribeDownloads();
+      unsubscribeProfile();
+      unsubscribePrompt();
     };
   }, [api]);
 
@@ -267,12 +300,32 @@ export const App: React.FC = () => {
     isPermissionModalOpen ||
     isCompatibilityModalOpen ||
     isBookmarkEditModalOpen ||
-    isClearDataModalOpen;
+    isClearDataModalOpen ||
+    isProfileModalOpen ||
+    permissionPrompt !== null ||
+    isSecurityPopoverOpen;
+
   useEffect(() => {
     if (api && api.setModalOpen) {
       api.setModalOpen(isAnyModalOpen);
     }
   }, [api, isAnyModalOpen]);
+
+  const handleRespondPermissionPrompt = useCallback(async (allow: boolean, remember: boolean) => {
+    if (permissionPrompt && api.respondPermissionPrompt) {
+      await api.respondPermissionPrompt(permissionPrompt.requestId, allow, remember);
+    }
+    setPermissionPrompt(null);
+  }, [permissionPrompt, api]);
+
+  const handleSwitchProfile = useCallback(async (id: string) => {
+    if (!api) return;
+    await api.switchProfile(id);
+    const prof = await api.getActiveProfile();
+    setActiveProfile(prof);
+    const list = await api.getProfiles();
+    setProfiles(list);
+  }, [api]);
 
   // Tab Operations
   const handleSelectTab = useCallback(
@@ -961,6 +1014,8 @@ export const App: React.FC = () => {
     activeTab?.url === 'nexus://history' || activeTab?.url?.startsWith('nexus://history');
   const isDownloadsPage =
     activeTab?.url === 'nexus://downloads' || activeTab?.url?.startsWith('nexus://downloads');
+  const isPermissionsPage =
+    activeTab?.url === 'nexus://permissions' || activeTab?.url?.startsWith('nexus://permissions');
 
   return (
     <div className="nexus-app">
@@ -998,19 +1053,32 @@ export const App: React.FC = () => {
       />
 
       {/* 2. Navigation Toolbar & Omnibox */}
-      <NavigationBar
-        activeTab={activeTab}
-        onNavigate={handleNavigate}
-        onGoBack={handleGoBack}
-        onGoForward={handleGoForward}
-        onReload={handleReload}
-        onStop={handleStop}
-        onGoHome={handleGoHome}
-        onToggleDevTools={handleToggleDevTools}
-        isBookmarked={isBookmarked}
-        onToggleBookmark={handleToggleBookmark}
-        focusOmniboxTrigger={focusOmniboxTrigger}
-      />
+      <div className="navbar-wrapper relative">
+        <NavigationBar
+          activeTab={activeTab}
+          onNavigate={handleNavigate}
+          onGoBack={handleGoBack}
+          onGoForward={handleGoForward}
+          onReload={handleReload}
+          onStop={handleStop}
+          onGoHome={handleGoHome}
+          onToggleDevTools={handleToggleDevTools}
+          isBookmarked={isBookmarked}
+          onToggleBookmark={handleToggleBookmark}
+          focusOmniboxTrigger={focusOmniboxTrigger}
+          onToggleSecurityPopover={() => setIsSecurityPopoverOpen((prev) => !prev)}
+        />
+
+        <SiteSecurityPopover
+          url={activeTab?.url || ''}
+          isOpen={isSecurityPopoverOpen}
+          onClose={() => setIsSecurityPopoverOpen(false)}
+          onOpenPermissionsPage={() => {
+            setIsSecurityPopoverOpen(false);
+            handleNavigate('nexus://permissions');
+          }}
+        />
+      </div>
 
       {/* 2b. Bookmarks Bar (Toolbar) */}
       {settings.showBookmarksBar !== false && (
@@ -1133,6 +1201,10 @@ export const App: React.FC = () => {
               onRemoveDownload={handleRemoveDownloadEntry}
             />
           )}
+
+          {isPermissionsPage && (
+            <PermissionsPage onNavigate={handleNavigate} />
+          )}
         </main>
 
         {/* 3. Right Side Panel (Flyout drawer) */}
@@ -1173,6 +1245,11 @@ export const App: React.FC = () => {
             onClearHistory={handleClearAllHistory}
             onOpenHistoryPage={handleOpenHistoryPage}
             onOpenClearDataModal={() => setIsClearDataModalOpen(true)}
+            profiles={profiles}
+            activeProfile={activeProfile}
+            onOpenProfileModal={() => setIsProfileModalOpen(true)}
+            onSwitchProfile={handleSwitchProfile}
+            onOpenPermissionsPage={() => handleNavigate('nexus://permissions')}
           />
         )}
 
@@ -1301,6 +1378,22 @@ export const App: React.FC = () => {
         isOpen={isClearDataModalOpen}
         onClose={() => setIsClearDataModalOpen(false)}
         onClear={handleClearBrowsingDataDetailed}
+      />
+
+      {/* 14. Site Permission Interactive Prompt */}
+      <SitePermissionPromptModal
+        prompt={permissionPrompt}
+        onRespond={handleRespondPermissionPrompt}
+      />
+
+      {/* 15. User Profile Management Modal */}
+      <ProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        onProfileSwitched={(prof) => {
+          setActiveProfile(prof);
+          api?.getProfiles().then(setProfiles).catch(() => {});
+        }}
       />
     </div>
   );

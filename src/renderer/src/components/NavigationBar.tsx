@@ -27,6 +27,7 @@ interface NavigationBarProps {
   isBookmarked: boolean;
   onToggleBookmark: () => void;
   focusOmniboxTrigger?: number;
+  onToggleSecurityPopover?: () => void;
 }
 
 export const NavigationBar: React.FC<NavigationBarProps> = ({
@@ -41,6 +42,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
   isBookmarked,
   onToggleBookmark,
   focusOmniboxTrigger,
+  onToggleSecurityPopover,
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [isFocused, setIsFocused] = useState(false);
@@ -135,7 +137,24 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
       {/* Combined Omnibox (Address & Search Bar) */}
       <form className={`omnibox ${isFocused ? 'focused' : ''}`} onSubmit={handleSubmit}>
         {/* Security / Protocol Badge */}
-        <div className="omnibox-badge">
+        <button
+          type="button"
+          className={`omnibox-badge-btn ${isNexusScheme ? 'nexus' : isHttps ? 'secure' : 'insecure'}`}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!isNexusScheme && onToggleSecurityPopover) {
+              onToggleSecurityPopover();
+            }
+          }}
+          title={
+            isNexusScheme
+              ? 'NEXUS Internal Page'
+              : isHttps
+              ? 'Connection is secure — Click to view certificate & permissions'
+              : 'Not secure — Click to view warnings'
+          }
+        >
           {isNexusScheme ? (
             <Terminal size={14} className="scheme-nexus" />
           ) : isHttps ? (
@@ -143,7 +162,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
           ) : (
             <Globe size={13} className="scheme-insecure" />
           )}
-        </div>
+        </button>
 
         {/* URL / Query Input */}
         <input
