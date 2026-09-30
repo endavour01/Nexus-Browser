@@ -18,6 +18,7 @@ import { ModeOptimizer } from './mode-optimizer';
 import { NotesManager } from './notes-manager';
 import { IntelligenceManager } from './intelligence-manager';
 import { MarketsManager } from './markets-manager';
+import { TodoManager } from './todo-manager';
 import { VpnManager } from './vpn-manager';
 import { ClearDataOptions, PermissionType, PermissionDecision, TrackingProtectionMode, NexusBrowserMode, ModeBehaviorConfig } from '../shared/types';
 
@@ -47,6 +48,7 @@ let modeOptimizer: ModeOptimizer | null = null;
 let notesManager: NotesManager | null = null;
 let intelligenceManager: IntelligenceManager | null = null;
 let marketsManager: MarketsManager | null = null;
+let todoManager: TodoManager | null = null;
 const vpnManager = new VpnManager();
 
 const isDev = process.env.ELECTRON_IS_DEV === '1';
@@ -103,6 +105,7 @@ function createWindow() {
   notesManager = new NotesManager(profilePaths.notes, mainWindow);
   intelligenceManager = new IntelligenceManager(storageDir, mainWindow);
   marketsManager = new MarketsManager(storageDir, mainWindow);
+  todoManager = new TodoManager(storageDir, mainWindow);
   downloadManager = new DownloadManager(mainWindow, profilePaths.downloads);
   tabManager.setDownloadManager(downloadManager);
   modeOptimizer = new ModeOptimizer(mainWindow, tabManager);
@@ -985,6 +988,47 @@ function registerIpcHandlers() {
   ipcMain.handle('markets:getFinancialNews', async (_event, ticker?: string, category?: string) => {
     if (!marketsManager) throw new Error('MarketsManager not initialized');
     return marketsManager.getFinancialNews(ticker, category);
+  });
+
+  // ==========================================
+  // NEXUS Todo IPC Handlers
+  // ==========================================
+  ipcMain.handle('todos:getTodos', async (_event, filter?: any) => {
+    return todoManager?.getTodos(filter) ?? [];
+  });
+
+  ipcMain.handle('todos:saveTodo', async (_event, todo: any) => {
+    if (!todoManager) throw new Error('TodoManager not initialized');
+    return todoManager.saveTodo(todo);
+  });
+
+  ipcMain.handle('todos:deleteTodo', async (_event, id: string) => {
+    return todoManager?.deleteTodo(id) ?? false;
+  });
+
+  ipcMain.handle('todos:toggleTodo', async (_event, id: string, completed?: boolean) => {
+    return todoManager?.toggleTodo(id, completed) ?? null;
+  });
+
+  ipcMain.handle('todos:clearCompleted', async () => {
+    return todoManager?.clearCompletedTodos() ?? 0;
+  });
+
+  // ==========================================
+  // NEXUS Hub IPC Handlers
+  // ==========================================
+  ipcMain.handle('hub:getPreferences', async () => {
+    if (!todoManager) throw new Error('TodoManager not initialized');
+    return todoManager.getHubPreferences();
+  });
+
+  ipcMain.handle('hub:updatePreferences', async (_event, prefs: any) => {
+    if (!todoManager) throw new Error('TodoManager not initialized');
+    return todoManager.updateHubPreferences(prefs);
+  });
+
+  ipcMain.handle('hub:recordToolUsage', async (_event, toolId: string) => {
+    todoManager?.recordToolUsage(toolId);
   });
 }
 

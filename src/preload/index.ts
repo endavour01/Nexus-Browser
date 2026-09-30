@@ -391,6 +391,18 @@ const api: NexusAPI = {
   getFinancialNews: (ticker?: string, category?: string) =>
     ipcRenderer.invoke('markets:getFinancialNews', ticker, category),
 
+  // NEXUS Todo Management
+  getTodos: (filter?: any) => ipcRenderer.invoke('todos:getTodos', filter),
+  saveTodo: (todo: any) => ipcRenderer.invoke('todos:saveTodo', todo),
+  deleteTodo: (id: string) => ipcRenderer.invoke('todos:deleteTodo', id),
+  toggleTodo: (id: string, completed?: boolean) => ipcRenderer.invoke('todos:toggleTodo', id, completed),
+  clearCompletedTodos: () => ipcRenderer.invoke('todos:clearCompleted'),
+
+  // NEXUS Hub Management
+  getHubPreferences: () => ipcRenderer.invoke('hub:getPreferences'),
+  updateHubPreferences: (prefs: any) => ipcRenderer.invoke('hub:updatePreferences', prefs),
+  recordToolUsage: (toolId: string) => ipcRenderer.invoke('hub:recordToolUsage', toolId),
+
   onMarketsAlertTriggered: (callback: (alert: any) => void) => {
     const handler = (_event: Electron.IpcRendererEvent, data: any) => {
       callback(data);
@@ -398,6 +410,16 @@ const api: NexusAPI = {
     ipcRenderer.on('markets:alert-triggered', handler);
     return () => {
       ipcRenderer.removeListener('markets:alert-triggered', handler);
+    };
+  },
+
+  onTodosUpdated: (callback: (todos: any[]) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: any[]) => {
+      callback(data);
+    };
+    ipcRenderer.on('todos:updated', handler);
+    return () => {
+      ipcRenderer.removeListener('todos:updated', handler);
     };
   },
 };

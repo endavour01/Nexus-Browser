@@ -15,6 +15,8 @@ import { SidePanelType } from './RightToolbar';
 import { DeveloperToolsPanel } from './DeveloperToolsPanel';
 import { NotesSidePanel } from './Notes/NotesSidePanel';
 import { DictionaryView } from './Intelligence/DictionaryView';
+import { HubWorkspace } from './Hub';
+import { TodoWorkspace } from './Todo';
 import { NexusState } from './NexusState';
 import { ModeBehaviorControls } from './ModeBehaviorControls';
 import {
@@ -214,6 +216,8 @@ export const SidePanel: React.FC<SidePanelProps> = ({
           {type === 'devtools' && 'Developer Toolkit'}
           {type === 'notes' && 'Notes Companion'}
           {type === 'intelligence' && 'NEXUS Explore'}
+          {type === 'hub' && 'NEXUS Hub'}
+          {type === 'todo' && 'NEXUS Todo'}
         </h3>
         <button className="nexus-icon-btn panel-close-btn" onClick={onClose} title="Close panel">
           <X size={15} />
@@ -1137,6 +1141,27 @@ export const SidePanel: React.FC<SidePanelProps> = ({
               </button>
             </div>
 
+            {/* Workspaces & Tools (Hub & Todo) */}
+            <div className="setting-group">
+              <label className="setting-label">Workspaces & Tools</label>
+              <label className="flex items-center gap-2 cursor-pointer mt-1">
+                <input
+                  type="checkbox"
+                  checked={settings.hubEnabled ?? true}
+                  onChange={(e) => onUpdateSettings({ hubEnabled: e.target.checked })}
+                />
+                <span className="text-xs text-primary">Enable NEXUS Hub (nexus://hub)</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer mt-2">
+                <input
+                  type="checkbox"
+                  checked={settings.todoEnabled ?? true}
+                  onChange={(e) => onUpdateSettings({ todoEnabled: e.target.checked })}
+                />
+                <span className="text-xs text-primary">Enable NEXUS Todo Workspace (nexus://todo)</span>
+              </label>
+            </div>
+
             {/* Clear Browsing Data Dialog Button */}
             <div className="setting-group">
               <label className="setting-label">Privacy & Data</label>
@@ -1188,6 +1213,23 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                   });
                 }
               }}
+            />
+          </div>
+        )}
+
+        {type === 'hub' && (
+          <div style={{ height: '100%', overflowY: 'auto' }}>
+            <HubWorkspace onNavigate={onNavigate} onOpenSettings={() => {}} />
+          </div>
+        )}
+
+        {type === 'todo' && (
+          <div style={{ height: '100%', overflowY: 'auto' }}>
+            <TodoWorkspace
+              onNavigate={onNavigate}
+              isCompact={true}
+              currentPageUrl={currentUrl}
+              currentPageTitle={activeTabTitle}
             />
           </div>
         )}

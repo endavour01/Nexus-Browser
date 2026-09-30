@@ -259,6 +259,8 @@ export interface BrowserSettings {
   performanceLightweightUI?: boolean;
   balancedDistractionReduction?: boolean;
   balancedMinimalToolbar?: boolean;
+  hubEnabled?: boolean;
+  todoEnabled?: boolean;
 }
 
 // NEXUS Shield Types
@@ -416,7 +418,7 @@ export interface RecentPage {
   timestamp: number;
 }
 
-export type SidePanelType = 'bookmarks' | 'downloads' | 'extensions' | 'profiles' | 'settings' | 'history' | 'devtools' | 'notes' | 'intelligence' | 'markets' | null;
+export type SidePanelType = 'bookmarks' | 'downloads' | 'extensions' | 'profiles' | 'settings' | 'history' | 'devtools' | 'notes' | 'intelligence' | 'markets' | 'hub' | 'todo' | null;
 
 // Developer Tools Types
 export interface NetworkLogEntry {
@@ -926,6 +928,58 @@ export interface MarketsAlertPayload {
   data: any;
 }
 
+// ==========================================
+// NEXUS Todo & Hub Types
+// ==========================================
+export type TodoPriority = 'low' | 'medium' | 'high' | 'urgent';
+
+export interface NexusTodo {
+  id: string;
+  title: string;
+  description?: string;
+  completed: boolean;
+  completedAt?: number;
+  priority: TodoPriority;
+  dueDate?: string; // YYYY-MM-DD
+  category: string;
+  associatedUrl?: string;
+  associatedTitle?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface NexusTodoFilter {
+  status?: 'all' | 'active' | 'completed';
+  category?: string;
+  priority?: TodoPriority;
+  searchQuery?: string;
+  sortBy?: 'dueDate' | 'priority' | 'createdAt' | 'title';
+}
+
+export type HubCardId =
+  | 'tools'
+  | 'shortcuts'
+  | 'bookmarks'
+  | 'downloads'
+  | 'todos'
+  | 'notes'
+  | 'watchlists';
+
+export interface HubShortcut {
+  id: string;
+  title: string;
+  url: string;
+  icon?: string;
+  category?: string;
+}
+
+export interface HubPreferences {
+  cardOrder: HubCardId[];
+  hiddenCards: HubCardId[];
+  customShortcuts: HubShortcut[];
+  recentTools: string[];
+}
+
 export interface NexusAPI {
   getVpnStatus: () => Promise<VpnStatus>;
   getVpnFreeLocations: () => Promise<VpnFreeLocation[]>;
@@ -1130,6 +1184,18 @@ export interface NexusAPI {
   deleteTrackedProduct: (id: string) => Promise<boolean>;
   getFinancialNews: (ticker?: string, category?: string) => Promise<FinancialNewsArticle[]>;
 
+  // NEXUS Todo Management
+  getTodos: (filter?: NexusTodoFilter) => Promise<NexusTodo[]>;
+  saveTodo: (todo: Partial<NexusTodo> & { title: string }) => Promise<NexusTodo>;
+  deleteTodo: (id: string) => Promise<boolean>;
+  toggleTodo: (id: string, completed?: boolean) => Promise<NexusTodo | null>;
+  clearCompletedTodos: () => Promise<number>;
+
+  // NEXUS Hub Management
+  getHubPreferences: () => Promise<HubPreferences>;
+  updateHubPreferences: (prefs: Partial<HubPreferences>) => Promise<HubPreferences>;
+  recordToolUsage: (toolId: string) => Promise<void>;
+
   // Event Listeners
   onTabsUpdated: (callback: (tabs: TabState[], activeTabId: string) => void) => () => void;
   onWindowMaximizedChange: (callback: (isMaximized: boolean) => void) => () => void;
@@ -1150,6 +1216,7 @@ export interface NexusAPI {
   onExplainSelectionRequested: (callback: (data: ExplainSelectionPayload) => void) => () => void;
   onSendToNotesRequested: (callback: (data: SendToNotesPayload) => void) => () => void;
   onMarketsAlertTriggered: (callback: (payload: MarketsAlertPayload) => void) => () => void;
+  onTodosUpdated: (callback: (todos: NexusTodo[]) => void) => () => void;
 }
 
 export interface VpnStatus {

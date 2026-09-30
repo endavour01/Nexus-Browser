@@ -24,6 +24,8 @@ import {
   Sparkles,
   Newspaper,
   TrendingUp,
+  LayoutGrid,
+  CheckSquare,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -251,6 +253,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
         <div className="pinned-sites-list">
+          <button
+            className="pinned-site-item"
+            onClick={() => onNavigate('nexus://hub')}
+            title="NEXUS Hub"
+          >
+            <div className="pinned-site-icon"><LayoutGrid size={13} className="text-accent" /></div>
+            {!collapsed && <span className="pinned-site-name">NEXUS Hub</span>}
+          </button>
+          <button
+            className="pinned-site-item"
+            onClick={() => onNavigate('nexus://todo')}
+            title="NEXUS Todo"
+          >
+            <div className="pinned-site-icon"><CheckSquare size={13} className="text-accent" /></div>
+            {!collapsed && <span className="pinned-site-name">Todo</span>}
+          </button>
           <button
             className="pinned-site-item"
             onClick={() => onNavigate('nexus://explore')}

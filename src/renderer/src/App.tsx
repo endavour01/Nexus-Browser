@@ -52,6 +52,8 @@ import { ModeSelectorModal } from './components/ModeSelectorModal';
 import { NotesPage } from './components/Notes/NotesPage';
 import { IntelligenceModal, IntelligencePage, IntelligenceTab } from './components/Intelligence';
 import { MarketsDashboard } from './components/Markets';
+import { HubWorkspace } from './components/Hub';
+import { TodoWorkspace } from './components/Todo';
 import { useTheme } from './hooks/useTheme';
 import { useBrowserMode, applyDistractionReduction } from './hooks/useBrowserMode';
 
@@ -1179,6 +1181,10 @@ export const App: React.FC = () => {
     activeTab?.url === 'nexus://news' || activeTab?.url?.startsWith('nexus://news');
   const isMarketsPage =
     activeTab?.url === 'nexus://markets' || activeTab?.url?.startsWith('nexus://markets');
+  const isHubPage =
+    activeTab?.url === 'nexus://hub' || activeTab?.url?.startsWith('nexus://hub');
+  const isTodoPage =
+    activeTab?.url === 'nexus://todo' || activeTab?.url?.startsWith('nexus://todo');
   const isWarningPage =
     activeTab?.url === 'nexus://warning' || activeTab?.url?.startsWith('nexus://warning');
 
@@ -1430,6 +1436,21 @@ export const App: React.FC = () => {
                   });
                 }
               }}
+            />
+          )}
+
+          {isHubPage && (
+            <HubWorkspace
+              onNavigate={handleNavigate}
+              onOpenSettings={() => setActiveSidePanel('settings')}
+            />
+          )}
+
+          {isTodoPage && (
+            <TodoWorkspace
+              onNavigate={handleNavigate}
+              currentPageUrl={activeTab?.url}
+              currentPageTitle={activeTab?.title}
             />
           )}
 

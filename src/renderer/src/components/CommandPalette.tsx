@@ -31,6 +31,10 @@ import {
   Coins,
   Newspaper,
   TrendingUp,
+  LayoutGrid,
+  CheckSquare,
+  FileText,
+  Shield,
 } from 'lucide-react';
 
 export interface CommandPaletteItem {
@@ -378,8 +382,41 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         action: () => onTogglePanel('extensions'),
       },
       {
+        id: 'hub-open',
+        title: 'Open Hub',
+        subtitle: 'Central launchpad for tools, bookmarks, downloads, and todos',
+        category: 'Developer & Tools',
+        shortcut: 'Ctrl+H',
+        icon: 'LayoutGrid',
+        action: () => onNavigate('nexus://hub'),
+      },
+      {
+        id: 'todo-open',
+        title: 'Open Todo',
+        subtitle: 'Task management workspace and webpage reading list',
+        category: 'Developer & Tools',
+        icon: 'CheckSquare',
+        action: () => onNavigate('nexus://todo'),
+      },
+      {
+        id: 'todo-add',
+        title: 'Add Todo',
+        subtitle: 'Create a new task or link current webpage',
+        category: 'Developer & Tools',
+        icon: 'CheckSquare',
+        action: () => onNavigate('nexus://todo'),
+      },
+      {
+        id: 'todo-search',
+        title: 'Search Todos',
+        subtitle: 'Search and filter active and completed tasks',
+        category: 'Developer & Tools',
+        icon: 'CheckSquare',
+        action: () => onNavigate('nexus://todo'),
+      },
+      {
         id: 'notes-open-workspace',
-        title: 'Open NEXUS Notes Workspace',
+        title: 'Open Notes',
         subtitle: 'Rich-text notes, diagrams, notebooks, and local offline library',
         category: 'Developer & Tools',
         icon: 'FileText',
@@ -396,11 +433,19 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       },
       {
         id: 'intelligence-hub',
-        title: 'NEXUS Explore (nexus://explore)',
+        title: 'Open Explore',
         subtitle: 'Contextual research, dictionary, currency converter, and knowledge tools',
         category: 'Developer & Tools',
         icon: 'Compass',
         action: () => onNavigate('nexus://explore'),
+      },
+      {
+        id: 'shield-open-workspace',
+        title: 'Open Shield',
+        subtitle: 'Ad blocking, tracking protection, and site security dashboard',
+        category: 'Developer & Tools',
+        icon: 'Shield',
+        action: () => onNavigate('nexus://shield'),
       },
       {
         id: 'intelligence-dictionary',
@@ -428,7 +473,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       },
       {
         id: 'markets-hub',
-        title: 'NEXUS Markets Hub (nexus://markets)',
+        title: 'Open Markets',
         subtitle: 'Informational stocks, IPOs, mutual funds, and shopping price tracker',
         category: 'Developer & Tools',
         icon: 'TrendingUp',
@@ -764,6 +809,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       case 'Sun': return <Sun size={15} />;
       case 'Zap': return <Zap size={15} />;
       case 'Flame': return <Flame size={15} />;
+      case 'LayoutGrid': return <LayoutGrid size={15} />;
+      case 'CheckSquare': return <CheckSquare size={15} />;
+      case 'FileText': return <FileText size={15} />;
+      case 'Shield': return <Shield size={15} />;
       case 'Search': return <Search size={15} />;
       case 'X': return <X size={15} />;
       default: return <Command size={15} />;
