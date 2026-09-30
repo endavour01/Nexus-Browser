@@ -32,7 +32,7 @@ export const MarketsSettingsView: React.FC<MarketsSettingsViewProps> = ({
           <div>
             <h3 className="font-semibold text-sm text-primary">Enable NEXUS Markets Workspace</h3>
             <p className="text-xs text-secondary mt-0.5">
-              Activate the financial research, mutual fund, IPO, and shopping workspace in your browser.
+              Enable stocks, funds, IPO tracking, and shopping price tools.
             </p>
           </div>
           <label className="relative inline-flex items-center cursor-pointer">

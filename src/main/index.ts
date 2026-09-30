@@ -19,8 +19,9 @@ import { NotesManager } from './notes-manager';
 import { IntelligenceManager } from './intelligence-manager';
 import { MarketsManager } from './markets-manager';
 import { TodoManager } from './todo-manager';
+import { SettingsManager, DEFAULT_BROWSER_SETTINGS } from './settings-manager';
 import { VpnManager } from './vpn-manager';
-import { ClearDataOptions, PermissionType, PermissionDecision, TrackingProtectionMode, NexusBrowserMode, ModeBehaviorConfig } from '../shared/types';
+import { ClearDataOptions, PermissionType, PermissionDecision, TrackingProtectionMode, NexusBrowserMode, ModeBehaviorConfig, BrowserSettings } from '../shared/types';
 
 // Ensure smooth launch on Linux systems without hardware GPU or SUID sandbox helper
 if (process.platform === 'linux') {
@@ -49,6 +50,7 @@ let notesManager: NotesManager | null = null;
 let intelligenceManager: IntelligenceManager | null = null;
 let marketsManager: MarketsManager | null = null;
 let todoManager: TodoManager | null = null;
+let settingsManager: SettingsManager | null = null;
 const vpnManager = new VpnManager();
 
 const isDev = process.env.ELECTRON_IS_DEV === '1';
@@ -106,6 +108,7 @@ function createWindow() {
   intelligenceManager = new IntelligenceManager(storageDir, mainWindow);
   marketsManager = new MarketsManager(storageDir, mainWindow);
   todoManager = new TodoManager(storageDir, mainWindow);
+  settingsManager = new SettingsManager(storageDir, mainWindow);
   downloadManager = new DownloadManager(mainWindow, profilePaths.downloads);
   tabManager.setDownloadManager(downloadManager);
   modeOptimizer = new ModeOptimizer(mainWindow, tabManager);
@@ -1029,6 +1032,32 @@ function registerIpcHandlers() {
 
   ipcMain.handle('hub:recordToolUsage', async (_event, toolId: string) => {
     todoManager?.recordToolUsage(toolId);
+  });
+
+  // ==========================================
+  // NEXUS Central Settings & Feedback IPC
+  // ==========================================
+  ipcMain.handle('settings:get', async () => {
+    return settingsManager?.getSettings() ?? DEFAULT_BROWSER_SETTINGS;
+  });
+
+  ipcMain.handle('settings:update', async (_event, partial: Partial<BrowserSettings>) => {
+    if (!settingsManager) throw new Error('SettingsManager not initialized');
+    return settingsManager.updateSettings(partial);
+  });
+
+  ipcMain.handle('settings:reset', async () => {
+    if (!settingsManager) throw new Error('SettingsManager not initialized');
+    return settingsManager.resetSettings();
+  });
+
+  ipcMain.handle('feedback:submit', async (_event, feedback: any) => {
+    if (!settingsManager) throw new Error('SettingsManager not initialized');
+    return settingsManager.submitFeedback(feedback);
+  });
+
+  ipcMain.handle('feedback:getAll', async () => {
+    return settingsManager?.getFeedbackList() ?? [];
   });
 }
 

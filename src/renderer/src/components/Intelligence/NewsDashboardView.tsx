@@ -212,24 +212,23 @@ export const NewsDashboardView: React.FC<NewsDashboardViewProps> = ({
           <div className="news-splash-icon-wrapper">
             <Newspaper size={32} className="text-accent" />
           </div>
-          <h2 className="news-splash-title">Fact-Focused News Dashboard</h2>
+          <h2 className="news-splash-title">NEXUS News</h2>
           <p className="news-splash-desc">
-            NEXUS News is strictly fact-first and <strong>disabled by default</strong> to respect your focus and
-            privacy. When enabled, it surfaces verified reporting directly cited from reputable syndication feeds.
+            Source-linked stories with clear labels for reporting, claims, analysis, and opinion.
           </p>
 
           <div className="news-splash-features">
             <div className="news-splash-feat-item">
               <CheckCircle2 size={15} className="text-success shrink-0" />
-              <span>Verifiable primary reporting with direct links to original publishers</span>
+              <span>Open stories at their original sources</span>
             </div>
             <div className="news-splash-feat-item">
               <ShieldCheck size={15} className="text-accent shrink-0" />
-              <span>Transparent classification of Reported Facts, Claims, Analysis, and Opinion</span>
+              <span>See whether a story is reporting, a claim, analysis, or opinion</span>
             </div>
             <div className="news-splash-feat-item">
               <Layers size={15} className="text-secondary shrink-0" />
-              <span>Side-by-side cross-source comparison without political bias scores or declared winners</span>
+              <span>Compare coverage across publishers</span>
             </div>
           </div>
 
@@ -238,7 +237,7 @@ export const NewsDashboardView: React.FC<NewsDashboardViewProps> = ({
             onClick={() => handleToggleEnabled(true)}
             disabled={isLoading}
           >
-            {isLoading ? 'Activating Feed...' : 'Enable Fact-Focused News'}
+            {isLoading ? 'Enabling…' : 'Enable News'}
           </button>
         </div>
       </div>
@@ -257,8 +256,8 @@ export const NewsDashboardView: React.FC<NewsDashboardViewProps> = ({
             <Newspaper size={16} className="text-accent" />
           </div>
           <div>
-            <h2 className="news-dash-title">Fact-Focused News</h2>
-            <p className="news-dash-subtitle">Verifiable reporting with direct attribution and neutral analysis</p>
+            <h2 className="news-dash-title">News</h2>
+            <p className="news-dash-subtitle">Source links with clear story labels</p>
           </div>
         </div>
 
@@ -269,13 +268,13 @@ export const NewsDashboardView: React.FC<NewsDashboardViewProps> = ({
               className={`filter-pill ${viewMode === 'feed' ? 'active' : ''}`}
               onClick={() => setViewMode('feed')}
             >
-              Chronological Feed
+              Latest
             </button>
             <button
               className={`filter-pill ${viewMode === 'clusters' ? 'active' : ''}`}
               onClick={() => setViewMode('clusters')}
             >
-              Cross-Source Stories ({clusters.length})
+              Story clusters
             </button>
           </div>
 
@@ -283,7 +282,7 @@ export const NewsDashboardView: React.FC<NewsDashboardViewProps> = ({
           <button
             className={`nexus-icon-btn ${isSettingsOpen ? 'active' : ''}`}
             onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-            title="News feed preferences"
+            title="News settings"
           >
             <SlidersHorizontal size={15} />
           </button>
@@ -294,12 +293,12 @@ export const NewsDashboardView: React.FC<NewsDashboardViewProps> = ({
       {isSettingsOpen && (
         <div className="news-settings-panel">
           <div className="news-settings-header justify-between">
-            <span className="font-semibold text-sm">News Feed Settings</span>
+            <span className="font-semibold text-sm">News settings</span>
             <button
               className="nexus-btn-danger nexus-btn-sm"
               onClick={() => handleToggleEnabled(false)}
             >
-              Disable News Feed
+              Turn off
             </button>
           </div>
 
@@ -369,8 +368,8 @@ export const NewsDashboardView: React.FC<NewsDashboardViewProps> = ({
       {isLoading && (
         <NexusState
           variant="loading"
-          title="Updating Fact-Focused Feed..."
-          description="Fetching verified reporting from syndication outlets..."
+          title="Updating news…"
+          description="Loading stories…"
           className="my-8"
         />
       )}
@@ -442,7 +441,7 @@ export const NewsDashboardView: React.FC<NewsDashboardViewProps> = ({
             <NexusState
               variant="empty"
               title="No Multi-Source Stories in Current Window"
-              description="Switch to Chronological Feed to browse individual articles."
+              description="No story clusters here yet. Try another category or choose Latest."
               className="my-8"
             />
           ) : (

@@ -26,6 +26,7 @@ import {
   TrendingUp,
   LayoutGrid,
   CheckSquare,
+  Settings,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -292,6 +293,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <div className="pinned-site-icon"><TrendingUp size={13} className="text-accent" /></div>
             {!collapsed && <span className="pinned-site-name">Markets</span>}
+          </button>
+          <button
+            className="pinned-site-item"
+            onClick={() => onNavigate('nexus://privacy')}
+            title="NEXUS Privacy Center"
+          >
+            <div className="pinned-site-icon"><Lock size={13} className="text-accent" /></div>
+            {!collapsed && <span className="pinned-site-name">Privacy Center</span>}
+          </button>
+          <button
+            className="pinned-site-item"
+            onClick={() => onNavigate('nexus://settings')}
+            title="NEXUS Settings"
+          >
+            <div className="pinned-site-icon"><Settings size={13} className="text-accent" /></div>
+            {!collapsed && <span className="pinned-site-name">Settings</span>}
           </button>
         </div>
       </div>

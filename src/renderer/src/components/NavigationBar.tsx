@@ -37,6 +37,7 @@ interface NavigationBarProps {
   onToggleSecurityPopover?: () => void;
   currentMode?: NexusBrowserMode;
   onSelectMode?: (mode: NexusBrowserMode) => void;
+  onModePopoverOpenChange?: (open: boolean) => void;
   onOpenSettings?: () => void;
 }
 
@@ -55,6 +56,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = memo(({
   onToggleSecurityPopover,
   currentMode = 'default',
   onSelectMode,
+  onModePopoverOpenChange,
   onOpenSettings,
 }) => {
   const [inputValue, setInputValue] = useState('');
@@ -64,6 +66,11 @@ export const NavigationBar: React.FC<NavigationBarProps> = memo(({
   const [isShieldPopoverOpen, setIsShieldPopoverOpen] = useState(false);
   const [tabShieldStats, setTabShieldStats] = useState<TabShieldStats | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const closeModePopover = () => {
+    setIsModePopoverOpen(false);
+    onModePopoverOpenChange?.(false);
+  };
 
   // Load and listen for Shield telemetry for active tab
   useEffect(() => {
@@ -317,7 +324,11 @@ export const NavigationBar: React.FC<NavigationBarProps> = memo(({
             className={`nexus-icon-btn nav-glass-btn mode-switcher-btn mode-switcher-${currentMode || 'default'} ${
               isModePopoverOpen ? 'active' : ''
             }`}
-            onClick={() => setIsModePopoverOpen((prev) => !prev)}
+            onClick={() => {
+              const next = !isModePopoverOpen;
+              setIsModePopoverOpen(next);
+              onModePopoverOpenChange?.(next);
+            }}
             title={`Current Mode: ${
               currentMode === 'performance'
                 ? 'Performance'
@@ -354,14 +365,14 @@ export const NavigationBar: React.FC<NavigationBarProps> = memo(({
           {isModePopoverOpen && (
             <ModePopover
               isOpen={isModePopoverOpen}
-              onClose={() => setIsModePopoverOpen(false)}
+              onClose={closeModePopover}
               currentMode={currentMode || 'default'}
               onSelectMode={(mode) => {
                 onSelectMode?.(mode);
-                setIsModePopoverOpen(false);
+                closeModePopover();
               }}
               onOpenSettings={() => {
-                setIsModePopoverOpen(false);
+                closeModePopover();
                 onOpenSettings?.();
               }}
             />

@@ -310,6 +310,39 @@
   transform: translateY(0.5px);
 }
 
+.nexus-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 7px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.nexus-btn-ghost:hover:not(:disabled) {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-medium);
+  color: var(--text-primary);
+}
+
+.nexus-btn-ghost:active:not(:disabled) {
+  background: var(--bg-surface-active);
+}
+
+.nexus-btn-ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .nexus-btn-secondary {
   background: var(--bg-elevated);
   color: var(--text-primary);
@@ -10908,6 +10941,14 @@
   gap: 6px;
 }
 
+.markets-page-tabs .filter-pill,
+.news-view-toggle .filter-pill,
+.news-category-pills .filter-pill {
+  min-height: 32px;
+  padding: 7px 12px;
+  white-space: nowrap;
+}
+
 .news-filters-row {
   display: flex;
   align-items: center;
@@ -11067,8 +11108,9 @@
 .news-direct-link-btn {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
+  gap: 6px;
+  min-height: 30px;
+  padding: 6px 10px;
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xs);
@@ -11236,7 +11278,8 @@
 
 .news-enable-btn {
   width: 100%;
-  padding: 10px;
+  min-height: 42px;
+  padding: 11px 16px;
   font-size: 13px;
   font-weight: 600;
 }
@@ -11749,4 +11792,133 @@
   transform: none !important;
 }
 
+/* ==========================================================================
+   NEXUS SETTINGS & PRIVACY CENTER WORKSPACE STYLES
+   ========================================================================== */
 
+.settings-workspace-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  width: 100%;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  overflow-y: auto;
+  position: relative;
+}
+
+/* Privacy Status Badges */
+.privacy-badge {
+  display: inline-flex;
+  align-items: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  border-width: 1px;
+  border-style: solid;
+  line-height: 1.2;
+}
+
+.privacy-badge.badge-active {
+  background: rgba(16, 185, 129, 0.12);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.28);
+}
+
+.privacy-badge.badge-blocked {
+  background: rgba(59, 130, 246, 0.12);
+  color: #60a5fa;
+  border-color: rgba(59, 130, 246, 0.28);
+}
+
+.privacy-badge.badge-allowed {
+  background: rgba(245, 158, 11, 0.12);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.28);
+}
+
+.privacy-badge.badge-disabled {
+  background: rgba(113, 113, 122, 0.12);
+  color: #a1a1aa;
+  border-color: rgba(113, 113, 122, 0.25);
+}
+
+.privacy-badge.badge-not-available {
+  background: rgba(75, 85, 99, 0.12);
+  color: #9ca3af;
+  border-color: rgba(75, 85, 99, 0.22);
+}
+
+/* Site Permission Decision Pills */
+.perm-decision-pill {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  border-width: 1px;
+  border-style: solid;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.perm-decision-pill.allow {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border-color: rgba(16, 185, 129, 0.35);
+}
+
+.perm-decision-pill.allow:hover {
+  background: rgba(16, 185, 129, 0.25);
+}
+
+.perm-decision-pill.deny {
+  background: rgba(244, 63, 94, 0.15);
+  color: #fb7185;
+  border-color: rgba(244, 63, 94, 0.35);
+}
+
+.perm-decision-pill.deny:hover {
+  background: rgba(244, 63, 94, 0.25);
+}
+
+.perm-decision-pill.prompt {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.perm-decision-pill.prompt:hover {
+  background: rgba(245, 158, 11, 0.25);
+}
+
+/* Settings Workspace Card Enhancements */
+.settings-full-workspace-card {
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+/* --------------------------------------------------------------------------
+   SETTINGS WORKSPACE MODE OVERRIDES
+   -------------------------------------------------------------------------- */
+:root[data-mode='balanced'] .settings-workspace-container {
+  box-shadow: inset 0 1px 0 rgba(245, 158, 11, 0.1);
+}
+
+:root[data-mode='performance'] .settings-workspace-container,
+:root[data-mode='performance'] .settings-full-workspace-card {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-workspace-container *,
+  .perm-decision-pill,
+  .privacy-badge {
+    transition: none !important;
+    animation: none !important;
+  }
+}

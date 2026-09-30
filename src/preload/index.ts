@@ -422,6 +422,22 @@ const api: NexusAPI = {
       ipcRenderer.removeListener('todos:updated', handler);
     };
   },
+
+  // NEXUS Central Browser Settings & Feedback
+  getBrowserSettings: () => ipcRenderer.invoke('settings:get'),
+  updateBrowserSettings: (settings: any) => ipcRenderer.invoke('settings:update', settings),
+  resetBrowserSettings: () => ipcRenderer.invoke('settings:reset'),
+  onSettingsUpdated: (callback: (settings: any) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: any) => {
+      callback(data);
+    };
+    ipcRenderer.on('settings:updated', handler);
+    return () => {
+      ipcRenderer.removeListener('settings:updated', handler);
+    };
+  },
+  submitFeedback: (feedback: any) => ipcRenderer.invoke('feedback:submit', feedback),
+  getFeedbackList: () => ipcRenderer.invoke('feedback:getAll'),
 };
 
 contextBridge.exposeInMainWorld('nexusAPI', api);

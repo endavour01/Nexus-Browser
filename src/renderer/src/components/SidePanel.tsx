@@ -50,6 +50,7 @@ import {
   Flame,
   Compass,
   Sun,
+  Sliders,
 } from 'lucide-react';
 
 interface SidePanelProps {
@@ -712,6 +713,38 @@ export const SidePanel: React.FC<SidePanelProps> = ({
         {/* ================= Settings View ================= */}
         {type === 'settings' && (
           <div className="panel-section settings-section">
+            {/* Full Settings & Privacy Center Workspace Links */}
+            <div className="settings-full-workspace-card mb-4 p-3 rounded-lg border border-border/40 bg-surface/50">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[12px] font-semibold text-primary">NEXUS Control System</span>
+                <span className="text-[10px] text-muted">Dedicated Workspaces</span>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded text-[11px] font-medium bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-colors"
+                  onClick={() => {
+                    if (onNavigate) onNavigate('nexus://settings');
+                    onClose();
+                  }}
+                  title="Open full Settings workspace"
+                >
+                  <Sliders size={12} />
+                  <span>Full Settings</span>
+                </button>
+                <button
+                  className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded text-[11px] font-medium bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-colors"
+                  onClick={() => {
+                    if (onNavigate) onNavigate('nexus://privacy');
+                    onClose();
+                  }}
+                  title="Open Privacy Center matrix"
+                >
+                  <ShieldCheck size={12} />
+                  <span>Privacy Center</span>
+                </button>
+              </div>
+            </div>
+
             {/* Browser Mode */}
             <div className="setting-group modes-settings-group">
               <div className="flex items-center justify-between mb-2">

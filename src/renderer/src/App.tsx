@@ -54,6 +54,7 @@ import { IntelligenceModal, IntelligencePage, IntelligenceTab } from './componen
 import { MarketsDashboard } from './components/Markets';
 import { HubWorkspace } from './components/Hub';
 import { TodoWorkspace } from './components/Todo';
+import { SettingsWorkspace } from './components/Settings';
 import { useTheme } from './hooks/useTheme';
 import { useBrowserMode, applyDistractionReduction } from './hooks/useBrowserMode';
 
@@ -162,9 +163,37 @@ export const App: React.FC = () => {
   });
 
   const [isModeSelectorOpen, setIsModeSelectorOpen] = useState(false);
+  const [isModePopoverOpen, setIsModePopoverOpen] = useState(false);
 
   const handleUpdateSettings = useCallback((newSettings: Partial<BrowserSettings>) => {
-    setSettings((prev) => ({ ...prev, ...newSettings }));
+    setSettings((prev) => {
+      const next = { ...prev, ...newSettings };
+      try {
+        localStorage.setItem('nexus_settings', JSON.stringify(next));
+      } catch (e) {}
+      if (window.nexusAPI?.updateBrowserSettings) {
+        window.nexusAPI.updateBrowserSettings(newSettings);
+      }
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (window.nexusAPI?.getBrowserSettings) {
+      window.nexusAPI.getBrowserSettings().then((loaded) => {
+        if (loaded) {
+          setSettings((prev) => ({ ...prev, ...loaded }));
+        }
+      }).catch(console.error);
+    }
+
+    if (window.nexusAPI?.onSettingsUpdated) {
+      const unsub = window.nexusAPI.onSettingsUpdated((updated) => {
+        setSettings((prev) => ({ ...prev, ...updated }));
+      });
+      return unsub;
+    }
+    return undefined;
   }, []);
 
   const {
@@ -412,7 +441,8 @@ export const App: React.FC = () => {
     isClearDataModalOpen ||
     isProfileModalOpen ||
     permissionPrompt !== null ||
-    isSecurityPopoverOpen;
+    isSecurityPopoverOpen ||
+    isModePopoverOpen;
 
   useEffect(() => {
     if (api && api.setModalOpen) {
@@ -1185,6 +1215,10 @@ export const App: React.FC = () => {
     activeTab?.url === 'nexus://hub' || activeTab?.url?.startsWith('nexus://hub');
   const isTodoPage =
     activeTab?.url === 'nexus://todo' || activeTab?.url?.startsWith('nexus://todo');
+  const isSettingsPage =
+    activeTab?.url === 'nexus://settings' || activeTab?.url?.startsWith('nexus://settings');
+  const isPrivacyPage =
+    activeTab?.url === 'nexus://privacy' || activeTab?.url?.startsWith('nexus://privacy');
   const isWarningPage =
     activeTab?.url === 'nexus://warning' || activeTab?.url?.startsWith('nexus://warning');
 
@@ -1241,6 +1275,7 @@ export const App: React.FC = () => {
           onToggleSecurityPopover={() => setIsSecurityPopoverOpen((prev) => !prev)}
           currentMode={browserMode}
           onSelectMode={setBrowserMode}
+          onModePopoverOpenChange={setIsModePopoverOpen}
           onOpenSettings={() => setActiveSidePanel('settings')}
         />
 
@@ -1451,6 +1486,16 @@ export const App: React.FC = () => {
               onNavigate={handleNavigate}
               currentPageUrl={activeTab?.url}
               currentPageTitle={activeTab?.title}
+            />
+          )}
+
+          {(isSettingsPage || isPrivacyPage) && (
+            <SettingsWorkspace
+              settings={settings}
+              onUpdateSettings={handleUpdateSettings}
+              onNavigate={handleNavigate}
+              onOpenClearDataModal={() => setIsClearDataModalOpen(true)}
+              initialSection={isPrivacyPage ? 'privacy-center' : 'general'}
             />
           )}
 

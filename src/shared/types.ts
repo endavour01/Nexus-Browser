@@ -231,27 +231,31 @@ export interface ModeTelemetry {
 }
 
 export interface BrowserSettings {
-  searchEngine: 'duckduckgo' | 'google' | 'brave' | 'bing';
+  // General
+  searchEngine: 'duckduckgo' | 'google' | 'brave' | 'bing' | 'custom';
+  customSearchUrl?: string;
+  startupBehavior?: 'new_tab' | 'restore_previous' | 'custom_urls';
+  customStartupUrls?: string[];
+  newTabBehavior?: 'new_tab' | 'hub' | 'blank' | 'custom_url';
+  customNewTabUrl?: string;
+  language?: string;
+  spellcheckEnabled?: boolean;
+  defaultDownloadDirectory?: string;
+  askDownloadLocation?: boolean;
+
+  // Appearance (Mode vs Appearance decoupled)
   theme?: ThemePreference;
   mode?: NexusBrowserMode;
   reducedMotion?: boolean;
+  uiDensity?: 'comfortable' | 'compact';
   defaultZoom: number;
-  openDevToolsOnStart: boolean;
-  hardwareAcceleration: boolean;
-  restoreSessionOnStartup: boolean;
   tabLayout: 'horizontal' | 'vertical';
   showBookmarksBar?: boolean;
-  defaultDownloadDirectory?: string;
-  trackingProtectionMode?: TrackingProtectionMode;
-  javascriptEnabled?: boolean;
-  popupsBlocked?: boolean;
-  thirdPartyCookiesBlocked?: boolean;
-  shieldEnabled?: boolean;
-  shieldAdBlocking?: boolean;
-  shieldTrackerBlocking?: boolean;
-  shieldPopupBlocking?: boolean;
-  shieldPhishingProtection?: boolean;
-  shieldStrictMode?: boolean;
+
+  // System & Performance
+  hardwareAcceleration: boolean;
+  openDevToolsOnStart: boolean;
+  restoreSessionOnStartup: boolean;
   performanceTabDiscardTimeout?: number;
   performanceAutoSuspend?: boolean;
   performanceBackgroundThrottling?: boolean;
@@ -259,9 +263,66 @@ export interface BrowserSettings {
   performanceLightweightUI?: boolean;
   balancedDistractionReduction?: boolean;
   balancedMinimalToolbar?: boolean;
-  hubEnabled?: boolean;
+
+  // Privacy & Shield
+  trackingProtectionMode?: TrackingProtectionMode;
+  javascriptEnabled?: boolean;
+  popupsBlocked?: boolean;
+  thirdPartyCookiesBlocked?: boolean;
+  clearDataOnExit?: boolean;
+  doNotTrack?: boolean;
+  httpsOnlyMode?: boolean;
+  shieldEnabled?: boolean;
+  shieldAdBlocking?: boolean;
+  shieldTrackerBlocking?: boolean;
+  shieldPopupBlocking?: boolean;
+  shieldPhishingProtection?: boolean;
+  shieldStrictMode?: boolean;
+
+  // Workspaces & Tools
+  notesEnabled?: boolean;
   todoEnabled?: boolean;
+  exploreEnabled?: boolean;
+  marketsEnabled?: boolean;
+  hubEnabled?: boolean;
+  devToolsEnabled?: boolean;
+  extensionsEnabled?: boolean;
+
+  // Notifications
+  notificationsEnabled?: boolean;
+  notifyMarketsAlerts?: boolean;
+  notifyDownloadComplete?: boolean;
+  notifyShieldThreats?: boolean;
+  notifyTodoReminders?: boolean;
+  notificationFrequency?: 'instant' | 'daily' | 'weekly';
 }
+
+export type FeedbackCategory = 'bug' | 'feature' | 'general';
+
+export interface NexusFeedback {
+  id: string;
+  category: FeedbackCategory;
+  title: string;
+  description: string;
+  includeDiagnostics: boolean;
+  diagnostics?: Record<string, any>;
+  createdAt: number;
+}
+
+export type PrivacyStateStatus = 'ACTIVE' | 'BLOCKED' | 'ALLOWED' | 'DISABLED' | 'NOT AVAILABLE';
+
+export interface PrivacyCenterState {
+  adBlocking: PrivacyStateStatus;
+  trackerProtection: PrivacyStateStatus;
+  popupBlocking: PrivacyStateStatus;
+  scamProtection: PrivacyStateStatus;
+  thirdPartyCookies: PrivacyStateStatus;
+  doNotTrack: PrivacyStateStatus;
+  httpsOnly: PrivacyStateStatus;
+  permissionsAllowedCount: number;
+  permissionsBlockedCount: number;
+}
+
 
 // NEXUS Shield Types
 export type ThreatType = 'phishing' | 'malware' | 'scam' | 'deceptive';
@@ -1217,6 +1278,14 @@ export interface NexusAPI {
   onSendToNotesRequested: (callback: (data: SendToNotesPayload) => void) => () => void;
   onMarketsAlertTriggered: (callback: (payload: MarketsAlertPayload) => void) => () => void;
   onTodosUpdated: (callback: (todos: NexusTodo[]) => void) => () => void;
+
+  // Central Browser Settings & Feedback
+  getBrowserSettings: () => Promise<BrowserSettings>;
+  updateBrowserSettings: (settings: Partial<BrowserSettings>) => Promise<BrowserSettings>;
+  resetBrowserSettings: () => Promise<BrowserSettings>;
+  onSettingsUpdated: (callback: (settings: BrowserSettings) => void) => () => void;
+  submitFeedback: (feedback: Omit<NexusFeedback, 'id' | 'createdAt'>) => Promise<{ success: boolean; id: string }>;
+  getFeedbackList: () => Promise<NexusFeedback[]>;
 }
 
 export interface VpnStatus {

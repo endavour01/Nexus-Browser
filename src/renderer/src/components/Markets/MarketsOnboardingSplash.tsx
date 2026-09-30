@@ -18,7 +18,7 @@ export const MarketsOnboardingSplash: React.FC<MarketsOnboardingSplashProps> = (
             Welcome to NEXUS Markets
           </h1>
           <p className="text-sm text-secondary max-w-xl mx-auto leading-relaxed">
-            An informational, data-driven financial and shopping research workspace designed for power users. Strictly research-focused — no trading, no speculative hype, and zero data fabrication.
+            Track stocks, funds, IPOs, and product prices in one place.
           </p>
         </div>
 
@@ -27,9 +27,9 @@ export const MarketsOnboardingSplash: React.FC<MarketsOnboardingSplashProps> = (
           <div className="p-3.5 rounded-xl bg-surface/60 border border-subtle flex items-start gap-3">
             <BarChart3 size={18} className="text-accent flex-shrink-0 mt-0.5" />
             <div>
-              <div className="text-xs font-bold text-primary">Stocks & OHLCV Charts</div>
+              <div className="text-xs font-bold text-primary">Stock Quotes & Charts</div>
               <div className="text-2xs text-secondary mt-0.5">
-                Delayed and historical pricing with genuine volume data and investor relations links.
+                View prices, charts, and company links.
               </div>
             </div>
           </div>
@@ -39,7 +39,7 @@ export const MarketsOnboardingSplash: React.FC<MarketsOnboardingSplashProps> = (
             <div>
               <div className="text-xs font-bold text-primary">IPO Filing Tracker</div>
               <div className="text-2xs text-secondary mt-0.5">
-                Verified SEC/exchange filings, price bands, and subscription data with provisional tags.
+                Follow new listings and filing updates.
               </div>
             </div>
           </div>
@@ -49,7 +49,7 @@ export const MarketsOnboardingSplash: React.FC<MarketsOnboardingSplashProps> = (
             <div>
               <div className="text-xs font-bold text-primary">Mutual Funds & Calculators</div>
               <div className="text-2xs text-secondary mt-0.5">
-                Verified historical NAVs, multi-scheme comparison, and mathematical SIP calculators.
+                Compare funds and estimate investments.
               </div>
             </div>
           </div>
@@ -59,7 +59,7 @@ export const MarketsOnboardingSplash: React.FC<MarketsOnboardingSplashProps> = (
             <div>
               <div className="text-xs font-bold text-primary">Shopping Price Tracker</div>
               <div className="text-2xs text-secondary mt-0.5">
-                Monitors genuine price checkpoints from date of addition with target price drop alerts.
+                Save products and track price changes.
               </div>
             </div>
           </div>
@@ -68,7 +68,7 @@ export const MarketsOnboardingSplash: React.FC<MarketsOnboardingSplashProps> = (
         {/* Local Storage Notice */}
         <div className="p-3.5 rounded-xl bg-surface/40 border border-subtle flex items-center justify-center gap-2 text-2xs text-secondary">
           <ShieldCheck size={14} className="text-emerald-400" />
-          <span>Hidden by default • All watchlists and price alerts remain 100% on your local machine</span>
+          <span>Watchlists and price alerts are stored on this device.</span>
         </div>
 
         {/* CTA Button */}

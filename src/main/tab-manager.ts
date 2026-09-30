@@ -840,6 +840,8 @@ export class TabManager {
     else if (url === 'nexus://notes' || url.startsWith('nexus://notes')) initialTitle = 'NEXUS Notes';
     else if (url === 'nexus://explore' || url.startsWith('nexus://explore')) initialTitle = 'NEXUS Explore';
     else if (url === 'nexus://markets' || url.startsWith('nexus://markets')) initialTitle = 'NEXUS Markets';
+    else if (url === 'nexus://settings' || url.startsWith('nexus://settings')) initialTitle = 'Settings';
+    else if (url === 'nexus://privacy' || url.startsWith('nexus://privacy')) initialTitle = 'Privacy Center';
     else if (url === 'nexus://warning' || url.startsWith('nexus://warning')) initialTitle = 'Security Warning';
     else if (!isInternalPage) initialTitle = 'Loading...';
 
@@ -1229,6 +1231,10 @@ export class TabManager {
         tab.title = 'NEXUS Explore';
       } else if (formatted === 'nexus://markets' || formatted.startsWith('nexus://markets')) {
         tab.title = 'NEXUS Markets';
+      } else if (formatted === 'nexus://settings' || formatted.startsWith('nexus://settings')) {
+        tab.title = 'Settings';
+      } else if (formatted === 'nexus://privacy' || formatted.startsWith('nexus://privacy')) {
+        tab.title = 'Privacy Center';
       } else if (formatted === 'nexus://warning' || formatted.startsWith('nexus://warning')) {
         tab.title = 'Security Warning';
       } else {

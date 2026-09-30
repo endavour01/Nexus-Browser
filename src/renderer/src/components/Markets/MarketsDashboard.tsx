@@ -256,7 +256,7 @@ export const MarketsDashboard: React.FC<MarketsDashboardProps> = ({
           <div>
             <h1 className="page-heading">NEXUS Markets</h1>
             <p className="page-subheading">
-              Data-driven financial and shopping research workspace • Zero fabrication
+              Stocks, funds, IPOs, shopping, and financial news
             </p>
           </div>
         </div>
@@ -329,7 +329,7 @@ export const MarketsDashboard: React.FC<MarketsDashboardProps> = ({
             <div className="markets-disclaimer-box">
               <AlertCircle size={15} className="text-secondary flex-shrink-0" />
               <span className="text-xs text-secondary leading-relaxed">
-                <strong>Informational Reference Only:</strong> NEXUS Markets provides delayed and historical equity quotes for research purposes. This is not an investment advisory or broker-dealer service. Quotes are delayed by exchange minimums (15+ mins).
+                Quotes may be delayed by at least 15 minutes. For research only; not investment advice.
               </span>
             </div>
 

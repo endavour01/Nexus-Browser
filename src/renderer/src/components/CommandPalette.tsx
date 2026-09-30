@@ -482,11 +482,19 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       {
         id: 'open-settings',
         title: 'Open Settings',
-        subtitle: 'Configure search engine, hardware acceleration',
+        subtitle: 'Configure startup, appearance, privacy, tools, and notifications',
         category: 'Developer & Tools',
         shortcut: 'Ctrl+,',
         icon: 'Settings',
-        action: () => onTogglePanel('settings'),
+        action: () => onNavigate('nexus://settings'),
+      },
+      {
+        id: 'open-privacy-center',
+        title: 'Open Privacy Center',
+        subtitle: 'View live privacy telemetry, active shield protections, and site permissions',
+        category: 'Developer & Tools',
+        icon: 'Shield',
+        action: () => onNavigate('nexus://privacy'),
       },
       {
         id: 'zoom-in',
