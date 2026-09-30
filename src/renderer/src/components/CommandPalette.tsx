@@ -374,6 +374,23 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         action: () => onTogglePanel('extensions'),
       },
       {
+        id: 'notes-open-workspace',
+        title: 'Open NEXUS Notes Workspace',
+        subtitle: 'Rich-text notes, diagrams, notebooks, and local offline library',
+        category: 'Developer & Tools',
+        icon: 'FileText',
+        action: () => onNavigate('nexus://notes'),
+      },
+      {
+        id: 'notes-toggle-companion',
+        title: 'Toggle Notes Side Panel',
+        subtitle: 'Take notes side-by-side with active browser tabs',
+        category: 'Developer & Tools',
+        shortcut: 'Ctrl+Shift+N',
+        icon: 'FileText',
+        action: () => onTogglePanel('notes'),
+      },
+      {
         id: 'open-settings',
         title: 'Open Settings',
         subtitle: 'Configure search engine, hardware acceleration',

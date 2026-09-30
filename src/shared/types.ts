@@ -416,7 +416,7 @@ export interface RecentPage {
   timestamp: number;
 }
 
-export type SidePanelType = 'bookmarks' | 'downloads' | 'extensions' | 'profiles' | 'settings' | 'history' | 'devtools' | null;
+export type SidePanelType = 'bookmarks' | 'downloads' | 'extensions' | 'profiles' | 'settings' | 'history' | 'devtools' | 'notes' | null;
 
 // Developer Tools Types
 export interface NetworkLogEntry {
@@ -498,6 +498,86 @@ export interface SiteZoomPreference {
   origin: string;
   zoomFactor: number;
   updatedAt: number;
+}
+
+// NEXUS Notes Types
+export interface NexusNoteLinkedTab {
+  url: string;
+  title: string;
+  favicon?: string;
+  linkedAt: number;
+}
+
+export interface NexusNote {
+  id: string;
+  title: string;
+  content: string;
+  notebookId: string;
+  folderId?: string | null;
+  tags: string[];
+  isFavorite: boolean;
+  isPinned: boolean;
+  isArchived: boolean;
+  inTrash: boolean;
+  trashedAt?: number | null;
+  createdAt: number;
+  updatedAt: number;
+  linkedTab?: NexusNoteLinkedTab | null;
+  drawingData?: string | null;
+  wordCount?: number;
+  readingTimeMinutes?: number;
+}
+
+export interface NexusNotebook {
+  id: string;
+  name: string;
+  description?: string;
+  color: string;
+  icon: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface NexusFolder {
+  id: string;
+  notebookId: string;
+  name: string;
+  parentId?: string | null;
+  createdAt: number;
+}
+
+export interface NexusDraftRecovery {
+  noteId: string;
+  title: string;
+  content: string;
+  timestamp: number;
+}
+
+export interface NotesFilterOptions {
+  searchQuery?: string;
+  notebookId?: string;
+  folderId?: string | null;
+  tag?: string;
+  favoriteOnly?: boolean;
+  pinnedOnly?: boolean;
+  archivedOnly?: boolean;
+  trashOnly?: boolean;
+  linkedUrl?: string;
+}
+
+export interface NotesExportOptions {
+  includeTitle?: boolean;
+  includeMetadata?: boolean;
+  includePageNumbers?: boolean;
+  theme?: 'light' | 'dark' | 'system';
+}
+
+export interface NexusNotesData {
+  version: number;
+  notes: NexusNote[];
+  notebooks: NexusNotebook[];
+  folders: NexusFolder[];
+  drafts: Record<string, NexusDraftRecovery>;
 }
 
 export interface NexusAPI {
@@ -644,6 +724,27 @@ export interface NexusAPI {
   resetShieldStats: () => Promise<void>;
   allowThreatBypass: (originOrUrl: string) => Promise<void>;
 
+  // NEXUS Notes Management
+  getNotes: (filter?: NotesFilterOptions) => Promise<NexusNote[]>;
+  getNote: (id: string) => Promise<NexusNote | null>;
+  saveNote: (note: Partial<NexusNote> & { title: string }) => Promise<NexusNote>;
+  deleteNote: (id: string, permanent?: boolean) => Promise<boolean>;
+  restoreNote: (id: string) => Promise<boolean>;
+  purgeNote: (id: string) => Promise<boolean>;
+  emptyTrash: () => Promise<boolean>;
+  duplicateNote: (id: string) => Promise<NexusNote | null>;
+  getNotebooks: () => Promise<NexusNotebook[]>;
+  saveNotebook: (notebook: Partial<NexusNotebook> & { name: string }) => Promise<NexusNotebook>;
+  deleteNotebook: (id: string) => Promise<boolean>;
+  getFolders: (notebookId?: string) => Promise<NexusFolder[]>;
+  saveFolder: (folder: Partial<NexusFolder> & { name: string; notebookId: string }) => Promise<NexusFolder>;
+  deleteFolder: (id: string) => Promise<boolean>;
+  getDraftRecovery: (noteId: string) => Promise<NexusDraftRecovery | null>;
+  saveDraftRecovery: (draft: NexusDraftRecovery) => Promise<void>;
+  clearDraftRecovery: (noteId: string) => Promise<void>;
+  exportNotePdf: (noteId: string, options?: NotesExportOptions) => Promise<{ success: boolean; filePath?: string; error?: string }>;
+  exportNotebookPdf: (notebookId: string, options?: NotesExportOptions) => Promise<{ success: boolean; filePath?: string; error?: string }>;
+
   // Event Listeners
   onTabsUpdated: (callback: (tabs: TabState[], activeTabId: string) => void) => () => void;
   onWindowMaximizedChange: (callback: (isMaximized: boolean) => void) => () => void;
@@ -660,6 +761,7 @@ export interface NexusAPI {
   onNetworkActivity: (callback: (entry: NetworkLogEntry) => void) => () => void;
   onModeChanged: (callback: (mode: NexusBrowserMode) => void) => () => void;
   onTelemetryUpdated: (callback: (telemetry: ModeTelemetry) => void) => () => void;
+  onNotesUpdated: (callback: () => void) => () => void;
 }
 
 declare global {

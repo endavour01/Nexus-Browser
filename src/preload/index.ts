@@ -297,6 +297,37 @@ const api: NexusAPI = {
       ipcRenderer.removeListener('shield:popupBlocked', handler);
     };
   },
+
+  // NEXUS Notes
+  getNotes: (filter?: any) => ipcRenderer.invoke('notes:getNotes', filter),
+  getNote: (id: string) => ipcRenderer.invoke('notes:getNote', id),
+  saveNote: (note: any) => ipcRenderer.invoke('notes:saveNote', note),
+  deleteNote: (id: string, permanent?: boolean) => ipcRenderer.invoke('notes:deleteNote', id, permanent),
+  restoreNote: (id: string) => ipcRenderer.invoke('notes:restoreNote', id),
+  purgeNote: (id: string) => ipcRenderer.invoke('notes:purgeNote', id),
+  emptyTrash: () => ipcRenderer.invoke('notes:emptyTrash'),
+  duplicateNote: (id: string) => ipcRenderer.invoke('notes:duplicateNote', id),
+  getNotebooks: () => ipcRenderer.invoke('notes:getNotebooks'),
+  saveNotebook: (notebook: any) => ipcRenderer.invoke('notes:saveNotebook', notebook),
+  deleteNotebook: (id: string) => ipcRenderer.invoke('notes:deleteNotebook', id),
+  getFolders: (notebookId?: string) => ipcRenderer.invoke('notes:getFolders', notebookId),
+  saveFolder: (folder: any) => ipcRenderer.invoke('notes:saveFolder', folder),
+  deleteFolder: (id: string) => ipcRenderer.invoke('notes:deleteFolder', id),
+  getDraftRecovery: (noteId: string) => ipcRenderer.invoke('notes:getDraftRecovery', noteId),
+  saveDraftRecovery: (draft: any) => ipcRenderer.invoke('notes:saveDraftRecovery', draft),
+  clearDraftRecovery: (noteId: string) => ipcRenderer.invoke('notes:clearDraftRecovery', noteId),
+  exportNotePdf: (noteId: string, options?: any) => ipcRenderer.invoke('notes:exportPdf', noteId, options),
+  exportNotebookPdf: (notebookId: string, options?: any) => ipcRenderer.invoke('notes:exportNotebookPdf', notebookId, options),
+
+  onNotesUpdated: (callback: () => void) => {
+    const handler = () => {
+      callback();
+    };
+    ipcRenderer.on('notes:updated', handler);
+    return () => {
+      ipcRenderer.removeListener('notes:updated', handler);
+    };
+  },
 };
 
 contextBridge.exposeInMainWorld('nexusAPI', api);

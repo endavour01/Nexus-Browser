@@ -14,6 +14,7 @@ import {
 } from '@shared/types';
 import { SidePanelType } from './RightToolbar';
 import { DeveloperToolsPanel } from './DeveloperToolsPanel';
+import { NotesSidePanel } from './Notes/NotesSidePanel';
 import { NexusState } from './NexusState';
 import { ModeBehaviorControls } from './ModeBehaviorControls';
 import {
@@ -104,6 +105,8 @@ interface SidePanelProps {
   onUpdateModeConfig?: (config: Partial<ModeBehaviorConfig>) => void;
   onRestoreDefaults?: () => void;
   onEnterFocusWorkspace?: () => void;
+  activeTabTitle?: string;
+  activeTabFavicon?: string;
 }
 
 export const SidePanel: React.FC<SidePanelProps> = ({
@@ -161,6 +164,8 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   onUpdateModeConfig,
   onRestoreDefaults,
   onEnterFocusWorkspace,
+  activeTabTitle,
+  activeTabFavicon,
 }) => {
   const [bookmarkQuery, setBookmarkQuery] = useState('');
   const [historyQuery, setHistoryQuery] = useState('');
@@ -209,6 +214,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
           {type === 'profiles' && 'Profiles'}
           {type === 'settings' && 'Settings'}
           {type === 'devtools' && 'Developer Toolkit'}
+          {type === 'notes' && 'Notes Companion'}
         </h3>
         <button className="nexus-icon-btn panel-close-btn" onClick={onClose} title="Close panel">
           <X size={15} />
@@ -1186,6 +1192,15 @@ export const SidePanel: React.FC<SidePanelProps> = ({
             onOpenReaderMode={onOpenReaderMode || (() => {})}
             onOpenJsonFormatter={onOpenJsonFormatter || (() => {})}
             onOpenDevDashboard={onOpenDevDashboard || (() => onNavigate('nexus://dev'))}
+          />
+        )}
+
+        {type === 'notes' && (
+          <NotesSidePanel
+            onNavigate={onNavigate}
+            activeTabUrl={currentUrl}
+            activeTabTitle={activeTabTitle}
+            activeTabFavicon={activeTabFavicon}
           />
         )}
       </div>

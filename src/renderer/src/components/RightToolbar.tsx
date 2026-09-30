@@ -7,6 +7,7 @@ import {
   Settings,
   User,
   Terminal,
+  FileText,
 } from 'lucide-react';
 import { InstalledExtension, SidePanelType } from '@shared/types';
 
@@ -68,6 +69,15 @@ export const RightToolbar: React.FC<RightToolbarProps> = ({
       >
         <Download size={17} />
         {downloadCount > 0 && <span className="toolbar-badge">{downloadCount}</span>}
+      </button>
+
+      {/* Notes Companion Button */}
+      <button
+        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'notes' ? 'active' : ''}`}
+        onClick={() => toggle('notes')}
+        title="NEXUS Notes Companion (Ctrl+Shift+N)"
+      >
+        <FileText size={17} />
       </button>
 
       {/* Extension Action Buttons */}

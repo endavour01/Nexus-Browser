@@ -49,6 +49,7 @@ import { DeveloperDashboard } from './components/DeveloperDashboard';
 import { ShieldDashboard } from './components/ShieldDashboard';
 import { MaliciousWarningPage } from './components/MaliciousWarningPage';
 import { ModeSelectorModal } from './components/ModeSelectorModal';
+import { NotesPage } from './components/Notes/NotesPage';
 import { useTheme } from './hooks/useTheme';
 import { useBrowserMode, applyDistractionReduction } from './hooks/useBrowserMode';
 
@@ -1035,6 +1036,11 @@ export const App: React.FC = () => {
         e.preventDefault();
         setActiveSidePanel((prev) => (prev === 'downloads' ? null : 'downloads'));
       }
+      // Ctrl+Shift+N: Notes Companion panel
+      else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        setActiveSidePanel((prev) => (prev === 'notes' ? null : 'notes'));
+      }
       // Ctrl+D: Bookmark page
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
         e.preventDefault();
@@ -1127,6 +1133,8 @@ export const App: React.FC = () => {
     activeTab?.url === 'nexus://dev' || activeTab?.url?.startsWith('nexus://dev');
   const isShieldPage =
     activeTab?.url === 'nexus://shield' || activeTab?.url?.startsWith('nexus://shield');
+  const isNotesPage =
+    activeTab?.url === 'nexus://notes' || activeTab?.url?.startsWith('nexus://notes');
   const isWarningPage =
     activeTab?.url === 'nexus://warning' || activeTab?.url?.startsWith('nexus://warning');
 
@@ -1329,6 +1337,15 @@ export const App: React.FC = () => {
             />
           )}
 
+          {isNotesPage && (
+            <NotesPage
+              onNavigate={handleNavigate}
+              activeTabUrl={activeTab?.url}
+              activeTabTitle={activeTab?.title}
+              activeTabFavicon={activeTab?.favicon}
+            />
+          )}
+
           {isWarningPage && (
             <MaliciousWarningPage
               url={activeTab?.url || ''}
@@ -1430,6 +1447,8 @@ export const App: React.FC = () => {
             onUpdateModeConfig={updateModeConfig}
             onRestoreDefaults={restoreModeDefaults}
             onEnterFocusWorkspace={handleEnterFocusWorkspace}
+            activeTabTitle={activeTab?.title}
+            activeTabFavicon={activeTab?.favicon}
           />
         )}
 

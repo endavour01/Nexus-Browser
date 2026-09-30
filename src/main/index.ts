@@ -15,6 +15,7 @@ import { NetworkMonitor } from './network-monitor';
 import { ZoomManager } from './zoom-manager';
 import { DeveloperToolsManager } from './developer-tools-manager';
 import { ModeOptimizer } from './mode-optimizer';
+import { NotesManager } from './notes-manager';
 import { ClearDataOptions, PermissionType, PermissionDecision, TrackingProtectionMode, NexusBrowserMode, ModeBehaviorConfig } from '../shared/types';
 
 // Ensure smooth launch on Linux systems without hardware GPU or SUID sandbox helper
@@ -40,6 +41,7 @@ let networkMonitor: NetworkMonitor | null = null;
 let zoomManager: ZoomManager | null = null;
 let developerToolsManager: DeveloperToolsManager | null = null;
 let modeOptimizer: ModeOptimizer | null = null;
+let notesManager: NotesManager | null = null;
 
 const isDev = process.env.ELECTRON_IS_DEV === '1';
 
@@ -92,6 +94,7 @@ function createWindow() {
   tabManager.setZoomManager(zoomManager);
   tabManager.setNetworkMonitor(networkMonitor);
 
+  notesManager = new NotesManager(profilePaths.notes, mainWindow);
   downloadManager = new DownloadManager(mainWindow, profilePaths.downloads);
   tabManager.setDownloadManager(downloadManager);
   modeOptimizer = new ModeOptimizer(mainWindow, tabManager);
@@ -146,6 +149,7 @@ function createWindow() {
     networkMonitor = null;
     zoomManager = null;
     developerToolsManager = null;
+    notesManager = null;
   });
 }
 
@@ -486,6 +490,7 @@ function registerIpcHandlers() {
     if (switched) {
       const profilePaths = profileManager.getProfileDataPaths(switched.id);
       bookmarksStore = new BookmarksStore(profilePaths.bookmarks);
+      notesManager = new NotesManager(profilePaths.notes, mainWindow);
       tabManager?.setHistoryStore(new HistoryStore(profilePaths.history));
       if (mainWindow) {
         downloadManager = new DownloadManager(mainWindow, profilePaths.downloads);
@@ -737,6 +742,88 @@ function registerIpcHandlers() {
   ipcMain.handle('modes:restoreDefaultBehavior', async () => {
     modeOptimizer?.restoreDefaultBehavior();
     return modeOptimizer?.getConfig();
+  });
+
+  // NEXUS Notes Management
+  ipcMain.handle('notes:getNotes', (_event, filter?: any) => {
+    return notesManager?.getNotes(filter) ?? [];
+  });
+
+  ipcMain.handle('notes:getNote', (_event, id: string) => {
+    return notesManager?.getNote(id) ?? null;
+  });
+
+  ipcMain.handle('notes:saveNote', (_event, note: any) => {
+    if (!notesManager) throw new Error('NotesManager not initialized');
+    return notesManager.saveNote(note);
+  });
+
+  ipcMain.handle('notes:deleteNote', (_event, id: string, permanent?: boolean) => {
+    return notesManager?.deleteNote(id, permanent) ?? false;
+  });
+
+  ipcMain.handle('notes:restoreNote', (_event, id: string) => {
+    return notesManager?.restoreNote(id) ?? false;
+  });
+
+  ipcMain.handle('notes:purgeNote', (_event, id: string) => {
+    return notesManager?.purgeNote(id) ?? false;
+  });
+
+  ipcMain.handle('notes:emptyTrash', () => {
+    return notesManager?.emptyTrash() ?? false;
+  });
+
+  ipcMain.handle('notes:duplicateNote', (_event, id: string) => {
+    return notesManager?.duplicateNote(id) ?? null;
+  });
+
+  ipcMain.handle('notes:getNotebooks', () => {
+    return notesManager?.getNotebooks() ?? [];
+  });
+
+  ipcMain.handle('notes:saveNotebook', (_event, notebook: any) => {
+    if (!notesManager) throw new Error('NotesManager not initialized');
+    return notesManager.saveNotebook(notebook);
+  });
+
+  ipcMain.handle('notes:deleteNotebook', (_event, id: string) => {
+    return notesManager?.deleteNotebook(id) ?? false;
+  });
+
+  ipcMain.handle('notes:getFolders', (_event, notebookId?: string) => {
+    return notesManager?.getFolders(notebookId) ?? [];
+  });
+
+  ipcMain.handle('notes:saveFolder', (_event, folder: any) => {
+    if (!notesManager) throw new Error('NotesManager not initialized');
+    return notesManager.saveFolder(folder);
+  });
+
+  ipcMain.handle('notes:deleteFolder', (_event, id: string) => {
+    return notesManager?.deleteFolder(id) ?? false;
+  });
+
+  ipcMain.handle('notes:getDraftRecovery', (_event, noteId: string) => {
+    return notesManager?.getDraftRecovery(noteId) ?? null;
+  });
+
+  ipcMain.handle('notes:saveDraftRecovery', (_event, draft: any) => {
+    notesManager?.saveDraftRecovery(draft);
+  });
+
+  ipcMain.handle('notes:clearDraftRecovery', (_event, noteId: string) => {
+    notesManager?.clearDraftRecovery(noteId);
+  });
+
+  ipcMain.handle('notes:exportPdf', async (_event, noteId: string, options?: any) => {
+    if (!notesManager) return { success: false, error: 'NotesManager not initialized' };
+    return notesManager.exportNotePdf(noteId, options, mainWindow || undefined);
+  });
+
+  ipcMain.handle('notes:exportNotebookPdf', async (_event, notebookId: string, options?: any) => {
+    if (!notesManager) return { success: false, error: 'NotesManager not initialized' };
+    return notesManager.exportNotebookPdf(notebookId, options, mainWindow || undefined);
   });
 }
 

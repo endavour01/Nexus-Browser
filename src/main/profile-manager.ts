@@ -163,12 +163,13 @@ export class ProfileManager {
     return dir;
   }
 
-  public getProfileDataPaths(profileId: string): { bookmarks: string; history: string; downloads: string } {
+  public getProfileDataPaths(profileId: string): { bookmarks: string; history: string; downloads: string; notes: string } {
     const dir = this.getProfileDataDir(profileId);
     return {
       bookmarks: path.join(dir, 'nexus-bookmarks.json'),
       history: path.join(dir, 'nexus-history.json'),
       downloads: path.join(dir, 'nexus-downloads.json'),
+      notes: path.join(dir, 'nexus-notes.json'),
     };
   }
 
