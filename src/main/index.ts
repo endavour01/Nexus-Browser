@@ -17,6 +17,7 @@ import { DeveloperToolsManager } from './developer-tools-manager';
 import { ModeOptimizer } from './mode-optimizer';
 import { NotesManager } from './notes-manager';
 import { IntelligenceManager } from './intelligence-manager';
+import { MarketsManager } from './markets-manager';
 import { VpnManager } from './vpn-manager';
 import { ClearDataOptions, PermissionType, PermissionDecision, TrackingProtectionMode, NexusBrowserMode, ModeBehaviorConfig } from '../shared/types';
 
@@ -45,6 +46,7 @@ let developerToolsManager: DeveloperToolsManager | null = null;
 let modeOptimizer: ModeOptimizer | null = null;
 let notesManager: NotesManager | null = null;
 let intelligenceManager: IntelligenceManager | null = null;
+let marketsManager: MarketsManager | null = null;
 const vpnManager = new VpnManager();
 
 const isDev = process.env.ELECTRON_IS_DEV === '1';
@@ -100,6 +102,7 @@ function createWindow() {
 
   notesManager = new NotesManager(profilePaths.notes, mainWindow);
   intelligenceManager = new IntelligenceManager(storageDir, mainWindow);
+  marketsManager = new MarketsManager(storageDir, mainWindow);
   downloadManager = new DownloadManager(mainWindow, profilePaths.downloads);
   tabManager.setDownloadManager(downloadManager);
   modeOptimizer = new ModeOptimizer(mainWindow, tabManager);
@@ -894,6 +897,94 @@ function registerIpcHandlers() {
   ipcMain.handle('intelligence:getNewsFeed', async (_event, forceRefresh?: boolean) => {
     if (!intelligenceManager) throw new Error('IntelligenceManager not initialized');
     return intelligenceManager.getNewsFeed(forceRefresh);
+  });
+
+  // ==========================================
+  // NEXUS Markets Handlers
+  // ==========================================
+  ipcMain.handle('markets:getSettings', async () => {
+    return marketsManager?.getSettings() ?? null;
+  });
+
+  ipcMain.handle('markets:updateSettings', async (_event, settings: any) => {
+    if (!marketsManager) throw new Error('MarketsManager not initialized');
+    return marketsManager.updateSettings(settings);
+  });
+
+  ipcMain.handle('markets:searchStocks', async (_event, query: string) => {
+    if (!marketsManager) throw new Error('MarketsManager not initialized');
+    return marketsManager.searchStocks(query);
+  });
+
+  ipcMain.handle('markets:getStockQuote', async (_event, ticker: string) => {
+    if (!marketsManager) throw new Error('MarketsManager not initialized');
+    return marketsManager.getStockQuote(ticker);
+  });
+
+  ipcMain.handle('markets:getStockCandles', async (_event, ticker: string, range?: string) => {
+    if (!marketsManager) throw new Error('MarketsManager not initialized');
+    return marketsManager.getStockCandles(ticker, range);
+  });
+
+  ipcMain.handle('markets:getStockWatchlist', async () => {
+    return marketsManager?.getStockWatchlist() ?? [];
+  });
+
+  ipcMain.handle('markets:addStockToWatchlist', async (_event, item: any) => {
+    if (!marketsManager) throw new Error('MarketsManager not initialized');
+    return marketsManager.addStockToWatchlist(item);
+  });
+
+  ipcMain.handle('markets:removeStockFromWatchlist', async (_event, ticker: string) => {
+    return marketsManager?.removeStockFromWatchlist(ticker) ?? false;
+  });
+
+  ipcMain.handle('markets:getIpos', async (_event, status?: any) => {
+    if (!marketsManager) throw new Error('MarketsManager not initialized');
+    return marketsManager.getIpos(status);
+  });
+
+  ipcMain.handle('markets:getMutualFunds', async (_event, category?: string) => {
+    if (!marketsManager) throw new Error('MarketsManager not initialized');
+    return marketsManager.getMutualFunds(category);
+  });
+
+  ipcMain.handle('markets:getMutualFundDetail', async (_event, id: string) => {
+    if (!marketsManager) throw new Error('MarketsManager not initialized');
+    return marketsManager.getMutualFundDetail(id);
+  });
+
+  ipcMain.handle('markets:calculateSip', async (_event, params: any) => {
+    if (!marketsManager) throw new Error('MarketsManager not initialized');
+    return marketsManager.calculateSip(params);
+  });
+
+  ipcMain.handle('markets:calculateLumpSum', async (_event, params: any) => {
+    if (!marketsManager) throw new Error('MarketsManager not initialized');
+    return marketsManager.calculateLumpSum(params);
+  });
+
+  ipcMain.handle('markets:getTrackedProducts', async () => {
+    return marketsManager?.getTrackedProducts() ?? [];
+  });
+
+  ipcMain.handle('markets:saveTrackedProduct', async (_event, product: any) => {
+    if (!marketsManager) throw new Error('MarketsManager not initialized');
+    return marketsManager.saveTrackedProduct(product);
+  });
+
+  ipcMain.handle('markets:recordProductPricePoint', async (_event, productId: string, price: number, inStock?: boolean) => {
+    if (!marketsManager) throw new Error('MarketsManager not initialized');
+    return marketsManager.recordProductPricePoint(productId, price, inStock);
+  });
+
+  ipcMain.handle('markets:deleteTrackedProduct', async (_event, id: string) => {
+    return marketsManager?.deleteTrackedProduct(id) ?? false;
+  });
+
+  ipcMain.handle('markets:getFinancialNews', async (_event, ticker?: string, category?: string) => {
+    if (!marketsManager) throw new Error('MarketsManager not initialized');
+    return marketsManager.getFinancialNews(ticker, category);
   });
 }
 

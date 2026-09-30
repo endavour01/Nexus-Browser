@@ -416,7 +416,7 @@ export interface RecentPage {
   timestamp: number;
 }
 
-export type SidePanelType = 'bookmarks' | 'downloads' | 'extensions' | 'profiles' | 'settings' | 'history' | 'devtools' | 'notes' | 'intelligence' | null;
+export type SidePanelType = 'bookmarks' | 'downloads' | 'extensions' | 'profiles' | 'settings' | 'history' | 'devtools' | 'notes' | 'intelligence' | 'markets' | null;
 
 // Developer Tools Types
 export interface NetworkLogEntry {
@@ -711,6 +711,221 @@ export interface SendToNotesPayload {
   sourceTitle?: string;
 }
 
+// ==========================================
+// NEXUS Markets Types
+// ==========================================
+export interface MarketsSettings {
+  enabled: boolean; // false by default (hidden until enabled)
+  enableStocks: boolean;
+  enableIpos: boolean;
+  enableMutualFunds: boolean;
+  enableShopping: boolean;
+  enableFinancialNews: boolean;
+  notificationFrequency: 'realtime' | 'daily' | 'weekly' | 'disabled';
+  enablePriceAlerts: boolean;
+  defaultCurrency: string;
+  refreshIntervalMinutes: number;
+  hasMadeInitialChoice: boolean;
+}
+
+// Stocks
+export interface StockCandle {
+  timestamp: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+export type StockDataFreshness = 'realtime' | 'delayed' | 'historical';
+
+export interface StockQuote {
+  ticker: string;
+  name: string;
+  exchange: string;
+  currency: string;
+  price: number;
+  change: number;
+  changePercent: number;
+  open?: number;
+  high?: number;
+  low?: number;
+  previousClose?: number;
+  volume?: number;
+  marketCap?: number;
+  peRatio?: number;
+  fiftyTwoWeekHigh?: number;
+  fiftyTwoWeekLow?: number;
+  timestamp: number;
+  dataFreshness: StockDataFreshness;
+  delayMinutes?: number;
+  provider: string;
+  providerDisclaimer: string;
+  officialWebsite?: string;
+  investorRelationsUrl?: string;
+  sector?: string;
+  industry?: string;
+  description?: string;
+}
+
+export interface StockWatchlistItem {
+  ticker: string;
+  name: string;
+  exchange: string;
+  addedAt: number;
+  targetHighAlert?: number;
+  targetLowAlert?: number;
+  notes?: string;
+}
+
+export interface StockPriceAlert {
+  id: string;
+  ticker: string;
+  targetPrice: number;
+  direction: 'above' | 'below';
+  createdAt: number;
+  triggered: boolean;
+  triggeredAt?: number;
+}
+
+// IPO Tracker
+export type IpoStatus = 'upcoming' | 'open' | 'closed' | 'listed';
+
+export interface IpoItem {
+  id: string;
+  companyName: string;
+  symbol?: string;
+  exchange: string;
+  status: IpoStatus;
+  openDate?: string;
+  closeDate?: string;
+  listingDate?: string;
+  priceBandLow?: number;
+  priceBandHigh?: number;
+  currency: string;
+  issueSize?: string;
+  lotSize?: number;
+  subscriptionQib?: number;
+  subscriptionNii?: number;
+  subscriptionRetail?: number;
+  subscriptionTotal?: number;
+  listingPrice?: number;
+  isProvisional: boolean;
+  provisionalNotes?: string;
+  exchangeFilingUrl?: string;
+  prospectusUrl?: string;
+  provider: string;
+  sourceVerifiedAt: number;
+}
+
+// Mutual Funds
+export interface MutualFundNavPoint {
+  date: string; // YYYY-MM-DD
+  nav: number;
+}
+
+export interface MutualFundItem {
+  id: string;
+  schemeName: string;
+  fundHouse: string;
+  category: string;
+  nav: number;
+  navDate: string;
+  previousNav?: number;
+  change?: number;
+  changePercent?: number;
+  expenseRatio?: number;
+  aum?: string;
+  benchmark?: string;
+  riskLevel?: 'Low' | 'Moderate' | 'Moderately High' | 'High' | 'Very High';
+  manager?: string;
+  navHistory: MutualFundNavPoint[];
+  provider: string;
+  lastUpdated: number;
+}
+
+export interface SipCalculationParams {
+  monthlyAmount: number;
+  durationYears: number;
+  expectedAnnualReturnRate: number; // e.g. 12 for 12%
+}
+
+export interface SipCalculationResult {
+  investedAmount: number;
+  estimatedFutureValue: number;
+  wealthGain: number;
+  monthlyInvestment: number;
+  durationYears: number;
+  expectedRate: number;
+  disclaimer: string;
+}
+
+export interface LumpSumCalculationParams {
+  principalAmount: number;
+  durationYears: number;
+  expectedAnnualReturnRate: number;
+}
+
+export interface LumpSumCalculationResult {
+  principalAmount: number;
+  estimatedFutureValue: number;
+  wealthGain: number;
+  durationYears: number;
+  expectedRate: number;
+  disclaimer: string;
+}
+
+// Shopping Price Tracker
+export interface ProductPricePoint {
+  date: number;
+  price: number;
+  retailer: string;
+  inStock: boolean;
+  verified: boolean;
+}
+
+export interface TrackedProduct {
+  id: string;
+  title: string;
+  url: string;
+  retailer: string;
+  category: string;
+  targetPriceAlert?: number;
+  currentPrice: number;
+  currency: string;
+  lowestPrice: number;
+  highestPrice: number;
+  dateAdded: number;
+  lastChecked: number;
+  inStock: boolean;
+  priceHistory: ProductPricePoint[];
+  notes?: string;
+}
+
+// Financial News
+export type FinancialArticleType = 'filing' | 'reporting' | 'commentary' | 'opinion';
+
+export interface FinancialNewsArticle {
+  id: string;
+  title: string;
+  summary: string;
+  sourceName: string;
+  sourceUrl: string;
+  originalUrl: string;
+  publishedAt: number;
+  relatedTickers: string[];
+  category: 'markets' | 'companies' | 'economy' | 'filings';
+  articleType: FinancialArticleType;
+}
+
+export interface MarketsAlertPayload {
+  type: 'stock' | 'shopping';
+  title: string;
+  message: string;
+  data: any;
+}
+
 export interface NexusAPI {
   getVpnStatus: () => Promise<VpnStatus>;
   getVpnFreeLocations: () => Promise<VpnFreeLocation[]>;
@@ -895,6 +1110,26 @@ export interface NexusAPI {
   updateNewsSettings: (settings: Partial<NewsSettings>) => Promise<NewsSettings>;
   getNewsFeed: (forceRefresh?: boolean) => Promise<{ articles: NewsArticle[]; clusters: NewsCluster[]; lastUpdated: number }>;
 
+  // NEXUS Markets Management
+  getMarketsSettings: () => Promise<MarketsSettings>;
+  updateMarketsSettings: (settings: Partial<MarketsSettings>) => Promise<MarketsSettings>;
+  searchStocks: (query: string) => Promise<StockQuote[]>;
+  getStockQuote: (ticker: string) => Promise<StockQuote | null>;
+  getStockCandles: (ticker: string, range?: string) => Promise<StockCandle[]>;
+  getStockWatchlist: () => Promise<StockWatchlistItem[]>;
+  addStockToWatchlist: (item: Omit<StockWatchlistItem, 'addedAt'>) => Promise<StockWatchlistItem>;
+  removeStockFromWatchlist: (ticker: string) => Promise<boolean>;
+  getIpos: (status?: IpoStatus) => Promise<IpoItem[]>;
+  getMutualFunds: (category?: string) => Promise<MutualFundItem[]>;
+  getMutualFundDetail: (id: string) => Promise<MutualFundItem | null>;
+  calculateSip: (params: SipCalculationParams) => Promise<SipCalculationResult>;
+  calculateLumpSum: (params: LumpSumCalculationParams) => Promise<LumpSumCalculationResult>;
+  getTrackedProducts: () => Promise<TrackedProduct[]>;
+  saveTrackedProduct: (product: Omit<TrackedProduct, 'id' | 'dateAdded' | 'lastChecked' | 'lowestPrice' | 'highestPrice' | 'priceHistory'> & { id?: string; initialPrice?: number }) => Promise<TrackedProduct>;
+  recordProductPricePoint: (productId: string, price: number, inStock?: boolean) => Promise<TrackedProduct>;
+  deleteTrackedProduct: (id: string) => Promise<boolean>;
+  getFinancialNews: (ticker?: string, category?: string) => Promise<FinancialNewsArticle[]>;
+
   // Event Listeners
   onTabsUpdated: (callback: (tabs: TabState[], activeTabId: string) => void) => () => void;
   onWindowMaximizedChange: (callback: (isMaximized: boolean) => void) => () => void;
@@ -914,6 +1149,7 @@ export interface NexusAPI {
   onNotesUpdated: (callback: () => void) => () => void;
   onExplainSelectionRequested: (callback: (data: ExplainSelectionPayload) => void) => () => void;
   onSendToNotesRequested: (callback: (data: SendToNotesPayload) => void) => () => void;
+  onMarketsAlertTriggered: (callback: (payload: MarketsAlertPayload) => void) => () => void;
 }
 
 export interface VpnStatus {

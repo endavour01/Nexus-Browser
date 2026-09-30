@@ -368,6 +368,38 @@ const api: NexusAPI = {
       ipcRenderer.removeListener('nexus:send-to-notes', handler);
     };
   },
+
+  // NEXUS Markets Management
+  getMarketsSettings: () => ipcRenderer.invoke('markets:getSettings'),
+  updateMarketsSettings: (settings: any) => ipcRenderer.invoke('markets:updateSettings', settings),
+  searchStocks: (query: string) => ipcRenderer.invoke('markets:searchStocks', query),
+  getStockQuote: (ticker: string) => ipcRenderer.invoke('markets:getStockQuote', ticker),
+  getStockCandles: (ticker: string, range?: string) => ipcRenderer.invoke('markets:getStockCandles', ticker, range),
+  getStockWatchlist: () => ipcRenderer.invoke('markets:getStockWatchlist'),
+  addStockToWatchlist: (item: any) => ipcRenderer.invoke('markets:addStockToWatchlist', item),
+  removeStockFromWatchlist: (ticker: string) => ipcRenderer.invoke('markets:removeStockFromWatchlist', ticker),
+  getIpos: (status?: any) => ipcRenderer.invoke('markets:getIpos', status),
+  getMutualFunds: (category?: string) => ipcRenderer.invoke('markets:getMutualFunds', category),
+  getMutualFundDetail: (id: string) => ipcRenderer.invoke('markets:getMutualFundDetail', id),
+  calculateSip: (params: any) => ipcRenderer.invoke('markets:calculateSip', params),
+  calculateLumpSum: (params: any) => ipcRenderer.invoke('markets:calculateLumpSum', params),
+  getTrackedProducts: () => ipcRenderer.invoke('markets:getTrackedProducts'),
+  saveTrackedProduct: (product: any) => ipcRenderer.invoke('markets:saveTrackedProduct', product),
+  recordProductPricePoint: (productId: string, price: number, inStock?: boolean) =>
+    ipcRenderer.invoke('markets:recordProductPricePoint', productId, price, inStock),
+  deleteTrackedProduct: (id: string) => ipcRenderer.invoke('markets:deleteTrackedProduct', id),
+  getFinancialNews: (ticker?: string, category?: string) =>
+    ipcRenderer.invoke('markets:getFinancialNews', ticker, category),
+
+  onMarketsAlertTriggered: (callback: (alert: any) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: any) => {
+      callback(data);
+    };
+    ipcRenderer.on('markets:alert-triggered', handler);
+    return () => {
+      ipcRenderer.removeListener('markets:alert-triggered', handler);
+    };
+  },
 };
 
 contextBridge.exposeInMainWorld('nexusAPI', api);
