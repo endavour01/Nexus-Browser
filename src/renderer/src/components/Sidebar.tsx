@@ -23,6 +23,7 @@ import {
   Lock,
   Sparkles,
   Newspaper,
+  TrendingUp,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -265,6 +266,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <div className="pinned-site-icon"><Newspaper size={13} className="text-accent" /></div>
             {!collapsed && <span className="pinned-site-name">Fact News</span>}
+          </button>
+          <button
+            className="pinned-site-item"
+            onClick={() => onNavigate('nexus://markets')}
+            title="NEXUS Markets"
+          >
+            <div className="pinned-site-icon"><TrendingUp size={13} className="text-accent" /></div>
+            {!collapsed && <span className="pinned-site-name">Markets</span>}
           </button>
         </div>
       </div>

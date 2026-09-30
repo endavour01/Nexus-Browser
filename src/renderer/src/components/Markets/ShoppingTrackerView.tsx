@@ -1,12 +1,24 @@
 import React, { useState } from 'react';
 import { TrackedProduct } from '@shared/types';
-import { ShoppingBag, Plus, ExternalLink, Trash2, Bell, AlertCircle, TrendingDown, ArrowDownRight, Check } from 'lucide-react';
+import {
+  ShoppingBag,
+  Plus,
+  Trash2,
+  ExternalLink,
+  Tag,
+  TrendingDown,
+  Bell,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  RefreshCw,
+} from 'lucide-react';
 
 interface ShoppingTrackerViewProps {
   products: TrackedProduct[];
-  onSaveProduct: (product: any) => Promise<any>;
-  onRecordPricePoint: (productId: string, price: number, inStock?: boolean) => Promise<any>;
-  onDeleteProduct: (productId: string) => Promise<any>;
+  onSaveProduct: (product: any) => Promise<TrackedProduct | undefined>;
+  onRecordPricePoint: (productId: string, price: number, inStock?: boolean) => Promise<TrackedProduct | undefined>;
+  onDeleteProduct: (id: string) => Promise<void>;
   onOpenLink?: (url: string) => void;
 }
 
@@ -17,448 +29,343 @@ export const ShoppingTrackerView: React.FC<ShoppingTrackerViewProps> = ({
   onDeleteProduct,
   onOpenLink,
 }) => {
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(products[0]?.id || null);
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [newTitle, setNewTitle] = useState<string>('');
+  const [newUrl, setNewUrl] = useState<string>('');
+  const [newRetailer, setNewRetailer] = useState<string>('');
+  const [newCategory, setNewCategory] = useState<string>('Electronics');
+  const [newPrice, setNewPrice] = useState<string>('');
+  const [newTargetAlert, setNewTargetAlert] = useState<string>('');
+  const [newNotes, setNewNotes] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
-  // New Product Form State
-  const [title, setTitle] = useState('');
-  const [url, setUrl] = useState('');
-  const [retailer, setRetailer] = useState('');
-  const [category, setCategory] = useState('Computing');
-  const [initialPrice, setInitialPrice] = useState<string>('');
-  const [targetAlert, setTargetAlert] = useState<string>('');
-  const [formError, setFormError] = useState('');
+  // Quick price update dialog state
+  const [updatingProductId, setUpdatingProductId] = useState<string | null>(null);
+  const [updatedPriceInput, setUpdatedPriceInput] = useState<string>('');
 
-  // Checkpoint modal state
-  const [newCheckpointPrice, setNewCheckpointPrice] = useState<string>('');
-  const [isCheckpointModalOpen, setIsCheckpointModalOpen] = useState(false);
-
-  const categories = ['all', 'Computing', 'Audio', 'Electronics', 'General'];
-
-  const filteredProducts = products.filter(
-    (p) => selectedCategory === 'all' || p.category.toLowerCase() === selectedCategory.toLowerCase()
-  );
-
-  const activeProduct = products.find((p) => p.id === selectedProductId) || products[0] || null;
-
-  const handleCreateProduct = async (e: React.FormEvent) => {
+  const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormError('');
+    if (!newTitle.trim() || !newPrice.trim()) return;
 
-    if (!title.trim()) {
-      setFormError('Product title is required');
-      return;
-    }
-    if (!url.trim()) {
-      setFormError('Product URL is required');
-      return;
-    }
-
-    const priceNum = parseFloat(initialPrice);
-    if (isNaN(priceNum) || priceNum <= 0) {
-      setFormError('A valid initial price is required');
-      return;
-    }
-
-    const alertNum = targetAlert ? parseFloat(targetAlert) : undefined;
-
+    setIsSubmitting(true);
     try {
-      const saved = await onSaveProduct({
-        title: title.trim(),
-        url: url.trim(),
-        retailer: retailer.trim() || 'Direct Store',
-        category,
-        currentPrice: priceNum,
-        initialPrice: priceNum,
-        targetPriceAlert: alertNum,
-        currency: 'USD',
+      await onSaveProduct({
+        title: newTitle.trim(),
+        url: newUrl.trim() || 'https://example.com',
+        retailer: newRetailer.trim() || 'Online Retailer',
+        category: newCategory.trim() || 'General',
+        initialPrice: parseFloat(newPrice),
+        targetPriceAlert: newTargetAlert.trim() ? parseFloat(newTargetAlert) : undefined,
+        notes: newNotes.trim() || undefined,
+        inStock: true,
       });
-      setIsAddModalOpen(false);
-      setTitle('');
-      setUrl('');
-      setRetailer('');
-      setInitialPrice('');
-      setTargetAlert('');
-      setSelectedProductId(saved.id);
-    } catch (err: any) {
-      setFormError(err.message || 'Failed to save product');
+
+      setShowAddModal(false);
+      setNewTitle('');
+      setNewUrl('');
+      setNewRetailer('');
+      setNewPrice('');
+      setNewTargetAlert('');
+      setNewNotes('');
+    } catch (err) {
+      console.error('Failed to add product:', err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleAddCheckpoint = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!activeProduct) return;
-    const priceNum = parseFloat(newCheckpointPrice);
-    if (isNaN(priceNum) || priceNum <= 0) return;
+  const handleQuickRecord = async (productId: string) => {
+    if (!updatedPriceInput.trim()) return;
+    const priceNum = parseFloat(updatedPriceInput);
+    if (isNaN(priceNum)) return;
 
-    await onRecordPricePoint(activeProduct.id, priceNum, true);
-    setIsCheckpointModalOpen(false);
-    setNewCheckpointPrice('');
-  };
-
-  const handleLinkClick = (urlStr: string) => {
-    if (onOpenLink) {
-      onOpenLink(urlStr);
-    } else {
-      window.open(urlStr, '_blank');
-    }
+    await onRecordPricePoint(productId, priceNum, true);
+    setUpdatingProductId(null);
+    setUpdatedPriceInput('');
   };
 
   return (
-    <div className="markets-section-container">
-      {/* Informational Disclaimer Box */}
-      <div className="markets-disclaimer-box mb-4">
-        <AlertCircle size={15} className="text-secondary flex-shrink-0" />
-        <span className="text-xs text-secondary leading-relaxed">
-          <strong>Genuine Price Observation:</strong> NEXUS Shopping Price Tracker records genuine price checkpoints starting from the exact date a product is added. We do not invent simulated price history or bypass retailer terms.
-        </span>
+    <div className="space-y-4">
+      {/* Disclaimer Banner */}
+      <div className="p-3 bg-surface border border-subtle rounded-lg flex items-start gap-2.5 text-xs text-secondary">
+        <Clock size={16} className="shrink-0 mt-0.5 text-primary" />
+        <div>
+          <strong>Verified Price History Principle:</strong> NEXUS Markets starts price tracking strictly from the date an item is added. We never fabricate, guess, or extrapolate past prices before your tracking began.
+        </div>
       </div>
 
-      {/* Control Row */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <div className="flex items-center gap-2">
-          {categories.map((c) => (
-            <button
-              key={c}
-              className={`filter-pill ${selectedCategory === c ? 'active' : ''}`}
-              onClick={() => setSelectedCategory(c)}
-            >
-              {c === 'all' ? 'All Tracked Items' : c}
-            </button>
-          ))}
+      {/* Header and Add Button */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm font-semibold text-primary flex items-center gap-2">
+          <ShoppingBag size={16} /> Tracked Products ({products.length})
         </div>
-
         <button
-          className="nexus-btn-primary px-3 py-1.5 text-xs flex items-center gap-1.5"
-          onClick={() => setIsAddModalOpen(true)}
+          className="nexus-btn-primary text-xs px-3 py-1.5 flex items-center gap-1.5"
+          onClick={() => setShowAddModal(true)}
         >
-          <Plus size={14} />
-          <span>Track New Product</span>
+          <Plus size={14} /> Add Product to Track
         </button>
       </div>
 
-      {/* Main Grid: Products List & Detail View */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left: Product List */}
-        <div className="space-y-3">
-          <div className="text-xs font-semibold text-secondary uppercase tracking-wider mb-1">
-            Watchlist ({filteredProducts.length})
-          </div>
+      {/* Products Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {products.map((prod) => {
+          const isAtLowest = prod.currentPrice <= prod.lowestPrice;
+          const hasTargetAlert = prod.targetPriceAlert !== undefined && prod.targetPriceAlert > 0;
+          const isTargetReached = hasTargetAlert && prod.currentPrice <= prod.targetPriceAlert!;
 
-          <div className="space-y-2 max-h-[580px] overflow-y-auto pr-1">
-            {filteredProducts.length === 0 ? (
-              <div className="p-6 text-center text-xs text-secondary border border-dashed border-subtle rounded-lg">
-                No tracked products in this category yet. Click <strong>Track New Product</strong> to start monitoring genuine prices.
-              </div>
-            ) : (
-              filteredProducts.map((p) => {
-                const isSelected = p.id === selectedProductId;
-                const hasDroppedBelowTarget =
-                  p.targetPriceAlert && p.currentPrice <= p.targetPriceAlert;
-
-                return (
-                  <div
-                    key={p.id}
-                    onClick={() => setSelectedProductId(p.id)}
-                    className={`markets-fund-card ${isSelected ? 'active' : ''}`}
-                  >
-                    <div className="flex items-start justify-between gap-2 mb-1">
-                      <div className="font-semibold text-xs text-primary leading-tight line-clamp-2">
-                        {p.title}
-                      </div>
-                      {hasDroppedBelowTarget && (
-                        <span className="markets-badge badge-open flex-shrink-0" title="Target Price Met!">
-                          <TrendingDown size={11} /> Alert Met
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="text-2xs text-secondary mb-2">
-                      {p.retailer} • {p.category}
-                    </div>
-
-                    <div className="flex items-baseline justify-between pt-1 border-t border-subtle">
-                      <div className="text-sm font-mono font-bold text-accent">
-                        ${p.currentPrice.toFixed(2)}
-                      </div>
-                      <div className="text-2xs text-secondary">
-                        Low: ${p.lowestPrice.toFixed(2)}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        {/* Right: Detailed Product Timeline */}
-        <div className="lg:col-span-2">
-          {activeProduct ? (
-            <div className="markets-card p-5 space-y-5">
-              <div className="flex items-start justify-between border-b border-subtle pb-3">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="markets-badge">{activeProduct.category}</span>
-                    <span className="text-2xs text-secondary">{activeProduct.retailer}</span>
-                  </div>
-                  <h2 className="text-base font-bold text-primary">{activeProduct.title}</h2>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    className="nexus-btn-ghost text-xs px-2.5 py-1.5 flex items-center gap-1"
-                    onClick={() => handleLinkClick(activeProduct.url)}
-                    title="Open Retailer Listing"
-                  >
-                    <span>Visit Store</span>
-                    <ExternalLink size={12} />
-                  </button>
-                  <button
-                    className="nexus-btn-ghost text-xs px-2 py-1.5 text-red-400 hover:bg-red-500/10"
-                    onClick={() => onDeleteProduct(activeProduct.id)}
-                    title="Remove from tracking"
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Price Stats Chips */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="p-3 bg-surface/60 rounded border border-subtle">
-                  <div className="text-2xs text-secondary">Current Price</div>
-                  <div className="text-base font-mono font-bold text-accent">
-                    ${activeProduct.currentPrice.toFixed(2)}
-                  </div>
-                </div>
-                <div className="p-3 bg-surface/60 rounded border border-subtle">
-                  <div className="text-2xs text-secondary">Lowest Recorded</div>
-                  <div className="text-base font-mono font-semibold text-emerald-400">
-                    ${activeProduct.lowestPrice.toFixed(2)}
-                  </div>
-                </div>
-                <div className="p-3 bg-surface/60 rounded border border-subtle">
-                  <div className="text-2xs text-secondary">Highest Recorded</div>
-                  <div className="text-base font-mono font-semibold text-primary">
-                    ${activeProduct.highestPrice.toFixed(2)}
-                  </div>
-                </div>
-                <div className="p-3 bg-surface/60 rounded border border-subtle">
-                  <div className="text-2xs text-secondary">Target Alert Threshold</div>
-                  <div className="text-base font-mono font-semibold text-amber-400">
-                    {activeProduct.targetPriceAlert ? `$${activeProduct.targetPriceAlert.toFixed(2)}` : 'None'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Verified Price History Log */}
+          return (
+            <div key={prod.id} className="markets-card p-4 space-y-3 relative flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-xs font-semibold text-secondary uppercase tracking-wider">
-                    Genuine Price History Checkpoints ({activeProduct.priceHistory.length})
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span className="text-3xs uppercase font-mono bg-surface px-1.5 py-0.5 rounded border border-subtle text-secondary">
+                      {prod.category} • {prod.retailer}
+                    </span>
+                    <h3 className="font-semibold text-sm text-primary mt-1 leading-snug">{prod.title}</h3>
                   </div>
                   <button
-                    className="nexus-btn-ghost text-xs px-2.5 py-1 flex items-center gap-1"
+                    className="nexus-icon-btn text-secondary hover:text-red-400 p-1"
+                    onClick={() => onDeleteProduct(prod.id)}
+                    title="Delete tracked product"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+
+                {/* Price Stats */}
+                <div className="flex items-baseline gap-3 my-2">
+                  <span className="text-2xl font-mono font-bold text-primary">
+                    ${prod.currentPrice.toFixed(2)}
+                  </span>
+                  {isAtLowest && (
+                    <span className="text-2xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded flex items-center gap-1">
+                      <TrendingDown size={11} /> Lowest Recorded
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-2xs font-mono bg-surface/50 p-2 rounded border border-subtle">
+                  <div>
+                    <span className="text-secondary font-sans">Lowest: </span>
+                    <span className="font-semibold text-primary">${prod.lowestPrice.toFixed(2)}</span>
+                  </div>
+                  <div>
+                    <span className="text-secondary font-sans">Highest: </span>
+                    <span className="font-semibold text-primary">${prod.highestPrice.toFixed(2)}</span>
+                  </div>
+                </div>
+
+                {/* Alert Badge */}
+                {hasTargetAlert && (
+                  <div
+                    className={`mt-2 text-2xs p-1.5 rounded flex items-center gap-1.5 ${
+                      isTargetReached
+                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                        : 'bg-surface text-secondary border border-subtle'
+                    }`}
+                  >
+                    <Bell size={12} className={isTargetReached ? 'text-emerald-400' : 'text-secondary'} />
+                    <span>
+                      Alert target: <strong>${prod.targetPriceAlert?.toFixed(2)}</strong>{' '}
+                      {isTargetReached ? '(Target Reached!)' : ''}
+                    </span>
+                  </div>
+                )}
+
+                {/* Price Checkpoints History */}
+                <div className="mt-3 text-3xs text-secondary space-y-1 border-t border-subtle pt-2">
+                  <div className="font-semibold uppercase tracking-wider text-2xs text-secondary mb-1">
+                    Recorded Checkpoints ({prod.priceHistory?.length || 0})
+                  </div>
+                  <div className="max-h-24 overflow-y-auto space-y-1 pr-1 font-mono">
+                    {prod.priceHistory?.map((h, i) => (
+                      <div key={i} className="flex justify-between items-center bg-surface/30 px-2 py-0.5 rounded">
+                        <span>{new Date(h.date).toLocaleDateString()}</span>
+                        <span className="font-semibold text-primary">${h.price.toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Actions */}
+              <div className="flex items-center justify-between border-t border-subtle pt-3 text-xs">
+                <button
+                  className="text-xs text-secondary hover:text-primary flex items-center gap-1"
+                  onClick={() => onOpenLink ? onOpenLink(prod.url) : window.open(prod.url, '_blank')}
+                >
+                  <span>Visit Store</span>
+                  <ExternalLink size={12} />
+                </button>
+
+                {updatingProductId === prod.id ? (
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="New Price"
+                      value={updatedPriceInput}
+                      onChange={(e) => setUpdatedPriceInput(e.target.value)}
+                      className="nexus-input text-2xs py-1 px-1.5 w-20 font-mono"
+                      autoFocus
+                    />
+                    <button
+                      className="nexus-btn-primary text-2xs px-2 py-1"
+                      onClick={() => handleQuickRecord(prod.id)}
+                    >
+                      Save
+                    </button>
+                    <button
+                      className="nexus-btn-ghost text-2xs px-1.5 py-1"
+                      onClick={() => setUpdatingProductId(null)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    className="nexus-btn-ghost text-2xs px-2 py-1 flex items-center gap-1"
                     onClick={() => {
-                      setNewCheckpointPrice(activeProduct.currentPrice.toString());
-                      setIsCheckpointModalOpen(true);
+                      setUpdatingProductId(prod.id);
+                      setUpdatedPriceInput(prod.currentPrice.toString());
                     }}
                   >
-                    <Plus size={12} />
-                    <span>Log New Price</span>
+                    <RefreshCw size={11} /> Record New Price
                   </button>
-                </div>
-
-                <div className="markets-table-wrapper max-h-[220px] overflow-y-auto">
-                  <table className="markets-table">
-                    <thead>
-                      <tr>
-                        <th>Date & Time</th>
-                        <th>Observed Price</th>
-                        <th>Retailer</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {activeProduct.priceHistory.map((point, idx) => (
-                        <tr key={idx} className="markets-table-row">
-                          <td className="text-xs font-mono">
-                            {new Date(point.date).toLocaleDateString()} {new Date(point.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </td>
-                          <td className="text-xs font-mono font-bold text-primary">
-                            ${point.price.toFixed(2)}
-                          </td>
-                          <td className="text-2xs text-secondary">{point.retailer}</td>
-                          <td>
-                            <span className="markets-badge badge-listed text-2xs">
-                              <Check size={10} /> Verified
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Explanation Note */}
-              <div className="text-2xs text-secondary leading-relaxed bg-surface/40 p-3 rounded border border-subtle">
-                <strong>Tracking Protocol:</strong> {activeProduct.notes}
+                )}
               </div>
             </div>
-          ) : (
-            <div className="p-12 text-center text-secondary border border-subtle rounded-lg">
-              Select or add a product to inspect historical pricing checkpoints.
-            </div>
-          )}
-        </div>
+          );
+        })}
+
+        {products.length === 0 && (
+          <div className="col-span-full p-12 text-center text-secondary border border-subtle rounded-lg space-y-2">
+            <ShoppingBag size={32} className="mx-auto text-secondary/50 mb-2" />
+            <p className="text-sm font-semibold text-primary">No products currently tracked</p>
+            <p className="text-xs text-secondary max-w-sm mx-auto">
+              Add any item you are researching with its current price and desired alert threshold. NEXUS will record new price points and alert you when price drops.
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Add Product Modal */}
-      {isAddModalOpen && (
-        <div className="nexus-modal-overlay" onClick={() => setIsAddModalOpen(false)}>
-          <div
-            className="nexus-modal-content max-w-lg p-6 animate-scale-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-base font-bold text-primary mb-4 flex items-center gap-2">
-              <ShoppingBag size={18} className="text-accent" />
-              <span>Track New Product</span>
-            </h2>
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="markets-card w-full max-w-md p-6 space-y-4">
+            <div className="flex items-center justify-between border-b border-subtle pb-3">
+              <h3 className="font-bold text-sm text-primary">Add Tracked Product</h3>
+              <button
+                className="text-secondary hover:text-primary text-xs"
+                onClick={() => setShowAddModal(false)}
+              >
+                ✕
+              </button>
+            </div>
 
-            {formError && (
-              <div className="p-2.5 mb-3 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded">
-                {formError}
-              </div>
-            )}
-
-            <form onSubmit={handleCreateProduct} className="space-y-4">
+            <form onSubmit={handleAddProduct} className="space-y-3 text-xs">
               <div>
-                <label className="text-xs text-secondary block mb-1">Product Title</label>
+                <label className="block text-secondary text-2xs mb-1 font-medium">Product Title *</label>
                 <input
                   type="text"
-                  placeholder="e.g. Sony WH-1000XM5 Headphones"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="markets-input w-full"
                   required
+                  placeholder="e.g. Sony WH-1000XM5 Wireless Headphones"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  className="nexus-input w-full text-xs"
                 />
               </div>
 
               <div>
-                <label className="text-xs text-secondary block mb-1">Store / Product URL</label>
+                <label className="block text-secondary text-2xs mb-1 font-medium">Store URL</label>
                 <input
                   type="url"
                   placeholder="https://..."
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  className="markets-input w-full"
-                  required
+                  value={newUrl}
+                  onChange={(e) => setNewUrl(e.target.value)}
+                  className="nexus-input w-full text-xs"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-secondary block mb-1">Retailer Name</label>
+                  <label className="block text-secondary text-2xs mb-1 font-medium">Retailer Name</label>
                   <input
                     type="text"
-                    placeholder="e.g. Best Buy, Amazon, Apple"
-                    value={retailer}
-                    onChange={(e) => setRetailer(e.target.value)}
-                    className="markets-input w-full"
+                    placeholder="e.g. Best Buy, Amazon"
+                    value={newRetailer}
+                    onChange={(e) => setNewRetailer(e.target.value)}
+                    className="nexus-input w-full text-xs"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-secondary block mb-1">Category</label>
-                  <select
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="markets-input w-full"
-                  >
-                    <option value="Computing">Computing</option>
-                    <option value="Audio">Audio</option>
-                    <option value="Electronics">Electronics</option>
-                    <option value="General">General</option>
-                  </select>
+                  <label className="block text-secondary text-2xs mb-1 font-medium">Category</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Audio, Hardware"
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                    className="nexus-input w-full text-xs"
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-secondary block mb-1">Initial Price ($)</label>
+                  <label className="block text-secondary text-2xs mb-1 font-medium">Current Price ($) *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    placeholder="399.99"
+                    value={newPrice}
+                    onChange={(e) => setNewPrice(e.target.value)}
+                    className="nexus-input w-full text-xs font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block text-secondary text-2xs mb-1 font-medium">Target Alert Price ($)</label>
                   <input
                     type="number"
                     step="0.01"
                     placeholder="349.99"
-                    value={initialPrice}
-                    onChange={(e) => setInitialPrice(e.target.value)}
-                    className="markets-input w-full"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="text-xs text-secondary block mb-1">Price Alert Target ($)</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="Optional target alert"
-                    value={targetAlert}
-                    onChange={(e) => setTargetAlert(e.target.value)}
-                    className="markets-input w-full"
+                    value={newTargetAlert}
+                    onChange={(e) => setNewTargetAlert(e.target.value)}
+                    className="nexus-input w-full text-xs font-mono"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  className="nexus-btn-ghost px-4 py-1.5 text-xs"
-                  onClick={() => setIsAddModalOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="nexus-btn-primary px-4 py-1.5 text-xs">
-                  Start Tracking
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Record Checkpoint Modal */}
-      {isCheckpointModalOpen && (
-        <div className="nexus-modal-overlay" onClick={() => setIsCheckpointModalOpen(false)}>
-          <div
-            className="nexus-modal-content max-w-sm p-5 animate-scale-in"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-sm font-bold text-primary mb-3">Record Price Checkpoint</h3>
-            <form onSubmit={handleAddCheckpoint} className="space-y-3">
               <div>
-                <label className="text-xs text-secondary block mb-1">Observed Price ($)</label>
+                <label className="block text-secondary text-2xs mb-1 font-medium">Notes (Optional)</label>
                 <input
-                  type="number"
-                  step="0.01"
-                  value={newCheckpointPrice}
-                  onChange={(e) => setNewCheckpointPrice(e.target.value)}
-                  className="markets-input w-full"
-                  autoFocus
-                  required
+                  type="text"
+                  placeholder="e.g. Wait for holiday discount"
+                  value={newNotes}
+                  onChange={(e) => setNewNotes(e.target.value)}
+                  className="nexus-input w-full text-xs"
                 />
               </div>
-              <div className="flex justify-end gap-2 pt-2">
+
+              <div className="text-3xs text-secondary/70 italic pt-1">
+                Tracking history starts today. Past prices will not be simulated.
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-subtle">
                 <button
                   type="button"
-                  className="nexus-btn-ghost px-3 py-1.5 text-xs"
-                  onClick={() => setIsCheckpointModalOpen(false)}
+                  className="nexus-btn-ghost text-xs px-3 py-1.5"
+                  onClick={() => setShowAddModal(false)}
                 >
                   Cancel
                 </button>
-                <button type="submit" className="nexus-btn-primary px-3 py-1.5 text-xs">
-                  Log Checkpoint
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="nexus-btn-primary text-xs px-4 py-1.5"
+                >
+                  {isSubmitting ? 'Adding...' : 'Add Product'}
                 </button>
               </div>
             </form>

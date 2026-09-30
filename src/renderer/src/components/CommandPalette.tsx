@@ -30,6 +30,7 @@ import {
   BookOpen,
   Coins,
   Newspaper,
+  TrendingUp,
 } from 'lucide-react';
 
 export interface CommandPaletteItem {
@@ -424,6 +425,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         category: 'Developer & Tools',
         icon: 'Newspaper',
         action: () => onNavigate('nexus://news'),
+      },
+      {
+        id: 'markets-hub',
+        title: 'NEXUS Markets Hub (nexus://markets)',
+        subtitle: 'Informational stocks, IPOs, mutual funds, and shopping price tracker',
+        category: 'Developer & Tools',
+        icon: 'TrendingUp',
+        action: () => onNavigate('nexus://markets'),
       },
       {
         id: 'open-settings',

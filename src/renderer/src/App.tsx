@@ -51,6 +51,7 @@ import { MaliciousWarningPage } from './components/MaliciousWarningPage';
 import { ModeSelectorModal } from './components/ModeSelectorModal';
 import { NotesPage } from './components/Notes/NotesPage';
 import { IntelligenceModal, IntelligencePage, IntelligenceTab } from './components/Intelligence';
+import { MarketsDashboard } from './components/Markets';
 import { useTheme } from './hooks/useTheme';
 import { useBrowserMode, applyDistractionReduction } from './hooks/useBrowserMode';
 
@@ -1176,6 +1177,8 @@ export const App: React.FC = () => {
     activeTab?.url?.startsWith('nexus://intelligence');
   const isNewsPage =
     activeTab?.url === 'nexus://news' || activeTab?.url?.startsWith('nexus://news');
+  const isMarketsPage =
+    activeTab?.url === 'nexus://markets' || activeTab?.url?.startsWith('nexus://markets');
   const isWarningPage =
     activeTab?.url === 'nexus://warning' || activeTab?.url?.startsWith('nexus://warning');
 
@@ -1409,6 +1412,20 @@ export const App: React.FC = () => {
                 if (api) {
                   api.saveNote({
                     title: title || 'Note from News',
+                    content: `<p>${text}</p>`,
+                  });
+                }
+              }}
+            />
+          )}
+
+          {isMarketsPage && (
+            <MarketsDashboard
+              onNavigate={handleNavigate}
+              onSendToNotes={(text, title) => {
+                if (api) {
+                  api.saveNote({
+                    title: title || 'Note from Markets',
                     content: `<p>${text}</p>`,
                   });
                 }

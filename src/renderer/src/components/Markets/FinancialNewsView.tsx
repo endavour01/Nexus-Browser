@@ -1,6 +1,15 @@
-import React, { useState } from 'react';
-import { FinancialArticleType, FinancialNewsArticle } from '@shared/types';
-import { ExternalLink, FileText, Newspaper, MessageSquare, PenTool, Search, BookmarkPlus } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { FinancialNewsArticle, FinancialArticleType } from '@shared/types';
+import {
+  Newspaper,
+  ExternalLink,
+  BookmarkPlus,
+  Filter,
+  FileCheck,
+  CheckCircle,
+  MessageSquare,
+  Sparkles,
+} from 'lucide-react';
 
 interface FinancialNewsViewProps {
   articles: FinancialNewsArticle[];
@@ -14,186 +23,176 @@ export const FinancialNewsView: React.FC<FinancialNewsViewProps> = ({
   onSendToNotes,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedTicker, setSelectedTicker] = useState<string>('');
+  const [selectedType, setSelectedType] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const categories = [
-    { label: 'All News & Filings', value: 'all' },
-    { label: 'Official Filings', value: 'filings' },
-    { label: 'Company Updates', value: 'companies' },
-    { label: 'Markets & Trading', value: 'markets' },
-    { label: 'Macro Economy', value: 'economy' },
-  ];
+  const filteredArticles = useMemo(() => {
+    return articles.filter((a) => {
+      const matchCat = selectedCategory === 'all' || a.category === selectedCategory;
+      const matchType = selectedType === 'all' || a.articleType === selectedType;
+      const matchSearch =
+        !searchQuery ||
+        a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        a.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        a.relatedTickers.some((t) => t.toLowerCase().includes(searchQuery.toLowerCase()));
+      return matchCat && matchType && matchSearch;
+    });
+  }, [articles, selectedCategory, selectedType, searchQuery]);
 
-  const popularTickers = ['AAPL', 'MSFT', 'NVDA', 'AMZN', 'GOOGL', 'TSLA'];
-
-  const filteredArticles = articles.filter((a) => {
-    const matchesCat = selectedCategory === 'all' || a.category === selectedCategory;
-    const matchesTicker =
-      !selectedTicker || a.relatedTickers.includes(selectedTicker.toUpperCase());
-    const matchesSearch =
-      !searchQuery ||
-      a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.summary.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.sourceName.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCat && matchesTicker && matchesSearch;
-  });
-
-  const getArticleBadge = (type: FinancialArticleType) => {
+  const getArticleTypeBadge = (type: FinancialArticleType) => {
     switch (type) {
       case 'filing':
         return (
-          <span className="markets-badge badge-filing">
-            <FileText size={11} /> Official Filing
+          <span className="markets-badge bg-blue-500/10 text-blue-400 border border-blue-500/20 font-semibold uppercase flex items-center gap-1">
+            <FileCheck size={11} /> Regulatory Filing
           </span>
         );
       case 'reporting':
         return (
-          <span className="markets-badge badge-reporting">
-            <Newspaper size={11} /> Reporting
+          <span className="markets-badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold uppercase flex items-center gap-1">
+            <CheckCircle size={11} /> Reporting
           </span>
         );
       case 'commentary':
         return (
-          <span className="markets-badge badge-commentary">
+          <span className="markets-badge bg-purple-500/10 text-purple-400 border border-purple-500/20 font-semibold uppercase flex items-center gap-1">
             <MessageSquare size={11} /> Commentary
           </span>
         );
       case 'opinion':
         return (
-          <span className="markets-badge badge-opinion">
-            <PenTool size={11} /> Opinion
+          <span className="markets-badge bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold uppercase flex items-center gap-1">
+            <Sparkles size={11} /> Opinion
           </span>
         );
       default:
-        return <span className="markets-badge">{type}</span>;
-    }
-  };
-
-  const handleLinkClick = (url: string) => {
-    if (onOpenLink) {
-      onOpenLink(url);
-    } else {
-      window.open(url, '_blank');
+        return null;
     }
   };
 
   return (
-    <div className="markets-section-container">
-      {/* Filters Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-        <div className="flex flex-wrap items-center gap-2">
-          {categories.map((c) => (
-            <button
-              key={c.value}
-              className={`filter-pill ${selectedCategory === c.value ? 'active' : ''}`}
-              onClick={() => setSelectedCategory(c.value)}
-            >
-              {c.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="markets-search-box">
-          <Search size={14} className="text-secondary" />
-          <input
-            type="text"
-            placeholder="Search news & filings..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="markets-input"
-          />
+    <div className="space-y-4">
+      {/* Editorial Transparency Notice */}
+      <div className="p-3 bg-surface border border-subtle rounded-lg text-xs text-secondary flex items-start gap-2.5">
+        <Newspaper size={16} className="shrink-0 mt-0.5 text-primary" />
+        <div>
+          <strong>Journalistic Integrity Standards:</strong> NEXUS Markets explicitly tags the editorial nature of every financial wire entry — distinguishing official regulatory filings (SEC/EDGAR) from factual investigative reporting, market commentary, and subjective opinion columns.
         </div>
       </div>
 
-      {/* Quick Ticker Filter Pills */}
-      <div className="flex items-center gap-1.5 mb-4 overflow-x-auto pb-1 text-xs">
-        <span className="text-secondary text-2xs uppercase tracking-wider mr-1">Filter by Ticker:</span>
-        <button
-          className={`ticker-filter-pill ${!selectedTicker ? 'active' : ''}`}
-          onClick={() => setSelectedTicker('')}
-        >
-          All Tickers
-        </button>
-        {popularTickers.map((t) => (
-          <button
-            key={t}
-            className={`ticker-filter-pill ${selectedTicker === t ? 'active' : ''}`}
-            onClick={() => setSelectedTicker(selectedTicker === t ? '' : t)}
-          >
-            {t}
-          </button>
-        ))}
+      {/* Filter and Search Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-surface p-3 rounded-lg border border-subtle">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Categories */}
+          <div className="flex items-center gap-1 overflow-x-auto">
+            {['all', 'markets', 'companies', 'economy', 'filings'].map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-2.5 py-1 text-2xs font-semibold rounded capitalize transition-colors ${
+                  selectedCategory === cat
+                    ? 'bg-primary text-background'
+                    : 'text-secondary hover:text-primary hover:bg-surface/80'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          <div className="h-4 w-px bg-subtle mx-1" />
+
+          {/* Article Types */}
+          <div className="flex items-center gap-1 overflow-x-auto">
+            {['all', 'filing', 'reporting', 'commentary', 'opinion'].map((t) => (
+              <button
+                key={t}
+                onClick={() => setSelectedType(t)}
+                className={`px-2.5 py-1 text-2xs font-semibold rounded capitalize transition-colors ${
+                  selectedType === t
+                    ? 'bg-surface text-primary border border-primary/50'
+                    : 'text-secondary hover:text-primary bg-surface/50 border border-subtle'
+                }`}
+              >
+                {t === 'all' ? 'All Types' : t}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <input
+          type="text"
+          placeholder="Search news or ticker (e.g. AAPL)..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="nexus-input text-xs w-60 max-w-full"
+        />
       </div>
 
       {/* Articles Feed */}
       <div className="space-y-3">
-        {filteredArticles.length === 0 ? (
-          <div className="p-12 text-center text-xs text-secondary border border-dashed border-subtle rounded-lg">
-            No financial news or regulatory filings found matching your active filters.
-          </div>
-        ) : (
-          filteredArticles.map((article) => (
-            <div key={article.id} className="markets-news-card">
-              <div className="flex items-start justify-between gap-3 mb-2">
-                <div className="flex items-center gap-2 flex-wrap">
-                  {getArticleBadge(article.articleType)}
-                  <span className="text-2xs text-secondary">{article.sourceName}</span>
-                  <span className="text-2xs text-secondary">•</span>
-                  <span className="text-2xs text-secondary">
-                    {new Date(article.publishedAt).toLocaleDateString()} {new Date(article.publishedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  {onSendToNotes && (
-                    <button
-                      className="nexus-btn-ghost text-xs px-2 py-1 flex items-center gap-1"
-                      onClick={() => onSendToNotes(article.summary, article.title)}
-                      title="Add to NEXUS Notes"
-                    >
-                      <BookmarkPlus size={12} />
-                      <span>Note</span>
-                    </button>
-                  )}
-                  <button
-                    className="nexus-btn-ghost text-xs px-2 py-1 flex items-center gap-1"
-                    onClick={() => handleLinkClick(article.originalUrl)}
-                    title="Read Original Article or Filing"
-                  >
-                    <span>Read</span>
-                    <ExternalLink size={12} />
-                  </button>
-                </div>
+        {filteredArticles.map((art) => (
+          <div
+            key={art.id}
+            className="markets-card p-4 space-y-2 hover:border-primary/40 transition-colors"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                {getArticleTypeBadge(art.articleType)}
+                <span className="text-2xs text-secondary font-mono">
+                  {art.sourceName} • {new Date(art.publishedAt).toLocaleDateString()}
+                </span>
               </div>
 
-              <h3
-                className="font-bold text-sm text-primary hover:text-accent cursor-pointer transition-colors leading-snug mb-1.5"
-                onClick={() => handleLinkClick(article.originalUrl)}
-              >
-                {article.title}
-              </h3>
+              <div className="flex items-center gap-2">
+                {onSendToNotes && (
+                  <button
+                    className="nexus-icon-btn p-1 text-secondary hover:text-primary"
+                    onClick={() =>
+                      onSendToNotes(
+                        `**${art.title}**\n*Source: ${art.sourceName} (${new Date(art.publishedAt).toLocaleDateString()})*\n\n${art.summary}\n\nRelated Tickers: ${art.relatedTickers.join(', ')}\nLink: ${art.originalUrl}`,
+                        `Financial News: ${art.title.slice(0, 30)}...`
+                      )
+                    }
+                    title="Save story to NEXUS Notes"
+                  >
+                    <BookmarkPlus size={14} />
+                  </button>
+                )}
 
-              <p className="text-xs text-secondary leading-relaxed line-clamp-3 mb-3">
-                {article.summary}
-              </p>
-
-              {article.relatedTickers.length > 0 && (
-                <div className="flex items-center gap-1.5 pt-2 border-t border-subtle">
-                  <span className="text-2xs text-secondary">Related:</span>
-                  {article.relatedTickers.map((tick) => (
-                    <span
-                      key={tick}
-                      className="ticker-pill cursor-pointer"
-                      onClick={() => setSelectedTicker(tick)}
-                    >
-                      {tick}
-                    </span>
-                  ))}
-                </div>
-              )}
+                <button
+                  className="nexus-icon-btn p-1 text-secondary hover:text-primary"
+                  onClick={() => onOpenLink ? onOpenLink(art.originalUrl) : window.open(art.originalUrl, '_blank')}
+                  title="Open source article"
+                >
+                  <ExternalLink size={14} />
+                </button>
+              </div>
             </div>
-          ))
+
+            <h3 className="font-semibold text-sm text-primary leading-snug">{art.title}</h3>
+            <p className="text-xs text-secondary leading-relaxed">{art.summary}</p>
+
+            {art.relatedTickers && art.relatedTickers.length > 0 && (
+              <div className="flex items-center gap-1.5 pt-1">
+                <span className="text-3xs text-secondary uppercase font-semibold">Tickers:</span>
+                {art.relatedTickers.map((t) => (
+                  <span
+                    key={t}
+                    className="text-3xs font-mono font-bold bg-surface px-1.5 py-0.5 rounded border border-subtle text-primary"
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+
+        {filteredArticles.length === 0 && (
+          <div className="p-12 text-center text-secondary border border-subtle rounded-lg">
+            No financial news matching the criteria.
+          </div>
         )}
       </div>
     </div>

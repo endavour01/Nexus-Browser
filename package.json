@@ -28,7 +28,8 @@
     "test:shield": "esbuild test/verify-shield-protection.ts --platform=node --target=node20 --bundle --outfile=dist/test-shield.js --external:electron && electron --no-sandbox --disable-gpu dist/test-shield.js 2>/dev/null && rm -f dist/test-shield.js",
     "test:notes": "esbuild test/verify-notes-app.ts --platform=node --target=node20 --bundle --outfile=dist/test-notes.js --external:electron && electron --no-sandbox --disable-gpu dist/test-notes.js 2>/dev/null && rm -f dist/test-notes.js",
     "test:intelligence": "esbuild test/verify-intelligence.ts --platform=node --target=node20 --bundle --outfile=dist/test-intelligence.js --external:electron && node dist/test-intelligence.js && rm -f dist/test-intelligence.js",
-    "test": "npm run test:engine && npm run test:commands && npm run test:workspaces && npm run test:extensions && npm run test:library && npm run test:privacy-security && npm run test:shield && npm run test:devtools && npm run test:qa && npm run test:modes && npm run test:modes-qa && npm run test:control-panel && npm run test:visual && npm run test:notes && npm run test:intelligence",
+    "test:markets": "esbuild test/verify-markets.ts --platform=node --target=node20 --bundle --outfile=dist/test-markets.js --external:electron && node dist/test-markets.js && rm -f dist/test-markets.js",
+    "test": "npm run test:engine && npm run test:commands && npm run test:workspaces && npm run test:extensions && npm run test:library && npm run test:privacy-security && npm run test:shield && npm run test:devtools && npm run test:qa && npm run test:modes && npm run test:modes-qa && npm run test:control-panel && npm run test:visual && npm run test:notes && npm run test:intelligence && npm run test:markets",
     "package": "npm run build && electron-builder --linux AppImage",
     "package:dir": "npm run build && electron-builder --linux --dir",
     "package:all": "npm run build && electron-builder"
