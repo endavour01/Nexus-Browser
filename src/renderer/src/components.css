@@ -19,6 +19,43 @@
   margin-right: 10px;
 }
 
+.titlebar-brand.titlebar-home-btn {
+  background: transparent;
+  border: none;
+  padding: 3px 6px;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.18s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.15s ease, filter 0.18s ease;
+  position: relative;
+  outline: none;
+  -webkit-app-region: no-drag;
+}
+
+.titlebar-brand.titlebar-home-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  transform: scale(1.08);
+}
+
+.titlebar-brand.titlebar-home-btn:hover .nexus-brand-emblem-img {
+  filter: drop-shadow(0 0 8px var(--accent-primary));
+}
+
+.titlebar-brand.titlebar-home-btn:active {
+  transform: scale(0.94);
+}
+
+.titlebar-brand.titlebar-home-btn:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 1px;
+}
+
+.nexus-brand-emblem-img {
+  transition: filter 0.2s ease, transform 0.2s ease;
+}
+
 .brand-badge {
   display: flex;
   align-items: center;

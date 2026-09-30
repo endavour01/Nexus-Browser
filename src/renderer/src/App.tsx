@@ -1169,6 +1169,7 @@ export const App: React.FC = () => {
         onMinimize={handleMinimize}
         onMaximize={handleMaximize}
         onCloseWindow={handleCloseWindow}
+        onGoHome={handleGoHome}
       />
 
       {/* 2. Navigation Toolbar & Omnibox */}

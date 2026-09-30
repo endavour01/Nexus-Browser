@@ -49,6 +49,7 @@ interface TitleBarProps {
   onMinimize: () => void;
   onMaximize: () => void;
   onCloseWindow: () => void;
+  onGoHome?: () => void;
   currentMode?: NexusBrowserMode;
 }
 
@@ -86,6 +87,7 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
   onMinimize,
   onMaximize,
   onCloseWindow,
+  onGoHome,
 }) => {
   const [draggedTabId, setDraggedTabId] = useState<string | null>(null);
   const [dragOverTabId, setDragOverTabId] = useState<string | null>(null);
@@ -167,10 +169,16 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
 
   return (
     <div className="titlebar-container drag-region">
-      {/* Brand Icon / Logo (Mode-Adaptive N Emblem with Ring) */}
-      <div className="titlebar-brand no-drag" title={`NEXUS Browser (${currentMode.toUpperCase()} Mode)`}>
-        <NexusLogo mode={currentMode} size={22} className="brand-emblem" />
-      </div>
+      {/* Brand Icon / Logo (Mode-Adaptive N Emblem with Ring) - Acts as Home Button */}
+      <button
+        type="button"
+        className="titlebar-brand titlebar-home-btn no-drag"
+        onClick={onGoHome}
+        title="Go to Home / New Tab (nexus://newtab)"
+        aria-label="NEXUS Home"
+      >
+        <NexusLogo mode={currentMode} size={24} className="brand-emblem" />
+      </button>
 
       {/* Tabs Container (Horizontal Mode) */}
       {tabLayout === 'horizontal' ? (
