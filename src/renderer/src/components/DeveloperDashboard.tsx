@@ -86,7 +86,7 @@ const DEV_LINKS: DevLink[] = [
   },
 ];
 
-export const DeveloperDashboard: React.FC<DeveloperDashboardProps> = ({
+const DeveloperDashboardComponent: React.FC<DeveloperDashboardProps> = ({
   systemInfo,
   tabs,
   onSelectTab,
@@ -131,7 +131,7 @@ export const DeveloperDashboard: React.FC<DeveloperDashboardProps> = ({
           <Terminal size={24} className="text-purple" />
           <div>
             <h1>NEXUS Developer Dashboard</h1>
-            <p>High-performance developer workbench, telemetry & shortcuts</p>
+            <p>Developer workbench & telemetry</p>
           </div>
         </div>
 
@@ -288,3 +288,5 @@ export const DeveloperDashboard: React.FC<DeveloperDashboardProps> = ({
     </div>
   );
 };
+
+export const DeveloperDashboard = React.memo<DeveloperDashboardProps>(DeveloperDashboardComponent);

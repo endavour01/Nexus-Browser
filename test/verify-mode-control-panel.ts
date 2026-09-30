@@ -36,9 +36,9 @@ async function runModeControlPanelTests() {
   assert(popoverCode.includes("'Default Mode'"), 'Popover includes Default Mode card');
   assert(popoverCode.includes("'Balanced Mode'"), 'Popover includes Balanced Mode card');
   assert(popoverCode.includes("'Performance Mode'"), 'Popover includes Performance Mode card');
-  assert(popoverCode.includes('Obsidian & Violet'), 'Default card shows Obsidian & Violet subtitle');
-  assert(popoverCode.includes('Metallic Gold & Deep Black'), 'Balanced card shows Metallic Gold & Deep Black subtitle');
-  assert(popoverCode.includes('Crimson & Carbon'), 'Performance card shows Crimson & Carbon subtitle');
+  assert(popoverCode.includes('Balanced contrast, fluid animations, and standard multitasking'), 'Default card shows concise feature description');
+  assert(popoverCode.includes('Warm ambient contrast, reduced eye strain, and focus enhancements'), 'Balanced card shows concise feature description');
+  assert(popoverCode.includes('Low-latency UI, background tab throttling, and memory optimization'), 'Performance card shows concise feature description');
   passed++;
 
   // Verify Miniature Palette Swatches
@@ -127,7 +127,7 @@ async function runModeControlPanelTests() {
   assert(sidePanelCode.includes('mode-details-block'), 'SidePanel provides structured mode details block');
   assert(sidePanelCode.includes('Visual:'), 'Explains visual changes for each mode');
   assert(sidePanelCode.includes('Functional:'), 'Explains functional differences for each mode');
-  assert(sidePanelCode.includes('Super Saiyan'), 'Balanced mode description highlights Super Saiyan aesthetic');
+  assert(sidePanelCode.includes('gold accents') && sidePanelCode.includes('focus rings'), 'Balanced mode description highlights gold accents and focus rings');
   assert(sidePanelCode.includes('0.01ms'), 'Performance mode description highlights zero-latency bypass');
   passed++;
 

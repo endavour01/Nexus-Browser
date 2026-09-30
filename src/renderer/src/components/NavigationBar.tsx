@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, memo } from 'react';
 import { TabState, NexusBrowserMode } from '@shared/types';
 import {
   ArrowLeft,
@@ -40,7 +40,7 @@ interface NavigationBarProps {
   onOpenSettings?: () => void;
 }
 
-export const NavigationBar: React.FC<NavigationBarProps> = ({
+export const NavigationBar: React.FC<NavigationBarProps> = memo(({
   activeTab,
   onNavigate,
   onGoBack,
@@ -135,7 +135,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
       {/* History & Home Controls */}
       <div className="nav-history-group">
         <button
-          className="nexus-icon-btn"
+          className="nexus-icon-btn nav-glass-btn"
           disabled={!activeTab?.canGoBack}
           onClick={onGoBack}
           title="Back (Alt+Left)"
@@ -143,7 +143,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
           <ArrowLeft size={15} />
         </button>
         <button
-          className="nexus-icon-btn"
+          className="nexus-icon-btn nav-glass-btn"
           disabled={!activeTab?.canGoForward}
           onClick={onGoForward}
           title="Forward (Alt+Right)"
@@ -152,7 +152,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
         </button>
         {activeTab?.isLoading ? (
           <button
-            className="nexus-icon-btn"
+            className="nexus-icon-btn nav-glass-btn"
             onClick={onStop}
             title="Stop loading"
           >
@@ -160,7 +160,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
           </button>
         ) : (
           <button
-            className="nexus-icon-btn"
+            className="nexus-icon-btn nav-glass-btn"
             onClick={onReload}
             title="Reload (Ctrl+R / F5)"
           >
@@ -168,7 +168,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
           </button>
         )}
         <button
-          className="nexus-icon-btn"
+          className="nexus-icon-btn nav-glass-btn"
           onClick={onGoHome}
           title="Home / New Tab"
         >
@@ -314,7 +314,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
         <div className="mode-switcher-wrapper">
           <button
             type="button"
-            className={`nexus-icon-btn mode-switcher-btn mode-switcher-${currentMode || 'default'} ${
+            className={`nexus-icon-btn nav-glass-btn mode-switcher-btn mode-switcher-${currentMode || 'default'} ${
               isModePopoverOpen ? 'active' : ''
             }`}
             onClick={() => setIsModePopoverOpen((prev) => !prev)}
@@ -369,7 +369,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
         </div>
 
         <button
-          className="nexus-icon-btn devtools-btn"
+          className="nexus-icon-btn nav-glass-btn devtools-btn"
           onClick={onToggleDevTools}
           title="Toggle Web Inspector / DevTools (Ctrl+Shift+I)"
         >
@@ -381,4 +381,4 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
       {activeTab?.isLoading && <div className="navbar-loading-bar" />}
     </div>
   );
-};
+});

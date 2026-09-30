@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, memo } from 'react';
 import { DownloadRecord } from '@shared/types';
 import {
   Download as DownloadIcon,
@@ -30,7 +30,7 @@ interface DownloadsPageProps {
 
 type FilterTab = 'all' | 'progressing' | 'completed' | 'interrupted';
 
-export const DownloadsPage: React.FC<DownloadsPageProps> = ({
+export const DownloadsPage: React.FC<DownloadsPageProps> = memo(({
   downloads,
   downloadDirectory,
   onChangeDownloadDirectory,
@@ -88,15 +88,13 @@ export const DownloadsPage: React.FC<DownloadsPageProps> = ({
           </div>
           <div>
             <h1 className="nexus-page-title">Downloads</h1>
-            <p className="nexus-page-subtitle">
-              Monitor active downloads, access downloaded files, and configure download directory
-            </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           {downloads.length > 0 && (
             <button
+              type="button"
               className="nexus-btn-sm nexus-btn-secondary flex items-center gap-1.5"
               onClick={onClearDownloads}
             >
@@ -119,6 +117,7 @@ export const DownloadsPage: React.FC<DownloadsPageProps> = ({
           </div>
         </div>
         <button
+          type="button"
           className="nexus-btn-sm nexus-btn-secondary text-xs px-2.5 py-1"
           onClick={onChangeDownloadDirectory}
         >
@@ -130,44 +129,40 @@ export const DownloadsPage: React.FC<DownloadsPageProps> = ({
       <div className="nexus-history-body">
         {/* Controls Toolbar: Tabs & Search */}
         <div className="manager-toolbar">
-          <div className="flex items-center gap-1 bg-[var(--bg-elevated)] p-0.5 rounded border border-[var(--border-subtle)]">
+          <div className="filter-pills-group" role="tablist" aria-label="Download status filter">
             <button
-              className={`px-2.5 py-1 rounded text-xs transition-colors ${
-                filter === 'all'
-                  ? 'bg-accent text-[var(--bg-base)] font-semibold'
-                  : 'text-secondary hover:text-primary'
-              }`}
+              type="button"
+              className={`filter-pill ${filter === 'all' ? 'active' : ''}`}
               onClick={() => setFilter('all')}
+              role="tab"
+              aria-selected={filter === 'all'}
             >
               All ({downloads.length})
             </button>
             <button
-              className={`px-2.5 py-1 rounded text-xs transition-colors ${
-                filter === 'progressing'
-                  ? 'bg-accent text-[var(--bg-base)] font-semibold'
-                  : 'text-secondary hover:text-primary'
-              }`}
+              type="button"
+              className={`filter-pill ${filter === 'progressing' ? 'active' : ''}`}
               onClick={() => setFilter('progressing')}
+              role="tab"
+              aria-selected={filter === 'progressing'}
             >
               Active ({activeCount})
             </button>
             <button
-              className={`px-2.5 py-1 rounded text-xs transition-colors ${
-                filter === 'completed'
-                  ? 'bg-accent text-[var(--bg-base)] font-semibold'
-                  : 'text-secondary hover:text-primary'
-              }`}
+              type="button"
+              className={`filter-pill ${filter === 'completed' ? 'active' : ''}`}
               onClick={() => setFilter('completed')}
+              role="tab"
+              aria-selected={filter === 'completed'}
             >
               Completed
             </button>
             <button
-              className={`px-2.5 py-1 rounded text-xs transition-colors ${
-                filter === 'interrupted'
-                  ? 'bg-accent text-[var(--bg-base)] font-semibold'
-                  : 'text-secondary hover:text-primary'
-              }`}
+              type="button"
+              className={`filter-pill ${filter === 'interrupted' ? 'active' : ''}`}
               onClick={() => setFilter('interrupted')}
+              role="tab"
+              aria-selected={filter === 'interrupted'}
             >
               Interrupted
             </button>
@@ -348,4 +343,4 @@ export const DownloadsPage: React.FC<DownloadsPageProps> = ({
       </div>
     </div>
   );
-};
+});

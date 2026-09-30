@@ -719,7 +719,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                   tabIndex={0}
                   role="radio"
                   aria-checked={!settings.mode || settings.mode === 'default'}
-                  aria-label="Default Mode: Obsidian & Violet"
+                  aria-label="Default Mode"
                   className={`mode-card mode-card-default ${(!settings.mode || settings.mode === 'default') ? 'active' : ''}`}
                   onClick={() => onSelectMode ? onSelectMode('default') : onUpdateSettings({ mode: 'default' })}
                   onKeyDown={(e) => {
@@ -736,7 +736,6 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                       </div>
                       <div>
                         <span className="mode-card-title">Default Mode</span>
-                        <div className="text-[10px] text-muted">Obsidian & Violet</div>
                       </div>
                     </div>
                     {(!settings.mode || settings.mode === 'default') && (
@@ -771,7 +770,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                   <div className="mode-details-block">
                     <div className="mode-detail-item">
                       <span className="mode-detail-tag">Visual:</span>
-                      <span className="mode-detail-text">Obsidian & Violet surfaces, fluid 150ms transitions, full backdrop blur and glowing accents.</span>
+                      <span className="mode-detail-text">Dark surfaces, fluid 150ms transitions, full backdrop blur and glowing accents.</span>
                     </div>
                     <div className="mode-detail-item">
                       <span className="mode-detail-tag">Functional:</span>
@@ -793,7 +792,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                   tabIndex={0}
                   role="radio"
                   aria-checked={settings.mode === 'balanced'}
-                  aria-label="Balanced Mode: Metallic Gold & Deep Black"
+                  aria-label="Balanced Mode"
                   className={`mode-card mode-card-balanced ${settings.mode === 'balanced' ? 'active' : ''}`}
                   onClick={() => onSelectMode ? onSelectMode('balanced') : onUpdateSettings({ mode: 'balanced' })}
                   onKeyDown={(e) => {
@@ -810,7 +809,6 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                       </div>
                       <div>
                         <span className="mode-card-title">Balanced Mode</span>
-                        <div className="text-[10px] text-muted">Metallic Gold & Deep Black</div>
                       </div>
                     </div>
                     {settings.mode === 'balanced' && (
@@ -845,7 +843,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                   <div className="mode-details-block">
                     <div className="mode-detail-item">
                       <span className="mode-detail-tag">Visual:</span>
-                      <span className="mode-detail-text">Super Saiyan aesthetic with rich gold accents, warm dark surfaces, and 2px golden focus rings.</span>
+                      <span className="mode-detail-text">Warm dark surfaces with rich gold accents and 2px golden focus rings.</span>
                     </div>
                     <div className="mode-detail-item">
                       <span className="mode-detail-tag">Functional:</span>
@@ -867,7 +865,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                   tabIndex={0}
                   role="radio"
                   aria-checked={settings.mode === 'performance'}
-                  aria-label="Performance Mode: Crimson & Carbon"
+                  aria-label="Performance Mode"
                   className={`mode-card mode-card-performance ${settings.mode === 'performance' ? 'active' : ''}`}
                   onClick={() => onSelectMode ? onSelectMode('performance') : onUpdateSettings({ mode: 'performance' })}
                   onKeyDown={(e) => {
@@ -884,7 +882,6 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                       </div>
                       <div>
                         <span className="mode-card-title">Performance Mode</span>
-                        <div className="text-[10px] text-muted">Crimson & Carbon</div>
                       </div>
                     </div>
                     {settings.mode === 'performance' && (
@@ -919,7 +916,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                   <div className="mode-details-block">
                     <div className="mode-detail-item">
                       <span className="mode-detail-tag">Visual:</span>
-                      <span className="mode-detail-text">Redline crimson & deep carbon black. Zero-latency (0.01ms) instant bypass; disables GPU filters and shadows.</span>
+                      <span className="mode-detail-text">Deep carbon surfaces with crimson accents. Zero-latency (0.01ms) instant bypass; disables GPU filters and shadows.</span>
                     </div>
                     <div className="mode-detail-item">
                       <span className="mode-detail-tag">Functional:</span>

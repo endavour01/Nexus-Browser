@@ -22,7 +22,7 @@ interface HistoryPageProps {
   onOpenClearDialog: () => void;
 }
 
-export const HistoryPage: React.FC<HistoryPageProps> = ({
+const HistoryPageComponent: React.FC<HistoryPageProps> = ({
   history,
   onNavigate,
   onDeleteEntry,
@@ -104,9 +104,6 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
           </div>
           <div>
             <h1 className="nexus-page-title">Browsing History</h1>
-            <p className="nexus-page-subtitle">
-              Review, search, or clear websites visited across your non-private workspaces
-            </p>
           </div>
         </div>
 
@@ -274,3 +271,5 @@ export const HistoryPage: React.FC<HistoryPageProps> = ({
     </div>
   );
 };
+
+export const HistoryPage = React.memo<HistoryPageProps>(HistoryPageComponent);

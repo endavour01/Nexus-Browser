@@ -270,9 +270,6 @@ export const App: React.FC = () => {
     const unsubscribeTabs = api.onTabsUpdated((updatedTabs, activeId) => {
       setTabs(updatedTabs);
       setActiveTabId(activeId);
-
-      // Refresh history from store when tabs navigate
-      api.getHistory().then(setHistoryEntries).catch(() => {});
     });
 
     const unsubscribeMax = api.onWindowMaximizedChange((maximized) => {
@@ -1149,6 +1146,7 @@ export const App: React.FC = () => {
         activeWorkspaceId={activeWorkspaceId}
         isMaximized={isMaximized}
         tabLayout={settings.tabLayout || 'horizontal'}
+        currentMode={browserMode}
         onSelectTab={handleSelectTab}
         onCloseTab={handleCloseTab}
         onNewTab={handleNewTab}

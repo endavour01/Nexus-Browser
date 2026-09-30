@@ -501,7 +501,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       {
         id: 'mode-default',
         title: 'Switch to Default Mode',
-        subtitle: 'Obsidian & violet aesthetic, balanced rendering, normal behavior',
+        subtitle: 'Standard dark theme, balanced multitasking',
         category: 'Browser Modes',
         icon: 'Compass',
         action: () => onSelectMode?.('default'),
@@ -509,7 +509,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       {
         id: 'mode-balanced',
         title: 'Switch to Balanced Mode',
-        subtitle: 'Metallic gold & warm highlights, Super Saiyan aesthetic, refined rendering',
+        subtitle: 'Warm gold theme, enhanced focus and ambient contrast',
         category: 'Browser Modes',
         icon: 'Sun',
         action: () => onSelectMode?.('balanced'),
@@ -517,7 +517,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       {
         id: 'mode-performance',
         title: 'Switch to Performance Mode',
-        subtitle: 'Crimson & carbon theme, instant zero-latency UI, aggressive tab suspension',
+        subtitle: 'Low-latency UI, background tab throttling and memory optimization',
         category: 'Browser Modes',
         icon: 'Zap',
         action: () => onSelectMode?.('performance'),

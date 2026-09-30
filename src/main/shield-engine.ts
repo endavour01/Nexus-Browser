@@ -51,6 +51,8 @@ export class ShieldEngine {
 
   private attachedSessions: Set<Session> = new Set();
   private mainWindow: BrowserWindow | null = null;
+  private broadcastStatsTimer?: NodeJS.Timeout;
+  private pendingTargetWcId?: number | string;
 
   constructor(mainWindow?: BrowserWindow | null, customStorageDir?: string) {
     this.mainWindow = mainWindow || null;
@@ -750,7 +752,31 @@ export class ShieldEngine {
   // -----------------------------------------------------------------
   // 7. IPC NOTIFICATIONS & BROADCASTS
   // -----------------------------------------------------------------
-  public broadcastStats(targetWcId?: number | string) {
+  public broadcastStats(targetWcId?: number | string, immediate: boolean = false) {
+    if (!this.mainWindow || this.mainWindow.isDestroyed()) return;
+
+    if (targetWcId) {
+      this.pendingTargetWcId = targetWcId;
+    }
+
+    if (immediate) {
+      if (this.broadcastStatsTimer) {
+        clearTimeout(this.broadcastStatsTimer);
+        this.broadcastStatsTimer = undefined;
+      }
+      this.executeBroadcastStats();
+      return;
+    }
+
+    if (!this.broadcastStatsTimer) {
+      this.broadcastStatsTimer = setTimeout(() => {
+        this.broadcastStatsTimer = undefined;
+        this.executeBroadcastStats();
+      }, 50);
+    }
+  }
+
+  private executeBroadcastStats() {
     if (!this.mainWindow || this.mainWindow.isDestroyed()) return;
 
     const stats = this.getStats();
@@ -761,9 +787,10 @@ export class ShieldEngine {
       totalBlocked: stats.totalBlocked,
     });
 
-    if (targetWcId) {
-      const tabStat = this.getTabStats(targetWcId);
+    if (this.pendingTargetWcId) {
+      const tabStat = this.getTabStats(this.pendingTargetWcId);
       this.mainWindow.webContents.send('shield:tabStatsUpdated', tabStat);
+      this.pendingTargetWcId = undefined;
     }
   }
 

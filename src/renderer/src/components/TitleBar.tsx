@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { TabState, TabGroup, Workspace } from '@shared/types';
+import React, { useState, useEffect, memo } from 'react';
+import { TabState, TabGroup, Workspace, NexusBrowserMode } from '@shared/types';
+import { NexusLogo } from './NexusLogo';
 import {
   Plus,
   X,
@@ -48,6 +49,7 @@ interface TitleBarProps {
   onMinimize: () => void;
   onMaximize: () => void;
   onCloseWindow: () => void;
+  currentMode?: NexusBrowserMode;
 }
 
 interface ContextMenuState {
@@ -57,7 +59,7 @@ interface ContextMenuState {
   tabId: string;
 }
 
-export const TitleBar: React.FC<TitleBarProps> = ({
+export const TitleBar: React.FC<TitleBarProps> = memo(({
   tabs,
   tabGroups,
   workspaces,
@@ -65,6 +67,7 @@ export const TitleBar: React.FC<TitleBarProps> = ({
   activeWorkspaceId,
   isMaximized,
   tabLayout,
+  currentMode = 'default',
   onSelectTab,
   onCloseTab,
   onNewTab,
@@ -164,12 +167,9 @@ export const TitleBar: React.FC<TitleBarProps> = ({
 
   return (
     <div className="titlebar-container drag-region">
-      {/* Brand Icon / Logo */}
-      <div className="titlebar-brand no-drag" title="NEXUS Browser">
-        <div className="brand-badge">
-          <Terminal size={14} className="brand-icon" />
-          <span className="brand-text">NEXUS</span>
-        </div>
+      {/* Brand Icon / Logo (Mode-Adaptive N Emblem with Ring) */}
+      <div className="titlebar-brand no-drag" title={`NEXUS Browser (${currentMode.toUpperCase()} Mode)`}>
+        <NexusLogo mode={currentMode} size={22} className="brand-emblem" />
       </div>
 
       {/* Tabs Container (Horizontal Mode) */}
@@ -389,27 +389,37 @@ export const TitleBar: React.FC<TitleBarProps> = ({
           {tabLayout === 'horizontal' ? <Sidebar size={14} /> : <Columns size={14} />}
         </button>
 
-        <div className="window-controls">
+        <div className="window-controls" role="group" aria-label="Window controls">
           <button
+            type="button"
             className="window-control-btn btn-minimize"
             onClick={onMinimize}
             title="Minimize"
+            aria-label="Minimize window"
           >
-            <Minus size={13} />
+            <Minus size={13} strokeWidth={2} />
           </button>
           <button
+            type="button"
             className="window-control-btn btn-maximize"
             onClick={onMaximize}
             title={isMaximized ? 'Restore' : 'Maximize'}
+            aria-label={isMaximized ? 'Restore window' : 'Maximize window'}
           >
-            <Square size={11} />
+            {isMaximized ? (
+              <Copy size={11} strokeWidth={1.8} className="rotate-90" />
+            ) : (
+              <Square size={11} strokeWidth={1.8} />
+            )}
           </button>
           <button
+            type="button"
             className="window-control-btn btn-close"
             onClick={onCloseWindow}
             title="Close"
+            aria-label="Close window"
           >
-            <X size={13} />
+            <X size={13} strokeWidth={2} />
           </button>
         </div>
       </div>
@@ -528,4 +538,4 @@ export const TitleBar: React.FC<TitleBarProps> = ({
       )}
     </div>
   );
-};
+});

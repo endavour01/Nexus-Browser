@@ -13,14 +13,13 @@ interface ModePopoverProps {
 interface ModeOption {
   id: NexusBrowserMode;
   name: string;
-  subtitle: string;
   description: string;
   icon: React.ReactNode;
   accentColor: string;
   palette: string[];
 }
 
-export const ModePopover: React.FC<ModePopoverProps> = ({
+const ModePopoverComponent: React.FC<ModePopoverProps> = ({
   isOpen,
   onClose,
   currentMode,
@@ -34,7 +33,6 @@ export const ModePopover: React.FC<ModePopoverProps> = ({
     {
       id: 'default',
       name: 'Default Mode',
-      subtitle: 'Obsidian & Violet',
       description: 'Balanced contrast, fluid animations, and standard multitasking.',
       icon: <Compass size={17} style={{ color: '#A78BFA' }} />,
       accentColor: '#A78BFA',
@@ -43,8 +41,7 @@ export const ModePopover: React.FC<ModePopoverProps> = ({
     {
       id: 'balanced',
       name: 'Balanced Mode',
-      subtitle: 'Metallic Gold & Deep Black',
-      description: 'Super Saiyan energy, warm ambient contrast, and focus enhancements.',
+      description: 'Warm ambient contrast, reduced eye strain, and focus enhancements.',
       icon: <Sun size={17} style={{ color: '#F5C542' }} />,
       accentColor: '#F5C542',
       palette: ['#090909', '#14120C', '#211B0D', '#F5C542'],
@@ -52,8 +49,7 @@ export const ModePopover: React.FC<ModePopoverProps> = ({
     {
       id: 'performance',
       name: 'Performance Mode',
-      subtitle: 'Crimson & Carbon',
-      description: '0.01ms zero-latency UI, background throttling, and aggressive RAM recovery.',
+      description: 'Low-latency UI, background tab throttling, and memory optimization.',
       icon: <Zap size={17} style={{ color: '#F02D43' }} />,
       accentColor: '#F02D43',
       palette: ['#080809', '#121214', '#1C1719', '#F02D43'],
@@ -202,7 +198,6 @@ export const ModePopover: React.FC<ModePopoverProps> = ({
                   </div>
                   <div>
                     <div className="mode-popover-card-name">{m.name}</div>
-                    <div className="mode-popover-card-sub">{m.subtitle}</div>
                   </div>
                 </div>
 
@@ -260,3 +255,5 @@ export const ModePopover: React.FC<ModePopoverProps> = ({
     </div>
   );
 };
+
+export const ModePopover = React.memo<ModePopoverProps>(ModePopoverComponent);

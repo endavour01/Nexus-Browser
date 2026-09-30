@@ -71,6 +71,7 @@ export class TabManager {
   private searchEngine: string = 'duckduckgo';
   private isModalOpen: boolean = false;
   private currentMode: NexusBrowserMode = 'default';
+  private notifyTabsTimer?: NodeJS.Timeout;
 
   constructor(mainWindow: BrowserWindow) {
     this.mainWindow = mainWindow;
@@ -896,7 +897,7 @@ export class TabManager {
       }
     }
 
-    this.notifyTabsUpdated();
+    this.notifyTabsUpdated(true);
   }
 
   public toggleMuteTab(id: string): boolean {
@@ -1323,10 +1324,28 @@ export class TabManager {
     }
   }
 
-  private notifyTabsUpdated() {
+  private notifyTabsUpdated(immediate: boolean = false) {
     if (this.mainWindow.isDestroyed()) return;
-    const tabStates = this.getAllTabStates();
-    this.mainWindow.webContents.send('tabs:updated', tabStates, this.activeTabId);
+
+    if (immediate) {
+      if (this.notifyTabsTimer) {
+        clearTimeout(this.notifyTabsTimer);
+        this.notifyTabsTimer = undefined;
+      }
+      const tabStates = this.getAllTabStates();
+      this.mainWindow.webContents.send('tabs:updated', tabStates, this.activeTabId);
+      return;
+    }
+
+    if (!this.notifyTabsTimer) {
+      this.notifyTabsTimer = setTimeout(() => {
+        this.notifyTabsTimer = undefined;
+        if (!this.mainWindow.isDestroyed()) {
+          const tabStates = this.getAllTabStates();
+          this.mainWindow.webContents.send('tabs:updated', tabStates, this.activeTabId);
+        }
+      }, 25);
+    }
   }
 
   public formatUrl(input: string): string {

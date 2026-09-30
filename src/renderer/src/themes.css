@@ -36,6 +36,17 @@
   --status-green: #34D399;
   --status-amber: #FBBF24;
   --status-red: #F87171;
+
+  /* Liquid Glass Navigation Tokens */
+  --glass-bg: rgba(22, 26, 38, 0.72);
+  --glass-bg-hover: rgba(167, 139, 250, 0.16);
+  --glass-bg-active: rgba(167, 139, 250, 0.24);
+  --glass-border: rgba(167, 139, 250, 0.2);
+  --glass-border-hover: rgba(167, 139, 250, 0.42);
+  --glass-border-active: rgba(167, 139, 250, 0.6);
+  --glass-highlight: rgba(255, 255, 255, 0.12);
+  --glass-glow: rgba(167, 139, 250, 0.22);
+  --glass-blur: 8px;
 }
 
 /* --------------------------------------------------------------------------
@@ -71,6 +82,17 @@
   --status-green: #34D399;
   --status-amber: #F59E0B;
   --status-red: #F87171;
+
+  /* Liquid Glass Navigation Tokens */
+  --glass-bg: rgba(26, 22, 14, 0.75);
+  --glass-bg-hover: rgba(245, 197, 66, 0.18);
+  --glass-bg-active: rgba(245, 197, 66, 0.26);
+  --glass-border: rgba(245, 197, 66, 0.24);
+  --glass-border-hover: rgba(245, 197, 66, 0.45);
+  --glass-border-active: rgba(245, 197, 66, 0.65);
+  --glass-highlight: rgba(255, 255, 255, 0.14);
+  --glass-glow: rgba(245, 197, 66, 0.24);
+  --glass-blur: 8px;
 }
 
 :root[data-mode='balanced'][data-theme='light'] {
@@ -132,6 +154,17 @@
   --status-green: #10B981;
   --status-amber: #F59E0B;
   --status-red: #F02D43;
+
+  /* Liquid Glass Navigation Tokens (Lightweight for maximum responsiveness) */
+  --glass-bg: rgba(24, 18, 20, 0.82);
+  --glass-bg-hover: rgba(240, 45, 67, 0.22);
+  --glass-bg-active: rgba(240, 45, 67, 0.32);
+  --glass-border: rgba(240, 45, 67, 0.28);
+  --glass-border-hover: rgba(240, 45, 67, 0.52);
+  --glass-border-active: rgba(240, 45, 67, 0.72);
+  --glass-highlight: rgba(255, 255, 255, 0.1);
+  --glass-glow: rgba(240, 45, 67, 0.25);
+  --glass-blur: 2px;
 }
 
 :root[data-mode='performance'][data-theme='light'] {

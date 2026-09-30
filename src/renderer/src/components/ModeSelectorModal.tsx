@@ -77,9 +77,9 @@ export const ModeSelectorModal: React.FC<ModeSelectorModalProps> = ({
     {
       id: 'default',
       title: 'Default Mode',
-      subtitle: 'Obsidian & Violet',
+      subtitle: 'Standard dark theme',
       description:
-        'The original NEXUS power-user dark theme. Balanced contrast with fluid animations and standard resource management.',
+        'Standard contrast with fluid animations and balanced resource management.',
       icon: <Compass size={16} style={{ color: '#A78BFA' }} />,
       swatches: ['#0B0D12', '#12151D', '#191D28', '#A78BFA'],
       accentColor: '#A78BFA',
@@ -87,9 +87,9 @@ export const ModeSelectorModal: React.FC<ModeSelectorModalProps> = ({
     {
       id: 'balanced',
       title: 'Balanced Mode',
-      subtitle: 'Golden Mode — Metallic Gold & Deep Black',
+      subtitle: 'Warm dark palette',
       description:
-        'Premium metallic gold, deep black, and warm dark surfaces. Elegant Super Saiyan energy with comfortable contrast for long browsing sessions.',
+        'Warm gold accents, comfortable dark surfaces, and golden focus rings designed for extended browsing.',
       icon: <Sun size={16} style={{ color: '#F5C542' }} />,
       swatches: ['#090909', '#14120C', '#211B0D', '#F5C542'],
       accentColor: '#F5C542',
@@ -97,9 +97,9 @@ export const ModeSelectorModal: React.FC<ModeSelectorModalProps> = ({
     {
       id: 'performance',
       title: 'Performance Mode',
-      subtitle: 'Redline Mode — Crimson & Carbon',
+      subtitle: 'Low-latency profile',
       description:
-        'High-contrast crimson and deep carbon black. Zero UI transition latency (0.01ms), aggressive idle tab suspension, and maximum memory recovery.',
+        'High-contrast crimson and deep carbon surfaces. Zero UI transition latency (0.01ms), aggressive idle tab suspension, and memory recovery.',
       icon: <Zap size={16} style={{ color: '#F02D43' }} />,
       swatches: ['#080809', '#121214', '#1C1719', '#F02D43'],
       accentColor: '#F02D43',

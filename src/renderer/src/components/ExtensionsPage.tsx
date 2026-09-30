@@ -26,7 +26,7 @@ interface ExtensionsPageProps {
   onOpenCompatibility: () => void;
 }
 
-export const ExtensionsPage: React.FC<ExtensionsPageProps> = ({
+const ExtensionsPageComponent: React.FC<ExtensionsPageProps> = ({
   extensions,
   onInstallUnpacked,
   onToggleExtension,
@@ -59,7 +59,7 @@ export const ExtensionsPage: React.FC<ExtensionsPageProps> = ({
             <h1 className="extensions-page-title">Extensions & Plugins</h1>
           </div>
           <p className="extensions-page-subtitle">
-            Manage local unpacked extensions loaded in the Electron browsing session
+            Manage local unpacked extensions
           </p>
         </div>
 
@@ -297,3 +297,5 @@ export const ExtensionsPage: React.FC<ExtensionsPageProps> = ({
     </div>
   );
 };
+
+export const ExtensionsPage = React.memo<ExtensionsPageProps>(ExtensionsPageComponent);

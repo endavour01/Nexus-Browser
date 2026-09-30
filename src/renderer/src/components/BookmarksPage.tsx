@@ -37,7 +37,7 @@ interface BookmarksPageProps {
 
 type SortOrder = 'name-asc' | 'name-desc' | 'date-desc' | 'date-asc' | 'url';
 
-export const BookmarksPage: React.FC<BookmarksPageProps> = ({
+const BookmarksPageComponent: React.FC<BookmarksPageProps> = ({
   bookmarks,
   onNavigate,
   onSaveBookmark,
@@ -179,9 +179,6 @@ export const BookmarksPage: React.FC<BookmarksPageProps> = ({
           </div>
           <div>
             <h1 className="nexus-page-title">Bookmarks Manager</h1>
-            <p className="nexus-page-subtitle">
-              Organize, search, and manage your bookmarks and folders
-            </p>
           </div>
         </div>
 
@@ -442,3 +439,5 @@ export const BookmarksPage: React.FC<BookmarksPageProps> = ({
     </div>
   );
 };
+
+export const BookmarksPage = React.memo<BookmarksPageProps>(BookmarksPageComponent);
