@@ -213,7 +213,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
           {type === 'settings' && 'Settings'}
           {type === 'devtools' && 'Developer Toolkit'}
           {type === 'notes' && 'Notes Companion'}
-          {type === 'intelligence' && 'NEXUS Intelligence'}
+          {type === 'intelligence' && 'NEXUS Explore'}
         </h3>
         <button className="nexus-icon-btn panel-close-btn" onClick={onClose} title="Close panel">
           <X size={15} />

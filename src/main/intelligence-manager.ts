@@ -664,16 +664,19 @@ export class IntelligenceManager {
       (v) => v.id === item.id || v.term.toLowerCase() === cleanTerm.toLowerCase()
     );
 
+    const existingId = existingIndex >= 0 ? list[existingIndex].id : undefined;
+    const existingDate = existingIndex >= 0 ? list[existingIndex].dateAdded : undefined;
+
     const savedItem: VocabularyItem = {
-      id: item.id || `vocab_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      id: item.id || existingId || `vocab_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       term: cleanTerm,
       definition: item.definition.trim(),
       partOfSpeech: item.partOfSpeech,
       example: item.example,
       sourceUrl: item.sourceUrl,
       sourceTitle: item.sourceTitle,
-      dateAdded: Date.now(),
-      tags: item.tags || [],
+      dateAdded: existingDate || Date.now(),
+      tags: item.tags || (existingIndex >= 0 ? list[existingIndex].tags : []),
     };
 
     if (existingIndex >= 0) {

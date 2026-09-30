@@ -82,6 +82,11 @@ export const App: React.FC = () => {
   const [editingBookmarkItem, setEditingBookmarkItem] = useState<BookmarkItem | null>(null);
   const [isClearDataModalOpen, setIsClearDataModalOpen] = useState(false);
 
+  // NEXUS Intelligence state
+  const [isIntelligenceModalOpen, setIsIntelligenceModalOpen] = useState(false);
+  const [intelligenceModalTab, setIntelligenceModalTab] = useState<IntelligenceTab>('dictionary');
+  const [intelligenceInitialText, setIntelligenceInitialText] = useState<string>('');
+
   // Persistent user data
   const [workspaces, setWorkspaces] = useState<Workspace[]>(() => {
     try {
@@ -304,6 +309,37 @@ export const App: React.FC = () => {
       setPermissionPrompt(req);
     }) : () => {};
 
+    const unsubscribeExplain = api.onExplainSelectionRequested
+      ? api.onExplainSelectionRequested((data) => {
+          setIntelligenceInitialText(data.text);
+          setIntelligenceModalTab('dictionary');
+          setIsIntelligenceModalOpen(true);
+        })
+      : () => {};
+
+    const unsubscribeSendToNotes = api.onSendToNotesRequested
+      ? api.onSendToNotesRequested(async (data) => {
+          try {
+            const title = data.sourceTitle ? `Selection from ${data.sourceTitle}` : 'Webpage Selection';
+            const content = `<blockquote><p>${data.text}</p></blockquote><p><small>Source: <a href="${data.sourceUrl || '#'}">${data.sourceUrl || 'Webpage'}</a> — Captured ${new Date().toLocaleString()}</small></p>`;
+            await api.saveNote({
+              title,
+              content,
+              linkedTab: data.sourceUrl
+                ? {
+                    url: data.sourceUrl,
+                    title: data.sourceTitle || 'Webpage',
+                    linkedAt: Date.now(),
+                  }
+                : undefined,
+            });
+            setActiveSidePanel('notes');
+          } catch (e) {
+            console.error('[App] Failed to save selection to notes:', e);
+          }
+        })
+      : () => {};
+
     api.isWindowMaximized().then(setIsMaximized).catch(console.error);
 
     return () => {
@@ -315,6 +351,8 @@ export const App: React.FC = () => {
       unsubscribeDownloads();
       unsubscribeProfile();
       unsubscribePrompt();
+      unsubscribeExplain();
+      unsubscribeSendToNotes();
     };
   }, [api]);
 
@@ -1129,6 +1167,15 @@ export const App: React.FC = () => {
     activeTab?.url === 'nexus://shield' || activeTab?.url?.startsWith('nexus://shield');
   const isNotesPage =
     activeTab?.url === 'nexus://notes' || activeTab?.url?.startsWith('nexus://notes');
+  const isIntelligencePage =
+    activeTab?.url === 'nexus://explore' ||
+    activeTab?.url?.startsWith('nexus://explore') ||
+    activeTab?.url === 'nexus://dictionary' ||
+    activeTab?.url?.startsWith('nexus://dictionary') ||
+    activeTab?.url === 'nexus://intelligence' ||
+    activeTab?.url?.startsWith('nexus://intelligence');
+  const isNewsPage =
+    activeTab?.url === 'nexus://news' || activeTab?.url?.startsWith('nexus://news');
   const isWarningPage =
     activeTab?.url === 'nexus://warning' || activeTab?.url?.startsWith('nexus://warning');
 
@@ -1336,6 +1383,36 @@ export const App: React.FC = () => {
               activeTabUrl={activeTab?.url}
               activeTabTitle={activeTab?.title}
               activeTabFavicon={activeTab?.favicon}
+            />
+          )}
+
+          {isIntelligencePage && (
+            <IntelligencePage
+              initialTab="dictionary"
+              onNavigate={handleNavigate}
+              onSendToNotes={(text, title) => {
+                if (api) {
+                  api.saveNote({
+                    title: title || 'Note from Explore',
+                    content: `<p>${text}</p>`,
+                  });
+                }
+              }}
+            />
+          )}
+
+          {isNewsPage && (
+            <IntelligencePage
+              initialTab="news"
+              onNavigate={handleNavigate}
+              onSendToNotes={(text, title) => {
+                if (api) {
+                  api.saveNote({
+                    title: title || 'Note from News',
+                    content: `<p>${text}</p>`,
+                  });
+                }
+              }}
             />
           )}
 
@@ -1608,6 +1685,24 @@ export const App: React.FC = () => {
         onRestoreDefaults={restoreModeDefaults}
         onEnterFocusWorkspace={handleEnterFocusWorkspace}
         onOptimizeMemory={optimizeMemory}
+      />
+
+      {/* 17. NEXUS Intelligence Modal */}
+      <IntelligenceModal
+        isOpen={isIntelligenceModalOpen}
+        onClose={() => setIsIntelligenceModalOpen(false)}
+        initialTab={intelligenceModalTab}
+        initialText={intelligenceInitialText}
+        autoLookup={Boolean(intelligenceInitialText)}
+        onNavigate={handleNavigate}
+        onSendToNotes={(text, title) => {
+          if (api) {
+            api.saveNote({
+              title: title || 'Note from Explore',
+              content: `<p>${text}</p>`,
+            });
+          }
+        }}
       />
     </div>
   );

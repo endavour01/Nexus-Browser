@@ -8,6 +8,8 @@ import {
   User,
   Terminal,
   FileText,
+  Compass,
+  BookOpen,
   Sparkles,
   ShieldCheck,
   MapPin,
@@ -217,13 +219,13 @@ export const RightToolbar: React.FC<RightToolbarProps> = ({
         )}
       </div>
 
-      {/* Intelligence Tools Button */}
+      {/* Explore Tools Button */}
       <button
         className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'intelligence' ? 'active' : ''}`}
         onClick={() => toggle('intelligence')}
-        title="NEXUS Intelligence (Dictionary & Currency)"
+        title="NEXUS Explore"
       >
-        <Sparkles size={17} />
+        <Compass size={17} />
       </button>
 
       {/* Extension Action Buttons */}

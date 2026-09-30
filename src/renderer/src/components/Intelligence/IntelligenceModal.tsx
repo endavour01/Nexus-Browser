@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   X,
+  Compass,
   BookOpen,
   Coins,
   Newspaper,
@@ -63,9 +64,9 @@ export const IntelligenceModal: React.FC<IntelligenceModalProps> = ({
         <div className="intelligence-modal-header">
           <div className="flex items-center gap-2">
             <div className="intelligence-brand-icon">
-              <Sparkles size={16} className="text-accent" />
+              <Compass size={16} className="text-accent" />
             </div>
-            <h2 className="intelligence-modal-title">NEXUS Intelligence</h2>
+            <h2 className="intelligence-modal-title">NEXUS Explore</h2>
           </div>
 
           {/* Navigation Tabs */}

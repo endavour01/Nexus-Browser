@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Compass,
   Sparkles,
   BookOpen,
   Coins,
@@ -39,12 +40,12 @@ export const IntelligencePage: React.FC<IntelligencePageProps> = ({
           )}
 
           <div className="intelligence-brand-icon">
-            <Sparkles size={18} className="text-accent" />
+            <Compass size={18} className="text-accent" />
           </div>
 
           <div>
-            <h1 className="page-heading">NEXUS Intelligence</h1>
-            <p className="page-subheading">Contextual research, reference tools, and verifiable knowledge toolkit</p>
+            <h1 className="page-heading">NEXUS Explore</h1>
+            <p className="page-subheading">Contextual research, dictionary, reference tools, and knowledge toolkit</p>
           </div>
         </div>
 

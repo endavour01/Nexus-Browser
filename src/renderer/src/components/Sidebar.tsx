@@ -252,11 +252,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="pinned-sites-list">
           <button
             className="pinned-site-item"
-            onClick={() => onNavigate('nexus://intelligence')}
-            title="NEXUS Intelligence (Dictionary & Currency)"
+            onClick={() => onNavigate('nexus://explore')}
+            title="NEXUS Explore"
           >
-            <div className="pinned-site-icon"><Sparkles size={13} className="text-accent" /></div>
-            {!collapsed && <span className="pinned-site-name">Intelligence</span>}
+            <div className="pinned-site-icon"><Compass size={13} className="text-accent" /></div>
+            {!collapsed && <span className="pinned-site-name">Explore</span>}
           </button>
           <button
             className="pinned-site-item"
