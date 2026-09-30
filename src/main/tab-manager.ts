@@ -1,4 +1,4 @@
-import { BrowserWindow, WebContentsView, session } from 'electron';
+import { BrowserWindow, WebContentsView, session, Menu, MenuItem, clipboard } from 'electron';
 import { ContentBounds, SavedSessionData, TabState, NexusBrowserMode } from '../shared/types';
 import { SessionStore } from './session-store';
 import { HistoryStore } from './history-store';
@@ -581,6 +581,89 @@ export class TabManager {
     wc.on('media-paused', () => {
       tab.hasAudio = false;
       this.notifyTabsUpdated();
+    });
+
+    // WebContents Context Menu: Contextual Dictionary, Notes & Standard Actions
+    wc.on('context-menu', (_event, params) => {
+      const menu = new Menu();
+      const selection = params.selectionText ? params.selectionText.trim() : '';
+
+      if (selection) {
+        menu.append(
+          new MenuItem({
+            label: 'Explain with NEXUS',
+            click: () => {
+              if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+                this.mainWindow.webContents.send('nexus:explain-selection', {
+                  text: selection,
+                  tabId: tab.id,
+                  url: tab.url,
+                  title: tab.title,
+                });
+              }
+            },
+          })
+        );
+
+        menu.append(
+          new MenuItem({
+            label: 'Add to NEXUS Notes',
+            click: () => {
+              if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+                this.mainWindow.webContents.send('nexus:send-to-notes', {
+                  text: selection,
+                  sourceUrl: tab.url,
+                  sourceTitle: tab.title,
+                });
+              }
+            },
+          })
+        );
+
+        menu.append(new MenuItem({ type: 'separator' }));
+      }
+
+      menu.append(new MenuItem({ role: 'copy', enabled: Boolean(selection) }));
+      if (params.isEditable) {
+        menu.append(new MenuItem({ role: 'cut' }));
+        menu.append(new MenuItem({ role: 'paste' }));
+        menu.append(new MenuItem({ role: 'selectAll' }));
+      }
+
+      if (params.linkURL) {
+        menu.append(new MenuItem({ type: 'separator' }));
+        menu.append(
+          new MenuItem({
+            label: 'Open Link in New Tab',
+            click: () => {
+              this.createTab(params.linkURL, true, tab.workspaceId, tab.isPrivate);
+            },
+          })
+        );
+        menu.append(
+          new MenuItem({
+            label: 'Copy Link Address',
+            click: () => {
+              clipboard.writeText(params.linkURL);
+            },
+          })
+        );
+      }
+
+      menu.append(new MenuItem({ type: 'separator' }));
+      menu.append(
+        new MenuItem({
+          label: 'Inspect Element',
+          click: () => {
+            wc.inspectElement(params.x, params.y);
+            if (!wc.isDevToolsOpened()) {
+              wc.openDevTools({ mode: 'detach' });
+            }
+          },
+        })
+      );
+
+      menu.popup();
     });
 
     // Error handling: catch navigation failures and present styled dark error page

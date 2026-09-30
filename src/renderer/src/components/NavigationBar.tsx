@@ -8,7 +8,6 @@ import {
   Home,
   Lock,
   Globe,
-  Terminal,
   Code2,
   Copy,
   Check,
@@ -18,6 +17,7 @@ import {
   Zap,
   Shield,
 } from 'lucide-react';
+import { NexusLogo } from './NexusLogo';
 import { ModePopover } from './ModePopover';
 import { ShieldPopover } from './ShieldPopover';
 import { TabShieldStats } from '@shared/types';
@@ -198,7 +198,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = memo(({
           }
         >
           {isNexusScheme ? (
-            <Terminal size={14} className="scheme-nexus" />
+            <NexusLogo mode={currentMode} size={15} title="NEXUS" />
           ) : isHttps ? (
             <Lock size={13} className="scheme-secure" />
           ) : (

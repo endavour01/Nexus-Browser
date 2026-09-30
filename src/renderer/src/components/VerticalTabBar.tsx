@@ -11,7 +11,6 @@ import {
   ChevronDown,
   ChevronRight,
   FolderPlus,
-  Search,
   Copy,
   RotateCw,
   FolderKanban,
@@ -34,7 +33,6 @@ interface VerticalTabBarProps {
   onSetTabGroup: (tabId: string, groupId?: string) => void;
   onMoveTabToWorkspace: (tabId: string, workspaceId: string) => void;
   onReorderTabs: (orderedIds: string[]) => void;
-  onOpenTabSearch: () => void;
   onCreateGroup: () => void;
   onToggleGroupCollapse: (groupId: string) => void;
 }
@@ -55,7 +53,6 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
   onSetTabGroup,
   onMoveTabToWorkspace,
   onReorderTabs,
-  onOpenTabSearch,
   onCreateGroup,
   onToggleGroupCollapse,
 }) => {
@@ -134,13 +131,6 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
           <span className="vtabs-heading">Vertical Tabs</span>
         </div>
         <div className="vtabs-actions">
-          <button
-            className="nexus-icon-btn vtab-action-btn"
-            onClick={onOpenTabSearch}
-            title="Search Tabs (Ctrl+Shift+A)"
-          >
-            <Search size={14} />
-          </button>
           <button
             className="nexus-icon-btn vtab-action-btn"
             onClick={() => onNewTab()}

@@ -416,7 +416,7 @@ export interface RecentPage {
   timestamp: number;
 }
 
-export type SidePanelType = 'bookmarks' | 'downloads' | 'extensions' | 'profiles' | 'settings' | 'history' | 'devtools' | 'notes' | null;
+export type SidePanelType = 'bookmarks' | 'downloads' | 'extensions' | 'profiles' | 'settings' | 'history' | 'devtools' | 'notes' | 'intelligence' | null;
 
 // Developer Tools Types
 export interface NetworkLogEntry {
@@ -580,7 +580,143 @@ export interface NexusNotesData {
   drafts: Record<string, NexusDraftRecovery>;
 }
 
+// ==========================================
+// NEXUS Intelligence Types
+// ==========================================
+export type IntelligenceReadingLevel = 'simple' | 'standard' | 'advanced';
+
+export interface DictionaryDefinition {
+  partOfSpeech: string;
+  definition: string;
+  example?: string;
+  synonyms?: string[];
+  antonyms?: string[];
+}
+
+export interface DictionaryPhonetic {
+  text?: string;
+  audio?: string;
+}
+
+export interface DictionaryWordResult {
+  word: string;
+  phonetics?: DictionaryPhonetic[];
+  meanings: {
+    partOfSpeech: string;
+    definitions: DictionaryDefinition[];
+    synonyms?: string[];
+    antonyms?: string[];
+  }[];
+  sourceUrl?: string;
+  sourceAttribution: string;
+  isAIGenerated: boolean;
+}
+
+export interface ContextualExplanation {
+  originalText: string;
+  selectionType: 'word' | 'phrase' | 'sentence' | 'paragraph';
+  simplifiedMeaning?: string;
+  contextSummary?: string;
+  keyIdeas?: string[];
+  difficultVocabulary?: { word: string; definition: string }[];
+  readingLevel: IntelligenceReadingLevel;
+  targetLanguage: string;
+  sourceAttribution: string;
+  isAIGenerated: boolean;
+  wordResult?: DictionaryWordResult;
+}
+
+export interface VocabularyItem {
+  id: string;
+  term: string;
+  definition: string;
+  partOfSpeech?: string;
+  example?: string;
+  sourceUrl?: string;
+  sourceTitle?: string;
+  dateAdded: number;
+  tags?: string[];
+}
+
+export interface CurrencyRateData {
+  base: string;
+  date: string;
+  timestamp: number;
+  provider: string;
+  rates: Record<string, number>;
+  isStale?: boolean;
+}
+
+export interface CurrencyConversionRequest {
+  from: string;
+  to: string;
+  amount: number;
+}
+
+export interface CurrencyConversionResult {
+  from: string;
+  to: string;
+  amount: number;
+  rate: number;
+  result: number;
+  timestamp: number;
+  provider: string;
+  isStale: boolean;
+}
+
+export interface CurrencyHistoryItem extends CurrencyConversionResult {
+  id: string;
+}
+
+export type NewsArticleType = 'reported-facts' | 'claims' | 'analysis' | 'opinion';
+
+export interface NewsArticle {
+  id: string;
+  title: string;
+  summary: string;
+  contentSnippet?: string;
+  sourceName: string;
+  sourceUrl: string;
+  originalUrl: string;
+  author?: string;
+  publishedAt: number;
+  category: 'world' | 'technology' | 'business' | 'environment' | 'health' | 'science';
+  articleType: NewsArticleType;
+  storyClusterId?: string;
+}
+
+export interface NewsCluster {
+  id: string;
+  topicTitle: string;
+  articles: NewsArticle[];
+}
+
+export interface NewsSettings {
+  enabled: boolean;
+  enabledCategories: string[];
+  hiddenSources: string[];
+  refreshIntervalMinutes: number;
+}
+
+export interface ExplainSelectionPayload {
+  text: string;
+  tabId?: string;
+  url?: string;
+  title?: string;
+}
+
+export interface SendToNotesPayload {
+  text: string;
+  sourceUrl?: string;
+  sourceTitle?: string;
+}
+
 export interface NexusAPI {
+  getVpnStatus: () => Promise<VpnStatus>;
+  getVpnFreeLocations: () => Promise<VpnFreeLocation[]>;
+  connectVpn: (countryCode: string) => Promise<VpnStatus>;
+  disconnectVpn: () => Promise<VpnStatus>;
+
   // Tab Management
   createTab: (url?: string, workspaceId?: string, isPrivate?: boolean) => Promise<string>;
   createBackgroundTab: (url: string, workspaceId?: string) => Promise<string>;
@@ -745,6 +881,20 @@ export interface NexusAPI {
   exportNotePdf: (noteId: string, options?: NotesExportOptions) => Promise<{ success: boolean; filePath?: string; error?: string }>;
   exportNotebookPdf: (notebookId: string, options?: NotesExportOptions) => Promise<{ success: boolean; filePath?: string; error?: string }>;
 
+  // NEXUS Intelligence Management
+  lookupDictionary: (word: string) => Promise<DictionaryWordResult>;
+  explainSelection: (text: string, readingLevel?: IntelligenceReadingLevel, targetLanguage?: string) => Promise<ContextualExplanation>;
+  getVocabulary: () => Promise<VocabularyItem[]>;
+  saveVocabularyItem: (item: Omit<VocabularyItem, 'id' | 'dateAdded'> & { id?: string }) => Promise<VocabularyItem>;
+  deleteVocabularyItem: (id: string) => Promise<boolean>;
+  getCurrencyRates: (base?: string) => Promise<CurrencyRateData>;
+  convertCurrency: (req: CurrencyConversionRequest) => Promise<CurrencyConversionResult>;
+  getCurrencyHistory: () => Promise<CurrencyHistoryItem[]>;
+  clearCurrencyHistory: () => Promise<void>;
+  getNewsSettings: () => Promise<NewsSettings>;
+  updateNewsSettings: (settings: Partial<NewsSettings>) => Promise<NewsSettings>;
+  getNewsFeed: (forceRefresh?: boolean) => Promise<{ articles: NewsArticle[]; clusters: NewsCluster[]; lastUpdated: number }>;
+
   // Event Listeners
   onTabsUpdated: (callback: (tabs: TabState[], activeTabId: string) => void) => () => void;
   onWindowMaximizedChange: (callback: (isMaximized: boolean) => void) => () => void;
@@ -762,6 +912,22 @@ export interface NexusAPI {
   onModeChanged: (callback: (mode: NexusBrowserMode) => void) => () => void;
   onTelemetryUpdated: (callback: (telemetry: ModeTelemetry) => void) => () => void;
   onNotesUpdated: (callback: () => void) => () => void;
+  onExplainSelectionRequested: (callback: (data: ExplainSelectionPayload) => void) => () => void;
+  onSendToNotesRequested: (callback: (data: SendToNotesPayload) => void) => () => void;
+}
+
+export interface VpnStatus {
+  available: boolean;
+  connected: boolean;
+  loggedIn: boolean;
+  location?: string;
+  message?: string;
+}
+
+export interface VpnFreeLocation {
+  code: string;
+  country: string;
+  region: string;
 }
 
 declare global {
@@ -769,5 +935,4 @@ declare global {
     nexusAPI: NexusAPI;
   }
 }
-
 

@@ -27,6 +27,9 @@ import {
   Sparkles,
   Zap,
   Flame,
+  BookOpen,
+  Coins,
+  Newspaper,
 } from 'lucide-react';
 
 export interface CommandPaletteItem {
@@ -391,6 +394,38 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         action: () => onTogglePanel('notes'),
       },
       {
+        id: 'intelligence-hub',
+        title: 'NEXUS Intelligence Hub (nexus://intelligence)',
+        subtitle: 'Contextual research, dictionary, currency converter, and fact-focused news',
+        category: 'Developer & Tools',
+        icon: 'Sparkles',
+        action: () => onNavigate('nexus://intelligence'),
+      },
+      {
+        id: 'intelligence-dictionary',
+        title: 'Contextual Dictionary & Vocabulary',
+        subtitle: 'Look up words, pronunciation, plain language explanations',
+        category: 'Developer & Tools',
+        icon: 'BookOpen',
+        action: () => onTogglePanel('intelligence'),
+      },
+      {
+        id: 'intelligence-currency',
+        title: 'Currency Converter',
+        subtitle: 'Convert between global currencies with live ECB rates',
+        category: 'Developer & Tools',
+        icon: 'Coins',
+        action: () => onNavigate('nexus://intelligence'),
+      },
+      {
+        id: 'intelligence-news',
+        title: 'Fact-Focused News (nexus://news)',
+        subtitle: 'Verifiable reporting dashboard with neutral cross-source coverage',
+        category: 'Developer & Tools',
+        icon: 'Newspaper',
+        action: () => onNavigate('nexus://news'),
+      },
+      {
         id: 'open-settings',
         title: 'Open Settings',
         subtitle: 'Configure search engine, hardware acceleration',
@@ -420,7 +455,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       {
         id: 'zoom-reset',
         title: 'Reset Zoom Level',
-        subtitle: 'Restore 100% standard rendering scale',
+        subtitle: 'Restore the default page zoom',
         category: 'Developer & Tools',
         shortcut: 'Ctrl+0',
         icon: 'Maximize2',
@@ -483,7 +518,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       {
         id: 'dev-color-picker',
         title: 'Color Picker — EyeDropper',
-        subtitle: 'Pick any pixel color from screen with Chromium EyeDropper API',
+        subtitle: 'Pick a color from anywhere on your screen',
         category: 'Developer & Tools',
         icon: 'Sparkles',
         action: () => onOpenColorPicker?.(),
@@ -713,6 +748,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       case 'Maximize2': return <Maximize2 size={15} />;
       case 'FileCode': return <FileCode size={15} />;
       case 'Sparkles': return <Sparkles size={15} />;
+      case 'BookOpen': return <BookOpen size={15} />;
+      case 'Coins': return <Coins size={15} />;
+      case 'Newspaper': return <Newspaper size={15} />;
       case 'Compass': return <Compass size={15} />;
       case 'Sun': return <Sun size={15} />;
       case 'Zap': return <Zap size={15} />;

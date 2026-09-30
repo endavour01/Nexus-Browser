@@ -187,7 +187,7 @@ export const ModeBehaviorControls: React.FC<ModeBehaviorControlsProps> = ({
             <div className="mode-control-label">
               <span>Background Tab Throttling</span>
               <span className="mode-control-sublabel">
-                Limits background Chromium timers and animation frames
+                Reduces activity in background tabs to save system resources
               </span>
             </div>
             <input
@@ -203,7 +203,7 @@ export const ModeBehaviorControls: React.FC<ModeBehaviorControlsProps> = ({
             <div className="mode-control-label">
               <span>Put Inactive Tabs to Sleep</span>
               <span className="mode-control-sublabel">
-                Unloads background renderer memory after inactivity
+                Pauses inactive tabs after the selected time
               </span>
             </div>
             <select
@@ -324,7 +324,7 @@ export const ModeBehaviorControls: React.FC<ModeBehaviorControlsProps> = ({
           <div className="hud-header">
             <span className="hud-title">
               <Info size={12} />
-              <span>Engine Metrics & Telemetry</span>
+              <span>Performance overview</span>
             </span>
             <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
               Mode: <strong style={{ color: 'var(--text-primary)' }}>{currentMode}</strong>
@@ -335,7 +335,7 @@ export const ModeBehaviorControls: React.FC<ModeBehaviorControlsProps> = ({
             <div className="hud-metric">
               <div className="hud-metric-val">{telemetry.memoryUsageMB} MB</div>
               <div className="hud-metric-label">
-                RSS <span className="metric-tag-measured">MEASURED</span>
+                Memory in use <span className="metric-tag-measured">MEASURED</span>
               </div>
             </div>
             <div className="hud-metric">
@@ -344,7 +344,7 @@ export const ModeBehaviorControls: React.FC<ModeBehaviorControlsProps> = ({
                 {telemetry.totalTabsCount}
               </div>
               <div className="hud-metric-label">
-                Active Tabs <span className="metric-tag-measured">MEASURED</span>
+                Tabs awake <span className="metric-tag-measured">MEASURED</span>
               </div>
             </div>
             <div className="hud-metric">
@@ -352,7 +352,7 @@ export const ModeBehaviorControls: React.FC<ModeBehaviorControlsProps> = ({
                 ~{telemetry.estimatedMemorySavedMB} MB
               </div>
               <div className="hud-metric-label">
-                Savings <span className="metric-tag-estimated">ESTIMATED</span>
+                Memory freed <span className="metric-tag-estimated">ESTIMATED</span>
               </div>
             </div>
           </div>
@@ -366,7 +366,7 @@ export const ModeBehaviorControls: React.FC<ModeBehaviorControlsProps> = ({
                 marginBottom: '4px',
               }}
             >
-              Heap Allocation: {telemetry.heapUsedMB} MB
+              App memory: {telemetry.heapUsedMB} MB
               {telemetry.heapTotalMB ? ` of ${telemetry.heapTotalMB} MB` : ''}{' '}
               <span className="metric-tag-measured">MEASURED</span>
             </div>

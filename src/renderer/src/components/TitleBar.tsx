@@ -8,13 +8,11 @@ import {
   Minus,
   Square,
   Copy,
-  Terminal,
   Loader2,
   RotateCw,
   Pin,
   Volume2,
   VolumeX,
-  Search,
   FolderPlus,
   Sidebar,
   Columns,
@@ -42,7 +40,6 @@ interface TitleBarProps {
   onSetTabGroup: (tabId: string, groupId?: string) => void;
   onMoveTabToWorkspace: (tabId: string, workspaceId: string) => void;
   onReorderTabs: (orderedIds: string[]) => void;
-  onOpenTabSearch: () => void;
   onCreateGroup: () => void;
   onToggleGroupCollapse: (groupId: string) => void;
   onToggleTabLayout: () => void;
@@ -80,7 +77,6 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
   onSetTabGroup,
   onMoveTabToWorkspace,
   onReorderTabs,
-  onOpenTabSearch,
   onCreateGroup,
   onToggleGroupCollapse,
   onToggleTabLayout,
@@ -353,7 +349,7 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
             })}
           </div>
 
-          {/* New Tab & Search Tab Actions */}
+          {/* New Tab Action */}
           <div className="titlebar-tab-actions">
             <button
               className="nexus-icon-btn new-tab-btn"
@@ -361,13 +357,6 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
               title="New Tab (Ctrl+T)"
             >
               <Plus size={14} />
-            </button>
-            <button
-              className="nexus-icon-btn search-tab-btn"
-              onClick={onOpenTabSearch}
-              title="Search Tabs & History (Ctrl+Shift+A)"
-            >
-              <Search size={14} />
             </button>
           </div>
         </div>
@@ -377,13 +366,6 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
           <span className="vtab-active-indicator-text">
             {workspaceTabs.length} tabs in active workspace
           </span>
-          <button
-            className="nexus-icon-btn search-tab-btn"
-            onClick={onOpenTabSearch}
-            title="Search Tabs & History (Ctrl+Shift+A)"
-          >
-            <Search size={14} />
-          </button>
         </div>
       )}
 

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { SystemInfo } from '@shared/types';
 import {
   Search,
   Command,
@@ -24,7 +23,6 @@ interface RecentPage {
 
 interface NewTabWorkspaceProps {
   onNavigate: (url: string) => void;
-  systemInfo: SystemInfo | null;
   recentPages: RecentPage[];
   onClearRecentPages: () => void;
 }
@@ -48,7 +46,6 @@ const pinnedApps: PinnedApp[] = [
 
 export const NewTabWorkspace: React.FC<NewTabWorkspaceProps> = ({
   onNavigate,
-  systemInfo,
   recentPages,
   onClearRecentPages,
 }) => {
@@ -99,7 +96,7 @@ export const NewTabWorkspace: React.FC<NewTabWorkspaceProps> = ({
   return (
     <div className="nexus-newtab-container">
       <div className="newtab-content-wrapper">
-        {/* Top Header: Discreet Clock & System Info */}
+        {/* Top Header */}
         <div className="newtab-top-bar">
           <div className="discreet-clock">
             <Clock size={13} className="text-secondary" />
@@ -108,23 +105,14 @@ export const NewTabWorkspace: React.FC<NewTabWorkspaceProps> = ({
             <span className="clock-date">{date}</span>
           </div>
 
-          {systemInfo && (
-            <div className="discreet-sysinfo" title="System Runtime Architecture">
-              <span>Chromium {systemInfo.chrome}</span>
-              <span className="sysinfo-sep">/</span>
-              <span>Electron {systemInfo.electron}</span>
-              <span className="sysinfo-sep">/</span>
-              <span>{systemInfo.platform}</span>
-            </div>
-          )}
         </div>
 
         {/* Large but Restrained NEXUS Wordmark */}
         <div className="nexus-brand-section">
           <h1 className="nexus-wordmark">
-            NEXUS<span className="wordmark-dot">.</span>
+            NEXUS
           </h1>
-          <p className="nexus-tagline">Minimalist developer browser</p>
+          <p className="nexus-tagline">A calmer place to browse</p>
         </div>
 
         {/* Centered Search / Address Box */}

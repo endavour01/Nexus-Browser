@@ -5,7 +5,6 @@ import {
   DownloadRecord,
   ExtensionItem,
   HistoryEntry,
-  SystemInfo,
   UserProfile,
   TrackingProtectionMode,
   ModeTelemetry,
@@ -15,6 +14,7 @@ import {
 import { SidePanelType } from './RightToolbar';
 import { DeveloperToolsPanel } from './DeveloperToolsPanel';
 import { NotesSidePanel } from './Notes/NotesSidePanel';
+import { DictionaryView } from './Intelligence/DictionaryView';
 import { NexusState } from './NexusState';
 import { ModeBehaviorControls } from './ModeBehaviorControls';
 import {
@@ -78,7 +78,6 @@ interface SidePanelProps {
   settings: BrowserSettings;
   onUpdateSettings: (newSettings: Partial<BrowserSettings>) => void;
   onClearCache: () => Promise<void>;
-  systemInfo: SystemInfo | null;
   currentUrl?: string;
   isBookmarked: boolean;
   history?: HistoryEntry[];
@@ -137,7 +136,6 @@ export const SidePanel: React.FC<SidePanelProps> = ({
   settings,
   onUpdateSettings,
   onClearCache,
-  systemInfo,
   isBookmarked,
   history = [],
   onDeleteHistoryEntry,
@@ -215,6 +213,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
           {type === 'settings' && 'Settings'}
           {type === 'devtools' && 'Developer Toolkit'}
           {type === 'notes' && 'Notes Companion'}
+          {type === 'intelligence' && 'NEXUS Intelligence'}
         </h3>
         <button className="nexus-icon-btn panel-close-btn" onClick={onClose} title="Close panel">
           <X size={15} />
@@ -251,10 +250,10 @@ export const SidePanel: React.FC<SidePanelProps> = ({
               <span className="text-[11px] text-muted">{filteredBookmarks.length} items</span>
               {onOpenBookmarksPage && (
                 <button
-                  className="text-[11px] text-accent hover:underline flex items-center gap-1"
+                  className="panel-inline-action"
                   onClick={onOpenBookmarksPage}
                 >
-                  <ExternalLink size={11} />
+                  <ExternalLink size={12} />
                   <span>Open Full Manager</span>
                 </button>
               )}
@@ -396,10 +395,10 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                 )}
                 {onOpenDownloadsPage && (
                   <button
-                    className="text-[11px] text-accent hover:underline flex items-center gap-1"
+                    className="panel-inline-action"
                     onClick={onOpenDownloadsPage}
                   >
-                    <ExternalLink size={11} />
+                    <ExternalLink size={12} />
                     <span>Full page</span>
                   </button>
                 )}
@@ -545,7 +544,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                 <div className="text-center py-6 text-xs text-muted">
                   <p>No extensions installed yet.</p>
                   <button
-                    className="text-accent hover:underline mt-2 inline-flex items-center gap-1"
+                    className="panel-inline-action extension-empty-action"
                     onClick={onInstallUnpacked}
                   >
                     <FolderPlus size={12} />
@@ -595,20 +594,22 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                       <div className="flex items-center gap-2">
                         {onReloadExtension && (
                           <button
-                            className="text-xs text-muted hover:text-primary"
+                            className="nexus-icon-btn"
                             onClick={() => onReloadExtension(ext.id)}
                             title="Reload"
+                            aria-label={`Reload ${ext.name}`}
                           >
-                            <RotateCw size={12} />
+                            <RotateCw size={14} />
                           </button>
                         )}
                         {onUninstallExtension && (
                           <button
-                            className="text-xs text-muted hover:text-red-400"
+                            className="nexus-icon-btn"
                             onClick={() => onUninstallExtension(ext.id)}
                             title="Remove"
+                            aria-label={`Remove ${ext.name}`}
                           >
-                            <Trash2 size={12} />
+                            <Trash2 size={14} />
                           </button>
                         )}
                       </div>
@@ -620,11 +621,11 @@ export const SidePanel: React.FC<SidePanelProps> = ({
 
             <div className="mt-3 px-1">
               <button
-                className="w-full text-center text-xs text-muted hover:text-accent flex items-center justify-center gap-1 py-1"
+                className="panel-inline-action extension-guide-action"
                 onClick={onOpenCompatibility}
               >
                 <HelpCircle size={12} />
-                <span>View Electron API Compatibility Guide</span>
+                <span>View Extension Support Guide</span>
               </button>
             </div>
           </div>
@@ -655,7 +656,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
               </div>
             )}
 
-            <div className="panel-sub-header">Switch Profile</div>
+            <div className="panel-sub-header">Other Profiles</div>
             <div className="panel-list">
               {profiles
                 .filter((p) => p.id !== activeProfile?.id)
@@ -665,6 +666,15 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                     className="profile-option-card"
                     onClick={() => onSwitchProfile?.(p.id)}
                     style={{ cursor: 'pointer' }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Switch to ${p.name} profile`}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        onSwitchProfile?.(p.id);
+                      }
+                    }}
                   >
                     <div
                       className="profile-opt-avatar"
@@ -679,15 +689,6 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                       <span className="profile-opt-name">{p.name}</span>
                       <span className="profile-opt-desc">Isolated cookies & history</span>
                     </div>
-                    <button
-                      className="nexus-btn-ghost text-xs px-2 py-0.5"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSwitchProfile?.(p.id);
-                      }}
-                    >
-                      Switch
-                    </button>
                   </div>
                 ))}
             </div>
@@ -774,7 +775,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                     </div>
                     <div className="mode-detail-item">
                       <span className="mode-detail-tag">Functional:</span>
-                      <span className="mode-detail-text">Standard Chromium background timers. Retains all background tabs in renderer memory.</span>
+                      <span className="mode-detail-text">Background tabs stay active, so pages keep working while you browse elsewhere.</span>
                     </div>
                   </div>
 
@@ -1014,7 +1015,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                   type="text"
                   readOnly
                   value={downloadDirectory || 'Default Downloads folder'}
-                  className="nexus-input text-xs font-mono flex-1 bg-[var(--bg-elevated)] text-muted truncate"
+                    className="nexus-input settings-download-path text-xs font-mono flex-1 truncate"
                 />
                 {onChangeDownloadDirectory && (
                   <button
@@ -1076,7 +1077,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                 <button
                   className="setting-action-btn flex-1"
                   onClick={onOpenCompatibility}
-                  title="View Electron API Compatibility Guide"
+                  title="View Extension Support Guide"
                 >
                   <HelpCircle size={13} />
                   <span>API Guide</span>
@@ -1090,7 +1091,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                 <label className="setting-label">NEXUS Shield</label>
                 <button
                   type="button"
-                  className="nexus-btn-ghost text-xs py-0 px-1"
+                  className="nexus-btn-sm nexus-btn-secondary text-xs py-0 px-2"
                   onClick={() => onNavigate('nexus://shield')}
                   title="Open full Shield dashboard"
                 >
@@ -1148,32 +1149,6 @@ export const SidePanel: React.FC<SidePanelProps> = ({
               </button>
             </div>
 
-            {/* System Diagnostic Information */}
-            {systemInfo && (
-              <div className="setting-group">
-                <label className="setting-label">Environment Architecture</label>
-                <div className="system-info-box">
-                  <div className="sys-row">
-                    <span>Engine:</span>
-                    <code>Chromium v{systemInfo.chrome}</code>
-                  </div>
-                  <div className="sys-row">
-                    <span>Shell:</span>
-                    <code>Electron v{systemInfo.electron}</code>
-                  </div>
-                  <div className="sys-row">
-                    <span>Runtime:</span>
-                    <code>Node.js v{systemInfo.node}</code>
-                  </div>
-                  <div className="sys-row">
-                    <span>Platform:</span>
-                    <code>
-                      {systemInfo.platform} ({systemInfo.arch})
-                    </code>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         )}
 
@@ -1199,6 +1174,22 @@ export const SidePanel: React.FC<SidePanelProps> = ({
             activeTabTitle={activeTabTitle}
             activeTabFavicon={activeTabFavicon}
           />
+        )}
+
+        {type === 'intelligence' && (
+          <div style={{ height: '100%', overflowY: 'auto' }}>
+            <DictionaryView
+              compact={true}
+              onSendToNotes={(text, title) => {
+                if (typeof window !== 'undefined' && window.nexusAPI) {
+                  window.nexusAPI.saveNote({
+                    title: title || 'Note from Dictionary',
+                    content: `<p>${text}</p>`,
+                  });
+                }
+              }}
+            />
+          </div>
         )}
       </div>
     </div>

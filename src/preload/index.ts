@@ -2,6 +2,11 @@ import { contextBridge, ipcRenderer } from 'electron';
 import { ContentBounds, NexusAPI, SystemInfo, TabState } from '../shared/types';
 
 const api: NexusAPI = {
+  getVpnStatus: () => ipcRenderer.invoke('vpn:get-status'),
+  getVpnFreeLocations: () => ipcRenderer.invoke('vpn:get-free-locations'),
+  connectVpn: (countryCode: string) => ipcRenderer.invoke('vpn:connect', countryCode),
+  disconnectVpn: () => ipcRenderer.invoke('vpn:disconnect'),
+
   createTab: (url?: string, workspaceId?: string, isPrivate?: boolean) => ipcRenderer.invoke('tabs:create', url, workspaceId, isPrivate),
   createBackgroundTab: (url: string, workspaceId?: string) => ipcRenderer.invoke('tabs:createBackground', url, workspaceId),
   duplicateTab: (id: string) => ipcRenderer.invoke('tabs:duplicate', id),
@@ -326,6 +331,41 @@ const api: NexusAPI = {
     ipcRenderer.on('notes:updated', handler);
     return () => {
       ipcRenderer.removeListener('notes:updated', handler);
+    };
+  },
+
+  // NEXUS Intelligence Management
+  lookupDictionary: (word: string) => ipcRenderer.invoke('intelligence:lookupDictionary', word),
+  explainSelection: (text: string, readingLevel?: any, targetLanguage?: string) =>
+    ipcRenderer.invoke('intelligence:explainSelection', text, readingLevel, targetLanguage),
+  getVocabulary: () => ipcRenderer.invoke('intelligence:getVocabulary'),
+  saveVocabularyItem: (item: any) => ipcRenderer.invoke('intelligence:saveVocabularyItem', item),
+  deleteVocabularyItem: (id: string) => ipcRenderer.invoke('intelligence:deleteVocabularyItem', id),
+  getCurrencyRates: (base?: string) => ipcRenderer.invoke('intelligence:getCurrencyRates', base),
+  convertCurrency: (req: any) => ipcRenderer.invoke('intelligence:convertCurrency', req),
+  getCurrencyHistory: () => ipcRenderer.invoke('intelligence:getCurrencyHistory'),
+  clearCurrencyHistory: () => ipcRenderer.invoke('intelligence:clearCurrencyHistory'),
+  getNewsSettings: () => ipcRenderer.invoke('intelligence:getNewsSettings'),
+  updateNewsSettings: (settings: any) => ipcRenderer.invoke('intelligence:updateNewsSettings', settings),
+  getNewsFeed: (forceRefresh?: boolean) => ipcRenderer.invoke('intelligence:getNewsFeed', forceRefresh),
+
+  onExplainSelectionRequested: (callback: (data: any) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: any) => {
+      callback(data);
+    };
+    ipcRenderer.on('nexus:explain-selection', handler);
+    return () => {
+      ipcRenderer.removeListener('nexus:explain-selection', handler);
+    };
+  },
+
+  onSendToNotesRequested: (callback: (data: any) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: any) => {
+      callback(data);
+    };
+    ipcRenderer.on('nexus:send-to-notes', handler);
+    return () => {
+      ipcRenderer.removeListener('nexus:send-to-notes', handler);
     };
   },
 };

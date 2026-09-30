@@ -31,7 +31,7 @@ export const ExtensionCompatibilityModal: React.FC<ExtensionCompatibilityModalPr
         <div className="nexus-modal-header">
           <div className="flex items-center gap-2">
             <Info size={20} className="text-accent" />
-            <h2 className="nexus-modal-title">Electron Extension API Compatibility</h2>
+            <h2 className="nexus-modal-title">Extension Support Guide</h2>
           </div>
           <button className="nexus-icon-btn" onClick={onClose} title="Close">
             <X size={18} />
@@ -42,9 +42,9 @@ export const ExtensionCompatibilityModal: React.FC<ExtensionCompatibilityModalPr
           <div className="compat-intro-banner">
             <Shield size={18} className="text-accent flex-shrink-0" />
             <p>
-              NEXUS builds upon Electron&apos;s native extension architecture. While many popular developer
-              tools and privacy content scripts function cleanly, Electron does not implement every
-              proprietary Chrome Web Store API or Chromium browser shell feature.
+              Many popular extensions work in NEXUS. Some extensions rely on services or features that are
+              not available here. Check the lists below before installing an extension
+              you depend on.
             </p>
           </div>
 
@@ -128,7 +128,7 @@ export const ExtensionCompatibilityModal: React.FC<ExtensionCompatibilityModalPr
               <div className="compat-card unsupported">
                 <div className="compat-card-title">chrome.downloads & chrome.omnibox</div>
                 <p className="compat-card-desc">
-                  Address bar keywords and native Chromium download managers are not bound.
+                  Address bar keywords and built-in download integrations are not available.
                 </p>
               </div>
               <div className="compat-card unsupported">

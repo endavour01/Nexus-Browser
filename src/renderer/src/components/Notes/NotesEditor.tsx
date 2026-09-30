@@ -800,19 +800,19 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
       {/* 3. Linked Browser Tab Banner */}
       {note.linkedTab ? (
         <div className="linked-tab-banner">
-          <div className="flex items-center gap-2 overflow-hidden">
+          <div className="linked-tab-copy">
             <span className="tab-badge">Linked Tab</span>
-            <span className="tab-title truncate" title={note.linkedTab.title}>
+            <span className="linked-tab-title" title={note.linkedTab.title}>
               {note.linkedTab.title || note.linkedTab.url}
             </span>
-            <span className="tab-url truncate text-secondary" title={note.linkedTab.url}>
-              ({note.linkedTab.url})
+            <span className="linked-tab-url" title={note.linkedTab.url}>
+              {note.linkedTab.url}
             </span>
           </div>
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="linked-tab-actions">
             {onOpenUrl && (
               <button
-                className="nexus-btn btn-secondary btn-xs"
+                className="nexus-btn-sm nexus-btn-secondary linked-tab-open"
                 onClick={() => onOpenUrl(note.linkedTab!.url)}
                 title="Open source URL in browser tab"
               >
@@ -822,7 +822,7 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
             )}
             {onRemoveTabLink && (
               <button
-                className="nexus-icon-btn btn-xs text-danger"
+                className="nexus-icon-btn linked-tab-remove"
                 onClick={onRemoveTabLink}
                 title="Unlink tab from this note"
               >

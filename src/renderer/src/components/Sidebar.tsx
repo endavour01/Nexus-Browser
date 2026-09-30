@@ -21,6 +21,8 @@ import {
   Rocket,
   Shield,
   Lock,
+  Sparkles,
+  Newspaper,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -236,6 +238,36 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
       )}
+
+      <div className="sidebar-divider" />
+
+      {/* Intelligence & Knowledge Tools */}
+      <div className="sidebar-section">
+        {!collapsed && (
+          <div className="sidebar-section-title">
+            <Sparkles size={12} className="text-secondary" />
+            <span>Research & Tools</span>
+          </div>
+        )}
+        <div className="pinned-sites-list">
+          <button
+            className="pinned-site-item"
+            onClick={() => onNavigate('nexus://intelligence')}
+            title="NEXUS Intelligence (Dictionary & Currency)"
+          >
+            <div className="pinned-site-icon"><Sparkles size={13} className="text-accent" /></div>
+            {!collapsed && <span className="pinned-site-name">Intelligence</span>}
+          </button>
+          <button
+            className="pinned-site-item"
+            onClick={() => onNavigate('nexus://news')}
+            title="Fact-Focused News"
+          >
+            <div className="pinned-site-icon"><Newspaper size={13} className="text-accent" /></div>
+            {!collapsed && <span className="pinned-site-name">Fact News</span>}
+          </button>
+        </div>
+      </div>
     </aside>
   );
 };

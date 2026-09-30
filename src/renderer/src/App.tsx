@@ -50,6 +50,7 @@ import { ShieldDashboard } from './components/ShieldDashboard';
 import { MaliciousWarningPage } from './components/MaliciousWarningPage';
 import { ModeSelectorModal } from './components/ModeSelectorModal';
 import { NotesPage } from './components/Notes/NotesPage';
+import { IntelligenceModal, IntelligencePage, IntelligenceTab } from './components/Intelligence';
 import { useTheme } from './hooks/useTheme';
 import { useBrowserMode, applyDistractionReduction } from './hooks/useBrowserMode';
 
@@ -66,7 +67,6 @@ export const App: React.FC = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeSidePanel, setActiveSidePanel] = useState<SidePanelType>(null);
   const [activeWorkspaceId, setActiveWorkspaceId] = useState('default');
-  const [zoomLevel, setZoomLevel] = useState(0);
   const [hoveredUrl] = useState<string | null>(null);
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
 
@@ -621,21 +621,18 @@ export const App: React.FC = () => {
   const handleZoomIn = useCallback(async () => {
     if (!api) return;
     const current = await api.getZoomLevel();
-    const next = await api.setZoomLevel(Math.min(current + 0.5, 3));
-    setZoomLevel(next);
+    await api.setZoomLevel(Math.min(current + 0.5, 3));
   }, [api]);
 
   const handleZoomOut = useCallback(async () => {
     if (!api) return;
     const current = await api.getZoomLevel();
-    const next = await api.setZoomLevel(Math.max(current - 0.5, -3));
-    setZoomLevel(next);
+    await api.setZoomLevel(Math.max(current - 0.5, -3));
   }, [api]);
 
   const handleResetZoom = useCallback(async () => {
     if (!api) return;
-    const next = await api.setZoomLevel(0);
-    setZoomLevel(next);
+    await api.setZoomLevel(0);
   }, [api]);
 
   const handleMinimize = useCallback(() => api?.minimizeWindow(), [api]);
@@ -1158,7 +1155,6 @@ export const App: React.FC = () => {
         onSetTabGroup={handleSetTabGroup}
         onMoveTabToWorkspace={handleMoveTabToWorkspace}
         onReorderTabs={handleReorderTabs}
-        onOpenTabSearch={() => setIsTabSearchOpen(true)}
         onCreateGroup={handleCreateGroup}
         onToggleGroupCollapse={handleToggleGroupCollapse}
         onToggleTabLayout={() => {
@@ -1254,7 +1250,6 @@ export const App: React.FC = () => {
             onSetTabGroup={handleSetTabGroup}
             onMoveTabToWorkspace={handleMoveTabToWorkspace}
             onReorderTabs={handleReorderTabs}
-            onOpenTabSearch={() => setIsTabSearchOpen(true)}
             onCreateGroup={handleCreateGroup}
             onToggleGroupCollapse={handleToggleGroupCollapse}
           />
@@ -1265,7 +1260,6 @@ export const App: React.FC = () => {
           {isNewTab && (
             <NewTabWorkspace
               onNavigate={handleNavigate}
-              systemInfo={systemInfo}
               recentPages={historyEntries.slice(0, 10).map((h) => ({
                 title: h.title,
                 url: h.url,
@@ -1419,7 +1413,6 @@ export const App: React.FC = () => {
             settings={settings}
             onUpdateSettings={handleUpdateSettings}
             onClearCache={handleClearCache}
-            systemInfo={systemInfo}
             currentUrl={activeTab?.url}
             isBookmarked={isBookmarked}
             history={historyEntries}
@@ -1459,6 +1452,7 @@ export const App: React.FC = () => {
           bookmarkCount={bookmarks.length}
           extensions={extensions}
           onOpenExtensionPopup={handleOpenExtensionPopup}
+          onOpenVpnService={handleNewTab}
           minimal={browserMode === 'balanced' && !!settings.balancedMinimalToolbar}
         />
       </div>
@@ -1467,11 +1461,6 @@ export const App: React.FC = () => {
       <StatusBar
         activeTab={activeTab}
         activeWorkspaceName={activeWorkspace.name}
-        zoomLevel={zoomLevel}
-        onZoomIn={handleZoomIn}
-        onZoomOut={handleZoomOut}
-        onResetZoom={handleResetZoom}
-        onToggleDevTools={handleToggleDevTools}
         hoveredUrl={hoveredUrl}
         currentMode={browserMode}
         telemetry={modeTelemetry}

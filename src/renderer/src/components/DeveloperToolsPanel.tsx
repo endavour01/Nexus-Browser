@@ -161,7 +161,7 @@ export const DeveloperToolsPanel: React.FC<DeveloperToolsPanelProps> = ({
         console.warn('EyeDropper cancelled or failed:', err);
       }
     } else {
-      alert('Chromium EyeDropper is not supported in this environment.');
+      alert('The color picker is not available in this session.');
     }
   };
 
@@ -212,10 +212,10 @@ export const DeveloperToolsPanel: React.FC<DeveloperToolsPanelProps> = ({
             setActiveCategory('info');
             loadPageInfo();
           }}
-          title="Page Info & Shortcuts"
+          title="Page overview"
         >
           <Info size={14} />
-          <span>Info</span>
+          <span>Overview</span>
         </button>
         <button
           className={`devtools-cat-btn ${activeCategory === 'network' ? 'active' : ''}`}
@@ -226,7 +226,7 @@ export const DeveloperToolsPanel: React.FC<DeveloperToolsPanelProps> = ({
           title="Network Traffic"
         >
           <Activity size={14} />
-          <span>Network ({networkLogs.length})</span>
+          <span>Network</span>
         </button>
         <button
           className={`devtools-cat-btn ${activeCategory === 'storage' ? 'active' : ''}`}
@@ -258,8 +258,8 @@ export const DeveloperToolsPanel: React.FC<DeveloperToolsPanelProps> = ({
         {activeCategory === 'info' && (
           <div className="devtools-section">
             <div className="devtools-header-actions">
-              <span className="devtools-subhead">Page Diagnostics</span>
-              <button className="icon-btn-small" onClick={loadPageInfo} title="Refresh">
+              <span className="devtools-subhead">Page overview</span>
+              <button className="nexus-icon-btn devtools-refresh-btn" onClick={loadPageInfo} title="Refresh page details" aria-label="Refresh page details">
                 <RefreshCw size={13} className={isLoadingInfo ? 'spin' : ''} />
               </button>
             </div>
@@ -284,21 +284,9 @@ export const DeveloperToolsPanel: React.FC<DeveloperToolsPanelProps> = ({
                 </span>
               </div>
               <div className="devtools-info-row">
-                <span className="devtools-info-label">MIME Type</span>
-                <span className="devtools-info-val font-mono">
-                  {pageInfo?.contentType || 'text/html'}
-                </span>
-              </div>
-              <div className="devtools-info-row">
                 <span className="devtools-info-label">Security</span>
                 <span className={`devtools-badge ${pageInfo?.security.isSecure ? 'badge-secure' : 'badge-warning'}`}>
                   {pageInfo?.security.isSecure ? 'HTTPS Secure' : 'Non-Secure HTTP'}
-                </span>
-              </div>
-              <div className="devtools-info-row">
-                <span className="devtools-info-label">Data Objects</span>
-                <span className="devtools-info-val">
-                  {pageInfo?.cookieCount || 0} cookies, {pageInfo?.storageCount || 0} web storage items
                 </span>
               </div>
             </div>
@@ -308,7 +296,7 @@ export const DeveloperToolsPanel: React.FC<DeveloperToolsPanelProps> = ({
               <button className="devtools-action-tile" onClick={onToggleDevTools}>
                 <Code size={16} />
                 <div>
-                  <strong>Chromium DevTools</strong>
+                  <strong>Browser DevTools</strong>
                   <small>F12 / Ctrl+Shift+I</small>
                 </div>
               </button>
@@ -360,7 +348,7 @@ export const DeveloperToolsPanel: React.FC<DeveloperToolsPanelProps> = ({
                 onClick={onOpenDevDashboard}
               >
                 <Globe size={14} />
-                <span>Open Developer Dashboard (nexus://dev)</span>
+                <span>Open Developer Dashboard</span>
               </button>
             </div>
           </div>

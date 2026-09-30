@@ -204,7 +204,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
                       <div className="profile-card-actions">
                         {!isActive ? (
                           <button
-                            className="nexus-btn-ghost switch-btn"
+                            className="nexus-btn-sm nexus-btn-secondary switch-btn"
                             onClick={() => handleSwitch(p.id)}
                             title="Switch to this profile"
                           >

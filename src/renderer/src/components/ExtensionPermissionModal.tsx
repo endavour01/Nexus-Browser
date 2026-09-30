@@ -95,7 +95,7 @@ export const ExtensionPermissionModal: React.FC<ExtensionPermissionModalProps> =
               )}
               <span className="font-medium text-xs">
                 {validation.compatibility.status === 'compatible'
-                  ? 'Compatible with Electron Extension Engine'
+                  ? 'Ready to install'
                   : 'Partial Compatibility Notice'}
               </span>
             </div>

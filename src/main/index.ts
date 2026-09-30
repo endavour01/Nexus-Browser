@@ -16,6 +16,8 @@ import { ZoomManager } from './zoom-manager';
 import { DeveloperToolsManager } from './developer-tools-manager';
 import { ModeOptimizer } from './mode-optimizer';
 import { NotesManager } from './notes-manager';
+import { IntelligenceManager } from './intelligence-manager';
+import { VpnManager } from './vpn-manager';
 import { ClearDataOptions, PermissionType, PermissionDecision, TrackingProtectionMode, NexusBrowserMode, ModeBehaviorConfig } from '../shared/types';
 
 // Ensure smooth launch on Linux systems without hardware GPU or SUID sandbox helper
@@ -42,6 +44,8 @@ let zoomManager: ZoomManager | null = null;
 let developerToolsManager: DeveloperToolsManager | null = null;
 let modeOptimizer: ModeOptimizer | null = null;
 let notesManager: NotesManager | null = null;
+let intelligenceManager: IntelligenceManager | null = null;
+const vpnManager = new VpnManager();
 
 const isDev = process.env.ELECTRON_IS_DEV === '1';
 
@@ -95,6 +99,7 @@ function createWindow() {
   tabManager.setNetworkMonitor(networkMonitor);
 
   notesManager = new NotesManager(profilePaths.notes, mainWindow);
+  intelligenceManager = new IntelligenceManager(storageDir, mainWindow);
   downloadManager = new DownloadManager(mainWindow, profilePaths.downloads);
   tabManager.setDownloadManager(downloadManager);
   modeOptimizer = new ModeOptimizer(mainWindow, tabManager);
@@ -399,6 +404,12 @@ function registerIpcHandlers() {
     return downloadManager?.removeRecord(id) ?? false;
   });
 
+  // VPN controls
+  ipcMain.handle('vpn:get-status', () => vpnManager.getStatus());
+  ipcMain.handle('vpn:get-free-locations', () => vpnManager.getFreeLocations());
+  ipcMain.handle('vpn:connect', (_event, countryCode: string) => vpnManager.connect(countryCode));
+  ipcMain.handle('vpn:disconnect', () => vpnManager.disconnect());
+
   // Extensions Management
   ipcMain.handle('extensions:select-directory', async () => {
     if (!mainWindow) return null;
@@ -491,6 +502,7 @@ function registerIpcHandlers() {
       const profilePaths = profileManager.getProfileDataPaths(switched.id);
       bookmarksStore = new BookmarksStore(profilePaths.bookmarks);
       notesManager = new NotesManager(profilePaths.notes, mainWindow);
+      intelligenceManager = new IntelligenceManager(path.dirname(profilePaths.notes), mainWindow);
       tabManager?.setHistoryStore(new HistoryStore(profilePaths.history));
       if (mainWindow) {
         downloadManager = new DownloadManager(mainWindow, profilePaths.downloads);
@@ -824,6 +836,64 @@ function registerIpcHandlers() {
   ipcMain.handle('notes:exportNotebookPdf', async (_event, notebookId: string, options?: any) => {
     if (!notesManager) return { success: false, error: 'NotesManager not initialized' };
     return notesManager.exportNotebookPdf(notebookId, options, mainWindow || undefined);
+  });
+
+  // NEXUS Intelligence Handlers
+  ipcMain.handle('intelligence:lookupDictionary', async (_event, word: string) => {
+    if (!intelligenceManager) throw new Error('IntelligenceManager not initialized');
+    return intelligenceManager.lookupDictionary(word);
+  });
+
+  ipcMain.handle('intelligence:explainSelection', async (_event, text: string, readingLevel?: any, targetLanguage?: string) => {
+    if (!intelligenceManager) throw new Error('IntelligenceManager not initialized');
+    return intelligenceManager.explainSelection(text, readingLevel, targetLanguage);
+  });
+
+  ipcMain.handle('intelligence:getVocabulary', async () => {
+    return intelligenceManager?.getVocabulary() ?? [];
+  });
+
+  ipcMain.handle('intelligence:saveVocabularyItem', async (_event, item: any) => {
+    if (!intelligenceManager) throw new Error('IntelligenceManager not initialized');
+    return intelligenceManager.saveVocabularyItem(item);
+  });
+
+  ipcMain.handle('intelligence:deleteVocabularyItem', async (_event, id: string) => {
+    return intelligenceManager?.deleteVocabularyItem(id) ?? false;
+  });
+
+  ipcMain.handle('intelligence:getCurrencyRates', async (_event, base?: string) => {
+    if (!intelligenceManager) throw new Error('IntelligenceManager not initialized');
+    return intelligenceManager.getCurrencyRates(base);
+  });
+
+  ipcMain.handle('intelligence:convertCurrency', async (_event, req: any) => {
+    if (!intelligenceManager) throw new Error('IntelligenceManager not initialized');
+    return intelligenceManager.convertCurrency(req);
+  });
+
+  ipcMain.handle('intelligence:getCurrencyHistory', async () => {
+    return intelligenceManager?.getCurrencyHistory() ?? [];
+  });
+
+  ipcMain.handle('intelligence:clearCurrencyHistory', async () => {
+    intelligenceManager?.clearCurrencyHistory();
+    return true;
+  });
+
+  ipcMain.handle('intelligence:getNewsSettings', async () => {
+    if (!intelligenceManager) throw new Error('IntelligenceManager not initialized');
+    return intelligenceManager.getNewsSettings();
+  });
+
+  ipcMain.handle('intelligence:updateNewsSettings', async (_event, settings: any) => {
+    if (!intelligenceManager) throw new Error('IntelligenceManager not initialized');
+    return intelligenceManager.updateNewsSettings(settings);
+  });
+
+  ipcMain.handle('intelligence:getNewsFeed', async (_event, forceRefresh?: boolean) => {
+    if (!intelligenceManager) throw new Error('IntelligenceManager not initialized');
+    return intelligenceManager.getNewsFeed(forceRefresh);
   });
 }
 

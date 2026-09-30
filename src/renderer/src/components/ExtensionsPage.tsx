@@ -130,7 +130,7 @@ const ExtensionsPageComponent: React.FC<ExtensionsPageProps> = ({
               <>
                 <h3 className="empty-title">No Extensions Installed</h3>
                 <p className="empty-desc">
-                  Load compatible unpacked Manifest V2 or V3 extensions directly from your local folder.
+                  Add an extension from a folder on your device.
                 </p>
                 <div className="flex items-center gap-3 mt-4">
                   <button className="nexus-btn nexus-btn-primary" onClick={onInstallUnpacked}>
@@ -139,7 +139,7 @@ const ExtensionsPageComponent: React.FC<ExtensionsPageProps> = ({
                   </button>
                   <button className="nexus-btn nexus-btn-secondary" onClick={onOpenCompatibility}>
                     <HelpCircle size={15} />
-                    <span>View Supported APIs</span>
+                    <span>Extension support</span>
                   </button>
                 </div>
               </>
