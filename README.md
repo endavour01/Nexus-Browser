@@ -121,6 +121,38 @@ NEXUS features an integrated Three-Mode Engine that provides distinct visual ide
 
 ---
 
+## 🛡️ NEXUS Shield — Privacy-Focused Ad & Threat Protection
+
+NEXUS Shield is a privacy-first, network-level content filtering and website protection engine integrated directly into the browser core.
+
+### Core Modules
+1. **Network-Level Ad Blocking**:
+   - High-throughput trie and suffix matching targeting known ad servers (DoubleClick, Google AdSense/Syndication, AppNexus, Criteo, CarbonAds, etc.) and ad path heuristics.
+   - Built-in support for established filter lists (**EasyList**, **Peter Lowe's**, custom subscription URLs).
+2. **Enhanced Tracking Protection**:
+   - Stops behavioral profiling, fingerprinting, and analytics crawlers (Google Analytics, Facebook Pixel, Segment, Microsoft Clarity, Hotjar, etc.).
+   - Standard and Strict protection modes configurable with one click.
+3. **Malicious Destination & Phishing Defense**:
+   - Intercepts navigations to known deceptive portals, crypto drainers, malware distribution hosts, and fake banking logins before page rendering starts.
+   - High-contrast warning page at `nexus://warning` explaining the threat classification and providing safe return actions.
+   - User-controlled override option ("Proceed Anyway (Unsafe)") with session-isolated bypass memory.
+4. **Unsolicited Pop-up & Hijack Blocker**:
+   - Intercepts unsolicited `window.open` requests and aggressive tab-under networks (PopAds, PopCash, etc.) without breaking user-initiated links.
+5. **Download Safety Guard**:
+   - Detects executable files (`.exe`, `.msi`, `.bat`, `.sh`, `.appimage`, `.vbs`, etc.) and warns before opening. Never auto-executes downloads.
+6. **Strict SSL / TLS Enforcement**:
+   - Strict certificate validation; invalid, expired, or self-signed certificates cannot be bypassed silently.
+7. **Per-Site Allowlist & Temporary Pause**:
+   - Quick one-click site toggle in the address bar popover.
+   - Flexible temporary pause (15 min / 30 min / 1 hr) for testing.
+8. **Shield Dashboard (`nexus://shield`)**:
+   - Comprehensive control center displaying live blocked item telemetry, filter list management, allowlists, and browsing data sanitization.
+9. **Technical Honesty & Local Privacy Guarantee**:
+   - Filter list evaluations occur entirely on-device; full browsing history is never transmitted to cloud servers.
+   - Honest security stance: clearly discloses that no tool can detect or prevent 100% of threats.
+
+---
+
 ## 🎛️ Mode Controls & Accessibility
 
 * **Toolbar Mode Switcher**: Fast-access toolbar trigger displaying distinctive icons (`Compass` for Default, `Sun` for Balanced, `Zap` for Performance) and a compact popover with live color swatches and active checkmarks.
@@ -131,11 +163,14 @@ NEXUS features an integrated Three-Mode Engine that provides distinct visual ide
 
 ## 🧪 Verification & Testing Suite
 
-NEXUS includes 12 automated test suites covering core engine operations, IPC security, tab lifecycle, visual tokens, and mode integrations:
+NEXUS includes 13 automated test suites covering core engine operations, IPC security, tab lifecycle, visual tokens, mode integrations, and NEXUS Shield:
 
 ```bash
-# Run the complete test suite (all 12 suites)
+# Run the complete test suite (all 13 suites)
 npm test
+
+# Run dedicated NEXUS Shield Protection Suite (8 test suites)
+npm run test:shield
 
 # Run dedicated Three-Mode Integration QA (11 verification suites)
 npm run test:modes-qa
@@ -160,5 +195,6 @@ npm run build
 
 - **Renderer Process**: Completely isolated (`contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`). No Node.js APIs or raw Electron `ipcRenderer` instances are accessible from web content.
 - **Web Engine Views**: Websites render within sandboxed `WebContentsView` contexts. Popups and external links are intercepted using `setWindowOpenHandler` and spawned cleanly as managed NEXUS tabs.
-- **IPC Dispatcher**: Channel access is restricted strictly to high-level actions (`navigate`, `createTab`, `switchTab`, `closeTab`, `toggleDevTools`, `windowControls`, `modes:*`).
+- **IPC Dispatcher**: Channel access is restricted strictly to high-level actions (`navigate`, `createTab`, `switchTab`, `closeTab`, `toggleDevTools`, `windowControls`, `modes:*`, `shield:*`).
+
 

@@ -1081,9 +1081,30 @@ export const SidePanel: React.FC<SidePanelProps> = ({
               </div>
             </div>
 
-            {/* Tracking Protection */}
+            {/* NEXUS Shield & Protection */}
             <div className="setting-group">
-              <label className="setting-label">Enhanced Tracking Protection</label>
+              <div className="flex-row items-center justify-between mb-1">
+                <label className="setting-label">NEXUS Shield</label>
+                <button
+                  type="button"
+                  className="nexus-btn-ghost text-xs py-0 px-1"
+                  onClick={() => onNavigate('nexus://shield')}
+                  title="Open full Shield dashboard"
+                >
+                  Dashboard
+                </button>
+              </div>
+              <button
+                type="button"
+                className="setting-action-btn mb-2"
+                onClick={() => onNavigate('nexus://shield')}
+                title="View blocked ads, trackers, and filter lists"
+              >
+                <ShieldCheck size={14} className="text-accent" />
+                <span>Shield Dashboard (nexus://shield)</span>
+              </button>
+
+              <label className="setting-label text-xs text-muted">Tracking Protection Mode</label>
               <select
                 className="setting-select"
                 value={settings.trackingProtectionMode || 'standard'}

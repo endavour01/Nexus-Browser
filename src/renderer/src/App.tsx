@@ -46,6 +46,8 @@ import { ResponsiveDeviceBar } from './components/ResponsiveDeviceBar';
 import { ReaderView } from './components/ReaderView';
 import { JsonFormatterModal } from './components/JsonFormatterModal';
 import { DeveloperDashboard } from './components/DeveloperDashboard';
+import { ShieldDashboard } from './components/ShieldDashboard';
+import { MaliciousWarningPage } from './components/MaliciousWarningPage';
 import { ModeSelectorModal } from './components/ModeSelectorModal';
 import { useTheme } from './hooks/useTheme';
 import { useBrowserMode, applyDistractionReduction } from './hooks/useBrowserMode';
@@ -1123,6 +1125,10 @@ export const App: React.FC = () => {
     activeTab?.url === 'nexus://permissions' || activeTab?.url?.startsWith('nexus://permissions');
   const isDevDashboard =
     activeTab?.url === 'nexus://dev' || activeTab?.url?.startsWith('nexus://dev');
+  const isShieldPage =
+    activeTab?.url === 'nexus://shield' || activeTab?.url?.startsWith('nexus://shield');
+  const isWarningPage =
+    activeTab?.url === 'nexus://warning' || activeTab?.url?.startsWith('nexus://warning');
 
   return (
     <div className="nexus-app">
@@ -1314,6 +1320,21 @@ export const App: React.FC = () => {
 
           {isPermissionsPage && (
             <PermissionsPage onNavigate={handleNavigate} />
+          )}
+
+          {isShieldPage && (
+            <ShieldDashboard
+              onNavigate={handleNavigate}
+              onOpenClearDataModal={() => setIsClearDataModalOpen(true)}
+            />
+          )}
+
+          {isWarningPage && (
+            <MaliciousWarningPage
+              url={activeTab?.url || ''}
+              onNavigate={handleNavigate}
+              onGoBack={handleGoBack}
+            />
           )}
 
           {isDevDashboard && (

@@ -25,7 +25,8 @@
     "test:modes-qa": "esbuild test/verify-modes-integration-qa.ts --platform=node --target=node20 --bundle --outfile=dist/test-modes-qa.js --external:electron && electron --no-sandbox --disable-gpu dist/test-modes-qa.js 2>/dev/null && rm -f dist/test-modes-qa.js",
     "test:control-panel": "esbuild test/verify-mode-control-panel.ts --platform=node --target=node20 --bundle --outfile=dist/test-panel.js && node dist/test-panel.js && rm -f dist/test-panel.js",
     "test:visual": "esbuild test/verify-modes-runtime.ts --platform=node --target=node20 --bundle --outfile=dist/test-runtime.js --external:electron && electron --no-sandbox --disable-gpu dist/test-runtime.js 2>/dev/null && rm -f dist/test-runtime.js",
-    "test": "npm run test:engine && npm run test:commands && npm run test:workspaces && npm run test:extensions && npm run test:library && npm run test:privacy-security && npm run test:devtools && npm run test:qa && npm run test:modes && npm run test:modes-qa && npm run test:control-panel && npm run test:visual",
+    "test:shield": "esbuild test/verify-shield-protection.ts --platform=node --target=node20 --bundle --outfile=dist/test-shield.js --external:electron && electron --no-sandbox --disable-gpu dist/test-shield.js 2>/dev/null && rm -f dist/test-shield.js",
+    "test": "npm run test:engine && npm run test:commands && npm run test:workspaces && npm run test:extensions && npm run test:library && npm run test:privacy-security && npm run test:shield && npm run test:devtools && npm run test:qa && npm run test:modes && npm run test:modes-qa && npm run test:control-panel && npm run test:visual",
     "package": "npm run build && electron-builder --linux AppImage",
     "package:dir": "npm run build && electron-builder --linux --dir",
     "package:all": "npm run build && electron-builder"

@@ -10,6 +10,7 @@ import { ProfileManager } from './profile-manager';
 import { PermissionManager } from './permission-manager';
 import { SecurityManager } from './security-manager';
 import { TrackingProtection } from './tracking-protection';
+import { ShieldEngine } from './shield-engine';
 import { NetworkMonitor } from './network-monitor';
 import { ZoomManager } from './zoom-manager';
 import { DeveloperToolsManager } from './developer-tools-manager';
@@ -34,6 +35,7 @@ let profileManager: ProfileManager | null = null;
 let permissionManager: PermissionManager | null = null;
 let securityManager: SecurityManager | null = null;
 let trackingProtection: TrackingProtection | null = null;
+let shieldEngine: ShieldEngine | null = null;
 let networkMonitor: NetworkMonitor | null = null;
 let zoomManager: ZoomManager | null = null;
 let developerToolsManager: DeveloperToolsManager | null = null;
@@ -61,10 +63,13 @@ function createWindow() {
   profileManager = new ProfileManager();
   permissionManager = new PermissionManager(undefined, mainWindow);
   securityManager = new SecurityManager(mainWindow);
-  trackingProtection = new TrackingProtection(mainWindow);
 
   const activeProfile = profileManager.getActiveProfile();
   const profilePaths = profileManager.getProfileDataPaths(activeProfile.id);
+
+  const storageDir = profilePaths.downloads ? path.dirname(profilePaths.downloads) : undefined;
+  shieldEngine = new ShieldEngine(mainWindow, storageDir);
+  trackingProtection = shieldEngine as any;
 
   bookmarksStore = new BookmarksStore(profilePaths.bookmarks);
   tabManager = new TabManager(mainWindow);
@@ -72,6 +77,7 @@ function createWindow() {
   tabManager.setProfileManager(profileManager);
   tabManager.setPermissionManager(permissionManager);
   tabManager.setSecurityManager(securityManager);
+  tabManager.setShieldEngine(shieldEngine);
   tabManager.setTrackingProtection(trackingProtection);
 
   networkMonitor = new NetworkMonitor(mainWindow);
@@ -543,9 +549,10 @@ function registerIpcHandlers() {
     );
   });
 
-  // Tracking Protection
+  // Tracking Protection (Legacy compatibility)
   ipcMain.handle('tracking:getSettings', () => {
     return (
+      shieldEngine?.getTrackingSettings() ??
       trackingProtection?.getSettings() ?? {
         mode: 'standard',
         totalBlocked: 0,
@@ -555,11 +562,60 @@ function registerIpcHandlers() {
   });
 
   ipcMain.handle('tracking:setMode', (_event, mode: TrackingProtectionMode) => {
+    shieldEngine?.setTrackingMode(mode);
     trackingProtection?.setMode(mode);
   });
 
   ipcMain.handle('tracking:toggleException', (_event, origin: string) => {
-    return trackingProtection?.toggleException(origin) ?? false;
+    return shieldEngine?.toggleException(origin) ?? trackingProtection?.toggleException(origin) ?? false;
+  });
+
+  // NEXUS Shield
+  ipcMain.handle('shield:getSettings', () => {
+    return shieldEngine?.getSettings();
+  });
+
+  ipcMain.handle('shield:updateSettings', (_event, partial) => {
+    return shieldEngine?.updateSettings(partial);
+  });
+
+  ipcMain.handle('shield:getStats', () => {
+    return shieldEngine?.getStats();
+  });
+
+  ipcMain.handle('shield:getTabStats', (_event, tabId?: string) => {
+    const targetTabId = tabId || tabManager?.getActiveTabId() || undefined;
+    return shieldEngine?.getTabStats(targetTabId);
+  });
+
+  ipcMain.handle('shield:toggleSite', (_event, origin: string) => {
+    return shieldEngine?.toggleSiteAllowlist(origin) ?? false;
+  });
+
+  ipcMain.handle('shield:pauseTemporarily', (_event, durationMinutes: number) => {
+    return shieldEngine?.pauseTemporarily(durationMinutes) ?? 0;
+  });
+
+  ipcMain.handle('shield:resume', () => {
+    shieldEngine?.resume();
+  });
+
+  ipcMain.handle('shield:updateFilterLists', async () => {
+    return (
+      (await shieldEngine?.updateFilterLists()) ?? {
+        success: false,
+        updatedCount: 0,
+        errors: [],
+      }
+    );
+  });
+
+  ipcMain.handle('shield:resetStats', () => {
+    shieldEngine?.resetStats();
+  });
+
+  ipcMain.handle('shield:allowThreatBypass', (_event, originOrUrl: string) => {
+    shieldEngine?.allowThreatBypass(originOrUrl);
   });
 
   // Developer Tools

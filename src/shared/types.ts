@@ -246,6 +246,12 @@ export interface BrowserSettings {
   javascriptEnabled?: boolean;
   popupsBlocked?: boolean;
   thirdPartyCookiesBlocked?: boolean;
+  shieldEnabled?: boolean;
+  shieldAdBlocking?: boolean;
+  shieldTrackerBlocking?: boolean;
+  shieldPopupBlocking?: boolean;
+  shieldPhishingProtection?: boolean;
+  shieldStrictMode?: boolean;
   performanceTabDiscardTimeout?: number;
   performanceAutoSuspend?: boolean;
   performanceBackgroundThrottling?: boolean;
@@ -253,6 +259,55 @@ export interface BrowserSettings {
   performanceLightweightUI?: boolean;
   balancedDistractionReduction?: boolean;
   balancedMinimalToolbar?: boolean;
+}
+
+// NEXUS Shield Types
+export type ThreatType = 'phishing' | 'malware' | 'scam' | 'deceptive';
+
+export interface ShieldFilterList {
+  id: string;
+  name: string;
+  description: string;
+  url: string;
+  enabled: boolean;
+  ruleCount: number;
+  lastUpdated: number;
+  format?: 'adblock' | 'hosts' | 'domains';
+}
+
+export interface NexusShieldSettings {
+  enabled: boolean;
+  adBlockingEnabled: boolean;
+  trackerBlockingEnabled: boolean;
+  popupBlockingEnabled: boolean;
+  phishingProtectionEnabled: boolean;
+  strictMode: boolean;
+  filterLists: ShieldFilterList[];
+  allowlist: string[]; // origins where Shield is disabled
+  popupAllowlist: string[]; // origins allowed to open popups
+  temporaryPauseUntil: number | null; // timestamp when pause expires
+}
+
+export interface TabShieldStats {
+  tabId: string;
+  url: string;
+  origin: string;
+  adsBlocked: number;
+  trackersBlocked: number;
+  popupsBlocked: number;
+  threatsBlocked: number;
+  totalBlocked: number;
+  isAllowlisted: boolean;
+  isPaused: boolean;
+}
+
+export interface NexusShieldStats {
+  totalAdsBlocked: number;
+  totalTrackersBlocked: number;
+  totalPopupsBlocked: number;
+  totalThreatsBlocked: number;
+  totalBlocked: number;
+  lastUpdated: number;
 }
 
 export interface SystemInfo {
@@ -577,6 +632,18 @@ export interface NexusAPI {
   updateModeConfig: (config: Partial<ModeBehaviorConfig>) => Promise<ModeBehaviorConfig | undefined>;
   restoreModeDefaults: () => Promise<ModeBehaviorConfig | undefined>;
 
+  // NEXUS Shield
+  getShieldSettings: () => Promise<NexusShieldSettings>;
+  updateShieldSettings: (settings: Partial<NexusShieldSettings>) => Promise<NexusShieldSettings>;
+  getShieldStats: () => Promise<NexusShieldStats>;
+  getTabShieldStats: (tabId?: string) => Promise<TabShieldStats>;
+  toggleShieldSite: (origin: string) => Promise<boolean>;
+  pauseShieldTemporarily: (durationMinutes: number) => Promise<number>;
+  resumeShield: () => Promise<void>;
+  updateShieldFilterLists: () => Promise<{ success: boolean; updatedCount: number; errors: string[] }>;
+  resetShieldStats: () => Promise<void>;
+  allowThreatBypass: (originOrUrl: string) => Promise<void>;
+
   // Event Listeners
   onTabsUpdated: (callback: (tabs: TabState[], activeTabId: string) => void) => () => void;
   onWindowMaximizedChange: (callback: (isMaximized: boolean) => void) => () => void;
@@ -587,6 +654,9 @@ export interface NexusAPI {
   onProfileSwitched: (callback: (profile: UserProfile) => void) => () => void;
   onPermissionPrompt: (callback: (prompt: PermissionPromptRequest) => void) => () => void;
   onTrackingStatsUpdated: (callback: (stats: { totalBlocked: number }) => void) => () => void;
+  onShieldStatsUpdated: (callback: (stats: NexusShieldStats) => void) => () => void;
+  onTabShieldStatsUpdated: (callback: (tabStats: TabShieldStats) => void) => () => void;
+  onShieldPopupBlocked: (callback: (data: { tabId: string; url: string; origin: string }) => void) => () => void;
   onNetworkActivity: (callback: (entry: NetworkLogEntry) => void) => () => void;
   onModeChanged: (callback: (mode: NexusBrowserMode) => void) => () => void;
   onTelemetryUpdated: (callback: (telemetry: ModeTelemetry) => void) => () => void;

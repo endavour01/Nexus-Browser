@@ -315,11 +315,54 @@ export class DownloadManager {
     return false;
   }
 
-  public async openFile(id: string): Promise<boolean> {
+  public isExecutableFile(filePath: string): boolean {
+    const dangerousExtensions = [
+      '.exe',
+      '.bat',
+      '.cmd',
+      '.sh',
+      '.appimage',
+      '.bin',
+      '.msi',
+      '.vbs',
+      '.scr',
+      '.com',
+      '.ps1',
+      '.jar',
+    ];
+    const ext = path.extname(filePath).toLowerCase();
+    return dangerousExtensions.includes(ext);
+  }
+
+  public async openFile(id: string, bypassWarning: boolean = false): Promise<boolean> {
     const record = this.records.get(id);
     if (!record || !record.savePath || !fs.existsSync(record.savePath)) {
       return false;
     }
+
+    // Safety guard: Executable files require explicit user confirmation
+    if (this.isExecutableFile(record.savePath) && !bypassWarning) {
+      if (this.mainWindow && !this.mainWindow.isDestroyed()) {
+        const choice = await dialog.showMessageBox(this.mainWindow, {
+          type: 'warning',
+          title: 'Security Warning: Executable File',
+          message: `"${record.filename}" is an executable file.`,
+          detail:
+            'Running unknown downloaded executable files can harm your computer. Make sure you trust the source before proceeding.',
+          buttons: ['Cancel (Recommended)', 'Open Anyway'],
+          defaultId: 0,
+          cancelId: 0,
+        });
+
+        if (choice.response !== 1) {
+          return false;
+        }
+      } else {
+        // If headless/no window, disallow unconfirmed execution
+        return false;
+      }
+    }
+
     try {
       const err = await shell.openPath(record.savePath);
       return !err;

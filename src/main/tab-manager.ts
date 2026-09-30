@@ -6,6 +6,7 @@ import { ProfileManager } from './profile-manager';
 import { PermissionManager } from './permission-manager';
 import { SecurityManager } from './security-manager';
 import { TrackingProtection } from './tracking-protection';
+import { ShieldEngine } from './shield-engine';
 import { ZoomManager } from './zoom-manager';
 import { NetworkMonitor } from './network-monitor';
 import type { DownloadManager } from './download-manager';
@@ -56,6 +57,8 @@ export class TabManager {
   private permissionManager?: PermissionManager;
   private securityManager?: SecurityManager;
   private trackingProtection?: TrackingProtection;
+  private shieldEngine?: ShieldEngine;
+  private redirectCounters: Map<string, number> = new Map();
   private zoomManager?: ZoomManager;
   private networkMonitor?: NetworkMonitor;
   private downloadManager?: DownloadManager;
@@ -96,8 +99,17 @@ export class TabManager {
     return this.securityManager;
   }
 
-  public setTrackingProtection(tp: TrackingProtection) {
-    this.trackingProtection = tp;
+  public setShieldEngine(se: ShieldEngine) {
+    this.shieldEngine = se;
+    this.trackingProtection = se as any;
+  }
+  public getShieldEngine(): ShieldEngine | undefined {
+    return this.shieldEngine;
+  }
+
+  public setTrackingProtection(tp?: TrackingProtection | null) {
+    this.trackingProtection = tp || undefined;
+    if (tp) this.shieldEngine = tp;
   }
   public getTrackingProtection(): TrackingProtection | undefined {
     return this.trackingProtection;
@@ -410,10 +422,10 @@ export class TabManager {
     if (this.securityManager) {
       this.securityManager.attachToSession(tabSession);
     }
-    if (this.trackingProtection) {
-      this.trackingProtection.attachToSession(tabSession);
-    }
-    if (this.networkMonitor) {
+    const shield = this.shieldEngine || (this.trackingProtection as any);
+    if (shield) {
+      shield.attachToSession(tabSession, this.networkMonitor);
+    } else if (this.networkMonitor) {
       this.networkMonitor.attachToSession(tabSession);
     }
 
@@ -445,12 +457,34 @@ export class TabManager {
       this.securityManager.attachToWebContents(wc);
     }
 
-    // Security: Block unsafe protocols on will-navigate
+    const currentShield = this.shieldEngine || (this.trackingProtection as any);
+    if (currentShield) {
+      currentShield.registerTab(tab.id, wc.id, tab.url);
+    }
+
+    // Security: Block unsafe protocols and check phishing on will-navigate
     wc.on('will-navigate', (event, destinationUrl) => {
       if (this.isUnsafeProtocol(destinationUrl)) {
         console.warn(`[NEXUS Security] Blocked unsafe navigation to: ${destinationUrl}`);
         event.preventDefault();
         return;
+      }
+
+      // NEXUS Shield: Phishing & Malicious Destination Defense
+      if (currentShield && !destinationUrl.startsWith('nexus://')) {
+        const settings = currentShield.getSettings();
+        if (settings?.enabled && settings?.phishingProtectionEnabled && !currentShield.isPaused()) {
+          if (!currentShield.isThreatBypassed(destinationUrl)) {
+            const check = currentShield.checkMaliciousUrl(destinationUrl);
+            if (check.isMalicious) {
+              event.preventDefault();
+              currentShield.recordBlockedThreat(tab.id);
+              const warningUrl = `nexus://warning?url=${encodeURIComponent(destinationUrl)}&threat=${encodeURIComponent(check.threat || 'malware')}&reason=${encodeURIComponent(check.reason || '')}`;
+              this.navigate(tab.id, warningUrl);
+              return;
+            }
+          }
+        }
       }
     });
 
@@ -458,6 +492,16 @@ export class TabManager {
       if (this.isUnsafeProtocol(destinationUrl)) {
         console.warn(`[NEXUS Security] Blocked unsafe redirect to: ${destinationUrl}`);
         _event.preventDefault();
+      }
+    });
+
+    wc.on('did-redirect-navigation', (_event, destinationUrl, isInPlace, isMainFrame) => {
+      if (isMainFrame) {
+        const count = (this.redirectCounters.get(tab.id) || 0) + 1;
+        this.redirectCounters.set(tab.id, count);
+        if (count > 10) {
+          console.warn(`[NEXUS Shield] Excessive redirect chain detected (${count} redirects) for tab ${tab.id}`);
+        }
       }
     });
 
@@ -634,10 +678,38 @@ export class TabManager {
       }
     });
 
-    // Handle target="_blank" window.open requests
+    // Handle target="_blank" window.open requests & block unsolicited pop-ups
     wc.setWindowOpenHandler((details) => {
-      if (this.isValidProtocol(details.url)) {
-        this.createTab(details.url, true, tab.workspaceId, tab.isPrivate);
+      const shield = this.shieldEngine || (this.trackingProtection as any);
+      const targetUrl = details.url;
+      const targetOrigin = shield?.normalizeOrigin(targetUrl) || '';
+      const currentOrigin = tab.url ? shield?.normalizeOrigin(tab.url) : '';
+
+      const settings = shield?.getSettings();
+      const popupProtectionEnabled =
+        settings?.enabled && settings?.popupBlockingEnabled && !shield?.isPaused();
+      const isCurrentOriginAllowlisted = currentOrigin
+        ? shield?.isPopupAllowlisted(currentOrigin) || shield?.isSiteAllowlisted(currentOrigin)
+        : false;
+      const isTargetOriginAllowlisted = targetOrigin
+        ? shield?.isPopupAllowlisted(targetOrigin) || shield?.isSiteAllowlisted(targetOrigin)
+        : false;
+
+      const isKnownPopupAd = shield ? shield.isPopupUrl(targetUrl) || shield.isAdUrl(targetUrl) : false;
+      const isUnsolicited =
+        isKnownPopupAd ||
+        (popupProtectionEnabled &&
+          !isCurrentOriginAllowlisted &&
+          !isTargetOriginAllowlisted &&
+          details.disposition === 'new-window');
+
+      if (popupProtectionEnabled && isUnsolicited) {
+        shield?.recordBlockedPopup(tab.id, targetUrl, currentOrigin || targetOrigin);
+        return { action: 'deny' };
+      }
+
+      if (this.isValidProtocol(targetUrl)) {
+        this.createTab(targetUrl, true, tab.workspaceId, tab.isPrivate);
       }
       return { action: 'deny' };
     });
@@ -678,6 +750,8 @@ export class TabManager {
     else if (url === 'nexus://history') initialTitle = 'History';
     else if (url === 'nexus://downloads') initialTitle = 'Downloads';
     else if (url === 'nexus://permissions') initialTitle = 'Site Permissions';
+    else if (url === 'nexus://shield' || url.startsWith('nexus://shield')) initialTitle = 'NEXUS Shield';
+    else if (url === 'nexus://warning' || url.startsWith('nexus://warning')) initialTitle = 'Security Warning';
     else if (!isInternalPage) initialTitle = 'Loading...';
 
     const tab: ManagedTab = {
@@ -708,6 +782,29 @@ export class TabManager {
     if (!isInternalPage) {
       const formatted = this.formatUrl(url);
       tab.url = formatted;
+
+      const shield = this.shieldEngine || (this.trackingProtection as any);
+      if (shield && !formatted.startsWith('nexus://')) {
+        const settings = shield.getSettings();
+        if (settings?.enabled && settings?.phishingProtectionEnabled && !shield.isPaused()) {
+          if (!shield.isThreatBypassed(formatted)) {
+            const check = shield.checkMaliciousUrl(formatted);
+            if (check.isMalicious) {
+              shield.recordBlockedThreat(id);
+              const warningUrl = `nexus://warning?url=${encodeURIComponent(formatted)}&threat=${encodeURIComponent(check.threat || 'malware')}&reason=${encodeURIComponent(check.reason || '')}`;
+              tab.url = warningUrl;
+              tab.title = 'Security Warning';
+              if (makeActive) {
+                this.switchTab(id);
+              } else {
+                this.notifyTabsUpdated();
+              }
+              return id;
+            }
+          }
+        }
+      }
+
       if (makeActive) {
         this.startTabLoad(tab, formatted);
       }
@@ -950,9 +1047,14 @@ export class TabManager {
       } catch (e) {}
     }
     try {
+      const shield = this.shieldEngine || (this.trackingProtection as any);
       if (tab.view?.webContents) {
-        this.trackingProtection?.resetTabCounter(tab.view.webContents.id);
+        shield?.resetTabCounter(tab.view.webContents.id);
+        shield?.unregisterTab(id, tab.view.webContents.id);
+      } else {
+        shield?.unregisterTab(id);
       }
+      this.redirectCounters.delete(id);
     } catch (e) {}
 
     try {
@@ -1026,6 +1128,10 @@ export class TabManager {
         tab.title = 'Downloads';
       } else if (formatted === 'nexus://permissions') {
         tab.title = 'Site Permissions';
+      } else if (formatted === 'nexus://shield' || formatted.startsWith('nexus://shield')) {
+        tab.title = 'NEXUS Shield';
+      } else if (formatted === 'nexus://warning' || formatted.startsWith('nexus://warning')) {
+        tab.title = 'Security Warning';
       } else {
         tab.title = 'New Tab';
       }
@@ -1038,6 +1144,23 @@ export class TabManager {
       } catch (e) {}
       this.notifyTabsUpdated();
       return;
+    }
+
+    // NEXUS Shield: Phishing & Malicious Destination Defense
+    const shield = this.shieldEngine || (this.trackingProtection as any);
+    if (shield && !formatted.startsWith('nexus://')) {
+      const settings = shield.getSettings();
+      if (settings?.enabled && settings?.phishingProtectionEnabled && !shield.isPaused()) {
+        if (!shield.isThreatBypassed(formatted)) {
+          const check = shield.checkMaliciousUrl(formatted);
+          if (check.isMalicious) {
+            shield.recordBlockedThreat(id);
+            const warningUrl = `nexus://warning?url=${encodeURIComponent(formatted)}&threat=${encodeURIComponent(check.threat || 'malware')}&reason=${encodeURIComponent(check.reason || '')}`;
+            this.navigate(id, warningUrl);
+            return;
+          }
+        }
+      }
     }
 
     try {

@@ -256,6 +256,47 @@ const api: NexusAPI = {
       ipcRenderer.removeListener('modes:telemetry', handler);
     };
   },
+  // NEXUS Shield
+  getShieldSettings: () => ipcRenderer.invoke('shield:getSettings'),
+  updateShieldSettings: (settings: any) => ipcRenderer.invoke('shield:updateSettings', settings),
+  getShieldStats: () => ipcRenderer.invoke('shield:getStats'),
+  getTabShieldStats: (tabId?: string) => ipcRenderer.invoke('shield:getTabStats', tabId),
+  toggleShieldSite: (origin: string) => ipcRenderer.invoke('shield:toggleSite', origin),
+  pauseShieldTemporarily: (durationMinutes: number) => ipcRenderer.invoke('shield:pauseTemporarily', durationMinutes),
+  resumeShield: () => ipcRenderer.invoke('shield:resume'),
+  updateShieldFilterLists: () => ipcRenderer.invoke('shield:updateFilterLists'),
+  resetShieldStats: () => ipcRenderer.invoke('shield:resetStats'),
+  allowThreatBypass: (originOrUrl: string) => ipcRenderer.invoke('shield:allowThreatBypass', originOrUrl),
+
+  onShieldStatsUpdated: (callback: (stats: any) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, stats: any) => {
+      callback(stats);
+    };
+    ipcRenderer.on('shield:statsUpdated', handler);
+    return () => {
+      ipcRenderer.removeListener('shield:statsUpdated', handler);
+    };
+  },
+
+  onTabShieldStatsUpdated: (callback: (tabStats: any) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, tabStats: any) => {
+      callback(tabStats);
+    };
+    ipcRenderer.on('shield:tabStatsUpdated', handler);
+    return () => {
+      ipcRenderer.removeListener('shield:tabStatsUpdated', handler);
+    };
+  },
+
+  onShieldPopupBlocked: (callback: (data: any) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: any) => {
+      callback(data);
+    };
+    ipcRenderer.on('shield:popupBlocked', handler);
+    return () => {
+      ipcRenderer.removeListener('shield:popupBlocked', handler);
+    };
+  },
 };
 
 contextBridge.exposeInMainWorld('nexusAPI', api);

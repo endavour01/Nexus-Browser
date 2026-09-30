@@ -16,8 +16,11 @@ import {
   Compass,
   Sun,
   Zap,
+  Shield,
 } from 'lucide-react';
 import { ModePopover } from './ModePopover';
+import { ShieldPopover } from './ShieldPopover';
+import { TabShieldStats } from '@shared/types';
 
 interface NavigationBarProps {
   activeTab: TabState | null;
@@ -58,7 +61,35 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
   const [isFocused, setIsFocused] = useState(false);
   const [copied, setCopied] = useState(false);
   const [isModePopoverOpen, setIsModePopoverOpen] = useState(false);
+  const [isShieldPopoverOpen, setIsShieldPopoverOpen] = useState(false);
+  const [tabShieldStats, setTabShieldStats] = useState<TabShieldStats | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Load and listen for Shield telemetry for active tab
+  useEffect(() => {
+    let mounted = true;
+    if (activeTab?.id) {
+      window.nexusAPI
+        .getTabShieldStats(activeTab.id)
+        .then((stats) => {
+          if (mounted) setTabShieldStats(stats);
+        })
+        .catch(() => {});
+    }
+
+    const unsub = window.nexusAPI.onTabShieldStatsUpdated((stats) => {
+      if (mounted && stats.tabId === activeTab?.id) {
+        setTabShieldStats(stats);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      unsub();
+    };
+  }, [activeTab?.id, activeTab?.url]);
+
+  const totalBlockedOnTab = tabShieldStats ? tabShieldStats.totalBlocked : 0;
 
   // Focus and select all text when focusOmniboxTrigger changes
   useEffect(() => {
@@ -207,6 +238,46 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
               <X size={13} />
             </button>
           )}
+
+          {/* Shield Popover Anchor & Button */}
+          <div className="shield-popover-anchor">
+            <button
+              type="button"
+              className={`omnibox-action-btn shield-btn ${isShieldPopoverOpen ? 'active' : ''} ${
+                totalBlockedOnTab > 0 ? 'has-blocks' : ''
+              }`}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setIsShieldPopoverOpen((prev) => !prev);
+              }}
+              title={`NEXUS Shield: ${
+                totalBlockedOnTab > 0
+                  ? `${totalBlockedOnTab} items blocked on this page`
+                  : 'Privacy & Security Protection'
+              }`}
+            >
+              <Shield size={13} className={totalBlockedOnTab > 0 ? 'text-accent' : ''} />
+              {totalBlockedOnTab > 0 && (
+                <span className="shield-nav-badge">
+                  {totalBlockedOnTab > 99 ? '99+' : totalBlockedOnTab}
+                </span>
+              )}
+            </button>
+
+            {isShieldPopoverOpen && (
+              <ShieldPopover
+                isOpen={isShieldPopoverOpen}
+                onClose={() => setIsShieldPopoverOpen(false)}
+                currentUrl={activeTab?.url || ''}
+                activeTabId={activeTab?.id}
+                onOpenDashboard={() => {
+                  setIsShieldPopoverOpen(false);
+                  onNavigate('nexus://shield');
+                }}
+              />
+            )}
+          </div>
 
           {isWebPage && (
             <>
