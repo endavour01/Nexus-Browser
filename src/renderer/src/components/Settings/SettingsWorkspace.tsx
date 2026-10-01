@@ -622,6 +622,21 @@ export const SettingsWorkspace: React.FC<SettingsWorkspaceProps> = ({
                   <label className="flex items-center justify-between cursor-pointer py-1.5 border-b border-subtle/50">
                     <div>
                       <div className="text-xs font-medium text-primary flex items-center gap-1.5">
+                        <MessageSquare size={13} className="text-indigo-400" />
+                        <span>NEXUS Connect</span>
+                      </div>
+                      <div className="text-3xs text-secondary">Communication, messaging & productivity web app launcher (nexus://connect)</div>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={settings.connectEnabled ?? true}
+                      onChange={(e) => handleSettingChange({ connectEnabled: e.target.checked }, 'Connect')}
+                    />
+                  </label>
+
+                  <label className="flex items-center justify-between cursor-pointer py-1.5 border-b border-subtle/50">
+                    <div>
+                      <div className="text-xs font-medium text-primary flex items-center gap-1.5">
                         <CheckSquare size={13} className="text-emerald-400" />
                         <span>NEXUS Todo</span>
                       </div>

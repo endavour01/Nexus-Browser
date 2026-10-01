@@ -11630,6 +11630,32 @@
   outline-offset: 1px;
 }
 
+/* Keep Hub text actions from inheriting the browser's default white button face. */
+.hub-workspace-container button:not([class*="nexus-btn"]):not([class*="nexus-icon-btn"]) {
+  appearance: none;
+  min-height: 30px;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: inherit;
+  line-height: 1.35;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.hub-workspace-container button:not([class*="nexus-btn"]):not([class*="nexus-icon-btn"]):hover:not(:disabled) {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+
+.hub-workspace-container button:not([class*="nexus-btn"]):not([class*="nexus-icon-btn"]):disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* --------------------------------------------------------------------------
    Todo Workspace
    -------------------------------------------------------------------------- */
@@ -11922,3 +11948,80 @@
     animation: none !important;
   }
 }
+
+/* ==========================================================================
+   NEXUS CONNECT & WORKSPACE INTEGRATIONS
+   ========================================================================== */
+.connect-workspace-container {
+  min-height: 100%;
+}
+
+.connect-app-card {
+  position: relative;
+  transition: all 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.connect-app-card:hover {
+  transform: translateY(-1px);
+}
+
+/* Category Specific Accents */
+.connect-app-chill {
+  border-left: 2px solid rgba(139, 92, 246, 0.4);
+}
+
+.connect-app-work {
+  border-left: 2px solid rgba(59, 130, 246, 0.4);
+}
+
+.connect-app-create {
+  border-left: 2px solid rgba(16, 185, 129, 0.4);
+}
+
+.connect-app-custom {
+  border-left: 2px solid rgba(245, 158, 11, 0.4);
+}
+
+/* --------------------------------------------------------------------------
+   CONNECT & HUB WORKSPACE MODE OVERRIDES
+   -------------------------------------------------------------------------- */
+/* Balanced Mode: Organization & subtle productivity elevation */
+:root[data-mode='balanced'] .connect-workspace-container,
+:root[data-mode='balanced'] .hub-workspace-container,
+:root[data-mode='balanced'] .todo-workspace-container {
+  box-shadow: inset 0 1px 0 rgba(59, 130, 246, 0.08);
+}
+
+:root[data-mode='balanced'] .connect-app-card:hover {
+  border-color: rgba(99, 102, 241, 0.45);
+}
+
+/* Performance Mode: Zero blurs, no transitions, flat styling */
+:root[data-mode='performance'] .connect-workspace-container,
+:root[data-mode='performance'] .hub-workspace-container,
+:root[data-mode='performance'] .todo-workspace-container,
+:root[data-mode='performance'] .connect-app-card,
+:root[data-mode='performance'] .todo-item-card,
+:root[data-mode='performance'] .hub-card {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  transition: none !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+:root[data-mode='performance'] .connect-app-card:hover {
+  transform: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .connect-workspace-container *,
+  .hub-workspace-container *,
+  .todo-workspace-container *,
+  .connect-app-card {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+}
+

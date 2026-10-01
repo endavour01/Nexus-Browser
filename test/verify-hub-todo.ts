@@ -231,8 +231,8 @@ async function runHubTodoTestSuite() {
     console.log('\n[SUITE 5: HUB PREFERENCES & SHORTCUTS]');
 
     const initialPrefs = manager.getHubPreferences();
-    if (!initialPrefs.cardOrder || initialPrefs.cardOrder.length !== 7) {
-      throw new Error(`Expected 7 default hub cards, found ${initialPrefs.cardOrder?.length}`);
+    if (!initialPrefs.cardOrder || initialPrefs.cardOrder.length !== 8) {
+      throw new Error(`Expected 8 default hub cards, found ${initialPrefs.cardOrder?.length}`);
     }
     console.log(`    ✓ Default hub preferences loaded with ${initialPrefs.cardOrder.length} cards`);
 
@@ -240,6 +240,7 @@ async function runHubTodoTestSuite() {
     const newOrder: HubCardId[] = [
       'todos',
       'shortcuts',
+      'connect',
       'tools',
       'notes',
       'watchlists',
@@ -336,6 +337,7 @@ async function runHubTodoTestSuite() {
     console.log('\n[SUITE 7: INTERNAL ROUTING VERIFICATION]');
     const internalRoutes: Record<string, string> = {
       'nexus://hub': 'NEXUS Hub',
+      'nexus://connect': 'NEXUS Connect',
       'nexus://todo': 'NEXUS Todo',
       'nexus://notes': 'NEXUS Notes',
       'nexus://explore': 'NEXUS Explore',

@@ -35,6 +35,7 @@ import {
   CheckSquare,
   FileText,
   Shield,
+  MessageSquare,
 } from 'lucide-react';
 
 export interface CommandPaletteItem {
@@ -389,6 +390,46 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         shortcut: 'Ctrl+H',
         icon: 'LayoutGrid',
         action: () => onNavigate('nexus://hub'),
+      },
+      {
+        id: 'connect-open',
+        title: 'Open Connect',
+        subtitle: 'Launch web communication, messaging, and productivity apps',
+        category: 'Developer & Tools',
+        icon: 'MessageSquare',
+        action: () => onNavigate('nexus://connect'),
+      },
+      {
+        id: 'connect-chill',
+        title: 'Connect: Chill Apps',
+        subtitle: 'Open Discord, Telegram, WhatsApp, Reddit in Connect',
+        category: 'Developer & Tools',
+        icon: 'MessageSquare',
+        action: () => onNavigate('nexus://connect'),
+      },
+      {
+        id: 'connect-work',
+        title: 'Connect: Work Apps',
+        subtitle: 'Open Meet, Slack, Teams, Zoom, Skype in Connect',
+        category: 'Developer & Tools',
+        icon: 'MessageSquare',
+        action: () => onNavigate('nexus://connect'),
+      },
+      {
+        id: 'connect-create',
+        title: 'Connect: Create & Productivity',
+        subtitle: 'Open GitHub, Figma, Notion, Docs in Connect',
+        category: 'Developer & Tools',
+        icon: 'MessageSquare',
+        action: () => onNavigate('nexus://connect'),
+      },
+      {
+        id: 'connect-workspaces',
+        title: 'Connect: App Workspaces',
+        subtitle: 'Launch Study, Work, Chill or custom workspace app groups',
+        category: 'Developer & Tools',
+        icon: 'Layers',
+        action: () => onNavigate('nexus://connect'),
       },
       {
         id: 'todo-open',
@@ -821,6 +862,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       case 'CheckSquare': return <CheckSquare size={15} />;
       case 'FileText': return <FileText size={15} />;
       case 'Shield': return <Shield size={15} />;
+      case 'MessageSquare': return <MessageSquare size={15} />;
       case 'Search': return <Search size={15} />;
       case 'X': return <X size={15} />;
       default: return <Command size={15} />;

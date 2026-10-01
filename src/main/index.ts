@@ -19,6 +19,7 @@ import { NotesManager } from './notes-manager';
 import { IntelligenceManager } from './intelligence-manager';
 import { MarketsManager } from './markets-manager';
 import { TodoManager } from './todo-manager';
+import { ConnectManager } from './connect-manager';
 import { SettingsManager, DEFAULT_BROWSER_SETTINGS } from './settings-manager';
 import { VpnManager } from './vpn-manager';
 import { ClearDataOptions, PermissionType, PermissionDecision, TrackingProtectionMode, NexusBrowserMode, ModeBehaviorConfig, BrowserSettings } from '../shared/types';
@@ -50,6 +51,7 @@ let notesManager: NotesManager | null = null;
 let intelligenceManager: IntelligenceManager | null = null;
 let marketsManager: MarketsManager | null = null;
 let todoManager: TodoManager | null = null;
+let connectManager: ConnectManager | null = null;
 let settingsManager: SettingsManager | null = null;
 const vpnManager = new VpnManager();
 
@@ -108,6 +110,7 @@ function createWindow() {
   intelligenceManager = new IntelligenceManager(storageDir, mainWindow);
   marketsManager = new MarketsManager(storageDir, mainWindow);
   todoManager = new TodoManager(storageDir, mainWindow);
+  connectManager = new ConnectManager(storageDir, mainWindow);
   settingsManager = new SettingsManager(storageDir, mainWindow);
   downloadManager = new DownloadManager(mainWindow, profilePaths.downloads);
   tabManager.setDownloadManager(downloadManager);
@@ -164,6 +167,7 @@ function createWindow() {
     zoomManager = null;
     developerToolsManager = null;
     notesManager = null;
+    connectManager = null;
   });
 }
 
@@ -1032,6 +1036,47 @@ function registerIpcHandlers() {
 
   ipcMain.handle('hub:recordToolUsage', async (_event, toolId: string) => {
     todoManager?.recordToolUsage(toolId);
+  });
+
+  // ==========================================
+  // NEXUS Connect IPC Handlers
+  // ==========================================
+  ipcMain.handle('connect:getApps', async () => {
+    return connectManager?.getApps() ?? [];
+  });
+
+  ipcMain.handle('connect:saveApp', async (_event, app: any) => {
+    if (!connectManager) throw new Error('ConnectManager not initialized');
+    return connectManager.saveApp(app);
+  });
+
+  ipcMain.handle('connect:deleteApp', async (_event, id: string) => {
+    if (!connectManager) throw new Error('ConnectManager not initialized');
+    return connectManager.deleteApp(id);
+  });
+
+  ipcMain.handle('connect:reorderApps', async (_event, appIds: string[]) => {
+    if (!connectManager) throw new Error('ConnectManager not initialized');
+    return connectManager.reorderApps(appIds);
+  });
+
+  ipcMain.handle('connect:resetApps', async () => {
+    if (!connectManager) throw new Error('ConnectManager not initialized');
+    return connectManager.resetDefaultApps();
+  });
+
+  ipcMain.handle('connect:getWorkspaces', async () => {
+    return connectManager?.getWorkspaces() ?? [];
+  });
+
+  ipcMain.handle('connect:saveWorkspace', async (_event, workspace: any) => {
+    if (!connectManager) throw new Error('ConnectManager not initialized');
+    return connectManager.saveWorkspace(workspace);
+  });
+
+  ipcMain.handle('connect:deleteWorkspace', async (_event, id: string) => {
+    if (!connectManager) throw new Error('ConnectManager not initialized');
+    return connectManager.deleteWorkspace(id);
   });
 
   // ==========================================

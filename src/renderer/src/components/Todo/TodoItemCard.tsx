@@ -9,6 +9,9 @@ import {
   Tag,
   AlertCircle,
   Clock,
+  MessageSquare,
+  Layers,
+  FileText,
 } from 'lucide-react';
 
 interface TodoItemCardProps {
@@ -126,8 +129,8 @@ export const TodoItemCard: React.FC<TodoItemCardProps> = ({
             </p>
           )}
 
-          {/* Meta Line: Due Date & Linked Page URL */}
-          <div className="flex flex-wrap items-center gap-3 mt-2 text-2xs">
+          {/* Meta Line: Due Date & Linkages */}
+          <div className="flex flex-wrap items-center gap-2.5 mt-2 text-2xs">
             {dueStatus && (
               <span className={`px-2 py-0.5 rounded border flex items-center gap-1 font-mono ${dueStatus.className}`}>
                 <Calendar size={11} />
@@ -135,6 +138,46 @@ export const TodoItemCard: React.FC<TodoItemCardProps> = ({
               </span>
             )}
 
+            {/* Linked Connect Workspace */}
+            {todo.associatedWorkspaceName && (
+              <button
+                type="button"
+                className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface border border-subtle text-secondary hover:text-accent hover:border-accent/40 transition-colors text-3xs font-mono"
+                onClick={() => onNavigate && onNavigate('nexus://connect')}
+                title={`Linked Workspace: ${todo.associatedWorkspaceName}`}
+              >
+                <Layers size={10} className="text-accent" />
+                <span>{todo.associatedWorkspaceName}</span>
+              </button>
+            )}
+
+            {/* Linked Connect App */}
+            {todo.associatedConnectAppName && (
+              <button
+                type="button"
+                className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20 transition-colors text-3xs font-medium"
+                onClick={() => onNavigate && onNavigate('nexus://connect')}
+                title={`Linked App: ${todo.associatedConnectAppName}`}
+              >
+                <MessageSquare size={10} />
+                <span>{todo.associatedConnectAppName}</span>
+              </button>
+            )}
+
+            {/* Linked Note */}
+            {todo.associatedNoteTitle && (
+              <button
+                type="button"
+                className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-colors text-3xs font-medium"
+                onClick={() => onNavigate && onNavigate('nexus://notes')}
+                title={`Linked Note: ${todo.associatedNoteTitle}`}
+              >
+                <FileText size={10} />
+                <span>{todo.associatedNoteTitle}</span>
+              </button>
+            )}
+
+            {/* Linked URL */}
             {todo.associatedUrl && (
               <button
                 type="button"

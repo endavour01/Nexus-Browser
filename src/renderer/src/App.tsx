@@ -53,7 +53,8 @@ import { NotesPage } from './components/Notes/NotesPage';
 import { IntelligenceModal, IntelligencePage, IntelligenceTab } from './components/Intelligence';
 import { MarketsDashboard } from './components/Markets';
 import { HubWorkspace } from './components/Hub';
-import { TodoWorkspace } from './components/Todo';
+import { TodoWorkspace, TodoPrefill } from './components/Todo';
+import { ConnectWorkspace } from './components/Connect';
 import { SettingsWorkspace } from './components/Settings';
 import { useTheme } from './hooks/useTheme';
 import { useBrowserMode, applyDistractionReduction } from './hooks/useBrowserMode';
@@ -90,6 +91,9 @@ export const App: React.FC = () => {
   const [isIntelligenceModalOpen, setIsIntelligenceModalOpen] = useState(false);
   const [intelligenceModalTab, setIntelligenceModalTab] = useState<IntelligenceTab>('dictionary');
   const [intelligenceInitialText, setIntelligenceInitialText] = useState<string>('');
+
+  // NEXUS Todo integration prefill state
+  const [todoPrefill, setTodoPrefill] = useState<TodoPrefill | null>(null);
 
   // Persistent user data
   const [workspaces, setWorkspaces] = useState<Workspace[]>(() => {
@@ -1213,6 +1217,8 @@ export const App: React.FC = () => {
     activeTab?.url === 'nexus://markets' || activeTab?.url?.startsWith('nexus://markets');
   const isHubPage =
     activeTab?.url === 'nexus://hub' || activeTab?.url?.startsWith('nexus://hub');
+  const isConnectPage =
+    activeTab?.url === 'nexus://connect' || activeTab?.url?.startsWith('nexus://connect');
   const isTodoPage =
     activeTab?.url === 'nexus://todo' || activeTab?.url?.startsWith('nexus://todo');
   const isSettingsPage =
@@ -1481,11 +1487,38 @@ export const App: React.FC = () => {
             />
           )}
 
+          {isConnectPage && (
+            <ConnectWorkspace
+              onNavigate={handleNavigate}
+              onOpenTab={async (url, pinned) => {
+                const tabId = await api?.createTab(url, activeWorkspaceId, false);
+                if (pinned && tabId && api?.pinTab) {
+                  await api.pinTab(tabId);
+                }
+              }}
+              onAddTodo={(app, workspace) => {
+                setTodoPrefill({
+                  title: `Follow up on ${app.name}`,
+                  category: workspace?.name || (app.category === 'chill' ? 'Personal' : 'Work'),
+                  associatedUrl: app.url,
+                  associatedTitle: app.name,
+                  associatedConnectAppId: app.id,
+                  associatedConnectAppName: app.name,
+                  associatedWorkspaceId: workspace?.id,
+                  associatedWorkspaceName: workspace?.name,
+                });
+                handleNavigate('nexus://todo');
+              }}
+            />
+          )}
+
           {isTodoPage && (
             <TodoWorkspace
               onNavigate={handleNavigate}
               currentPageUrl={activeTab?.url}
               currentPageTitle={activeTab?.title}
+              initialPrefill={todoPrefill}
+              onClearPrefill={() => setTodoPrefill(null)}
             />
           )}
 

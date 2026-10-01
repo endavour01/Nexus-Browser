@@ -403,6 +403,25 @@ const api: NexusAPI = {
   updateHubPreferences: (prefs: any) => ipcRenderer.invoke('hub:updatePreferences', prefs),
   recordToolUsage: (toolId: string) => ipcRenderer.invoke('hub:recordToolUsage', toolId),
 
+  // NEXUS Connect Management
+  getConnectApps: () => ipcRenderer.invoke('connect:getApps'),
+  saveConnectApp: (app: any) => ipcRenderer.invoke('connect:saveApp', app),
+  deleteConnectApp: (id: string) => ipcRenderer.invoke('connect:deleteApp', id),
+  reorderConnectApps: (appIds: string[]) => ipcRenderer.invoke('connect:reorderApps', appIds),
+  resetDefaultConnectApps: () => ipcRenderer.invoke('connect:resetApps'),
+  getConnectWorkspaces: () => ipcRenderer.invoke('connect:getWorkspaces'),
+  saveConnectWorkspace: (workspace: any) => ipcRenderer.invoke('connect:saveWorkspace', workspace),
+  deleteConnectWorkspace: (id: string) => ipcRenderer.invoke('connect:deleteWorkspace', id),
+  onConnectUpdated: (callback: (data: any) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: any) => {
+      callback(data);
+    };
+    ipcRenderer.on('connect:updated', handler);
+    return () => {
+      ipcRenderer.removeListener('connect:updated', handler);
+    };
+  },
+
   onMarketsAlertTriggered: (callback: (alert: any) => void) => {
     const handler = (_event: Electron.IpcRendererEvent, data: any) => {
       callback(data);

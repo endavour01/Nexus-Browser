@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { NexusTodo, NexusTodoFilter, TodoPriority } from '@shared/types';
+import {
+  ConnectApp,
+  ConnectWorkspace,
+  NexusNote,
+  NexusTodo,
+  NexusTodoFilter,
+  TodoPriority,
+} from '@shared/types';
 import { TodoItemCard } from './TodoItemCard';
 import {
   CheckSquare,
@@ -16,13 +23,32 @@ import {
   Link,
   ChevronLeft,
   Sparkles,
+  MessageSquare,
+  Layers,
+  FileText,
 } from 'lucide-react';
+
+export interface TodoPrefill {
+  title?: string;
+  description?: string;
+  category?: string;
+  associatedUrl?: string;
+  associatedTitle?: string;
+  associatedConnectAppId?: string;
+  associatedConnectAppName?: string;
+  associatedWorkspaceId?: string;
+  associatedWorkspaceName?: string;
+  associatedNoteId?: string;
+  associatedNoteTitle?: string;
+}
 
 interface TodoWorkspaceProps {
   onNavigate?: (url: string) => void;
   currentPageUrl?: string;
   currentPageTitle?: string;
   isCompact?: boolean;
+  initialPrefill?: TodoPrefill | null;
+  onClearPrefill?: () => void;
 }
 
 const DEFAULT_CATEGORIES = ['Work', 'Research', 'Reading', 'Personal', 'General'];
@@ -32,11 +58,16 @@ export const TodoWorkspace: React.FC<TodoWorkspaceProps> = ({
   currentPageUrl,
   currentPageTitle,
   isCompact = false,
+  initialPrefill,
+  onClearPrefill,
 }) => {
   const api = window.nexusAPI;
 
   const [todos, setTodos] = useState<NexusTodo[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [connectApps, setConnectApps] = useState<ConnectApp[]>([]);
+  const [connectWorkspaces, setConnectWorkspaces] = useState<ConnectWorkspace[]>([]);
+  const [notes, setNotes] = useState<NexusNote[]>([]);
 
   // Filters & Search
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed'>('all');
@@ -57,6 +88,9 @@ export const TodoWorkspace: React.FC<TodoWorkspaceProps> = ({
   const [formDueDate, setFormDueDate] = useState<string>('');
   const [formUrl, setFormUrl] = useState<string>('');
   const [formUrlTitle, setFormUrlTitle] = useState<string>('');
+  const [formConnectAppId, setFormConnectAppId] = useState<string>('');
+  const [formWorkspaceId, setFormWorkspaceId] = useState<string>('');
+  const [formNoteId, setFormNoteId] = useState<string>('');
 
   const loadTodos = useCallback(async () => {
     if (!api?.getTodos) return;
@@ -74,6 +108,16 @@ export const TodoWorkspace: React.FC<TodoWorkspaceProps> = ({
   useEffect(() => {
     loadTodos();
 
+    if (api?.getConnectApps) {
+      api.getConnectApps().then(setConnectApps).catch(() => {});
+    }
+    if (api?.getConnectWorkspaces) {
+      api.getConnectWorkspaces().then(setConnectWorkspaces).catch(() => {});
+    }
+    if (api?.getNotes) {
+      api.getNotes().then(setNotes).catch(() => {});
+    }
+
     if (api?.onTodosUpdated) {
       const unsubscribe = api.onTodosUpdated((updated) => {
         setTodos(updated);
@@ -82,6 +126,25 @@ export const TodoWorkspace: React.FC<TodoWorkspaceProps> = ({
     }
     return undefined;
   }, [api, loadTodos]);
+
+  // Handle prefill from external workspace e.g. Connect
+  useEffect(() => {
+    if (initialPrefill) {
+      setEditingTodo(null);
+      setFormTitle(initialPrefill.title || '');
+      setFormDescription(initialPrefill.description || '');
+      setFormCategory(initialPrefill.category || 'General');
+      setFormPriority('medium');
+      setFormDueDate('');
+      setFormUrl(initialPrefill.associatedUrl || '');
+      setFormUrlTitle(initialPrefill.associatedTitle || '');
+      setFormConnectAppId(initialPrefill.associatedConnectAppId || '');
+      setFormWorkspaceId(initialPrefill.associatedWorkspaceId || '');
+      setFormNoteId(initialPrefill.associatedNoteId || '');
+      setIsModalOpen(true);
+      if (onClearPrefill) onClearPrefill();
+    }
+  }, [initialPrefill, onClearPrefill]);
 
   // Derived stats
   const activeCount = useMemo(() => todos.filter((t) => !t.completed).length, [todos]);
@@ -177,6 +240,9 @@ export const TodoWorkspace: React.FC<TodoWorkspaceProps> = ({
     setFormDueDate('');
     setFormUrl('');
     setFormUrlTitle('');
+    setFormConnectAppId('');
+    setFormWorkspaceId('');
+    setFormNoteId('');
     setIsModalOpen(true);
   };
 
@@ -190,6 +256,9 @@ export const TodoWorkspace: React.FC<TodoWorkspaceProps> = ({
     setFormDueDate('');
     setFormUrl(currentPageUrl);
     setFormUrlTitle(currentPageTitle || currentPageUrl);
+    setFormConnectAppId('');
+    setFormWorkspaceId('');
+    setFormNoteId('');
     setIsModalOpen(true);
   };
 
@@ -202,6 +271,9 @@ export const TodoWorkspace: React.FC<TodoWorkspaceProps> = ({
     setFormDueDate(todo.dueDate || '');
     setFormUrl(todo.associatedUrl || '');
     setFormUrlTitle(todo.associatedTitle || '');
+    setFormConnectAppId(todo.associatedConnectAppId || '');
+    setFormWorkspaceId(todo.associatedWorkspaceId || '');
+    setFormNoteId(todo.associatedNoteId || '');
     setIsModalOpen(true);
   };
 
@@ -210,6 +282,10 @@ export const TodoWorkspace: React.FC<TodoWorkspaceProps> = ({
     if (!api?.saveTodo || !formTitle.trim()) return;
 
     try {
+      const selectedApp = connectApps.find((a) => a.id === formConnectAppId);
+      const selectedWs = connectWorkspaces.find((w) => w.id === formWorkspaceId);
+      const selectedNote = notes.find((n) => n.id === formNoteId);
+
       const payload: Partial<NexusTodo> & { title: string } = {
         id: editingTodo ? editingTodo.id : undefined,
         title: formTitle.trim(),
@@ -219,6 +295,12 @@ export const TodoWorkspace: React.FC<TodoWorkspaceProps> = ({
         dueDate: formDueDate || undefined,
         associatedUrl: formUrl.trim() || undefined,
         associatedTitle: formUrlTitle.trim() || undefined,
+        associatedConnectAppId: selectedApp?.id,
+        associatedConnectAppName: selectedApp?.name,
+        associatedWorkspaceId: selectedWs?.id,
+        associatedWorkspaceName: selectedWs?.name,
+        associatedNoteId: selectedNote?.id,
+        associatedNoteTitle: selectedNote?.title,
       };
 
       const saved = await api.saveTodo(payload);
@@ -577,6 +659,81 @@ export const TodoWorkspace: React.FC<TodoWorkspaceProps> = ({
                 <p className="text-3xs text-secondary/70">
                   Explicit user linkage only. NEXUS never collects browser history automatically.
                 </p>
+              </div>
+
+              {/* Workspace & App Linkages */}
+              <div className="p-3 bg-surface/50 rounded border border-subtle space-y-3">
+                <div className="text-secondary text-2xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles size={11} className="text-accent" />
+                  <span>NEXUS Workspace & App Linkages (Optional)</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-secondary text-3xs mb-1 font-semibold uppercase tracking-wider flex items-center gap-1">
+                      <MessageSquare size={10} className="text-indigo-400" />
+                      <span>Connect App</span>
+                    </label>
+                    <select
+                      value={formConnectAppId}
+                      onChange={(e) => {
+                        const appId = e.target.value;
+                        setFormConnectAppId(appId);
+                        const app = connectApps.find((a) => a.id === appId);
+                        if (app && !formUrl) {
+                          setFormUrl(app.url);
+                          setFormUrlTitle(app.name);
+                        }
+                      }}
+                      className="nexus-input w-full text-xs"
+                    >
+                      <option value="">None</option>
+                      {connectApps.map((app) => (
+                        <option key={app.id} value={app.id}>
+                          {app.name} ({app.category})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-secondary text-3xs mb-1 font-semibold uppercase tracking-wider flex items-center gap-1">
+                      <Layers size={10} className="text-accent" />
+                      <span>Workspace</span>
+                    </label>
+                    <select
+                      value={formWorkspaceId}
+                      onChange={(e) => setFormWorkspaceId(e.target.value)}
+                      className="nexus-input w-full text-xs"
+                    >
+                      <option value="">None</option>
+                      {connectWorkspaces.map((ws) => (
+                        <option key={ws.id} value={ws.id}>
+                          {ws.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-secondary text-3xs mb-1 font-semibold uppercase tracking-wider flex items-center gap-1">
+                      <FileText size={10} className="text-blue-400" />
+                      <span>NEXUS Note</span>
+                    </label>
+                    <select
+                      value={formNoteId}
+                      onChange={(e) => setFormNoteId(e.target.value)}
+                      className="nexus-input w-full text-xs"
+                    >
+                      <option value="">None</option>
+                      {notes.map((note) => (
+                        <option key={note.id} value={note.id}>
+                          {note.title || 'Untitled Note'}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-subtle">

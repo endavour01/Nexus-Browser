@@ -54,7 +54,7 @@ export const HubCard: React.FC<HubCardProps> = ({
           )}
 
           {/* Reordering & Visibility Controls (visible on hover or focus) */}
-          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ml-1 pl-1 border-l border-subtle">
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-1 pl-1 border-l border-subtle">
             {onMoveUp && (
               <button
                 type="button"

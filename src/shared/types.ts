@@ -287,6 +287,7 @@ export interface BrowserSettings {
   hubEnabled?: boolean;
   devToolsEnabled?: boolean;
   extensionsEnabled?: boolean;
+  connectEnabled?: boolean;
 
   // Notifications
   notificationsEnabled?: boolean;
@@ -1005,6 +1006,12 @@ export interface NexusTodo {
   category: string;
   associatedUrl?: string;
   associatedTitle?: string;
+  associatedNoteId?: string;
+  associatedNoteTitle?: string;
+  associatedConnectAppId?: string;
+  associatedConnectAppName?: string;
+  associatedWorkspaceId?: string;
+  associatedWorkspaceName?: string;
   createdAt: number;
   updatedAt: number;
 }
@@ -1024,7 +1031,8 @@ export type HubCardId =
   | 'downloads'
   | 'todos'
   | 'notes'
-  | 'watchlists';
+  | 'watchlists'
+  | 'connect';
 
 export interface HubShortcut {
   id: string;
@@ -1040,6 +1048,41 @@ export interface HubPreferences {
   customShortcuts: HubShortcut[];
   recentTools: string[];
 }
+
+// ==========================================
+// NEXUS Connect Types
+// ==========================================
+export type ConnectCategory = 'chill' | 'work' | 'create' | string;
+
+export interface ConnectApp {
+  id: string;
+  name: string;
+  url: string;
+  category: ConnectCategory;
+  icon?: string;
+  isFavorite?: boolean;
+  isPinned?: boolean;
+  description?: string;
+  order: number;
+  isCustom?: boolean;
+  createdAt: number;
+  updatedAt?: number;
+}
+
+export interface ConnectWorkspace {
+  id: string;
+  name: string;
+  description?: string;
+  appIds: string[];
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface ConnectState {
+  apps: ConnectApp[];
+  workspaces: ConnectWorkspace[];
+}
+
 
 export interface NexusAPI {
   getVpnStatus: () => Promise<VpnStatus>;
@@ -1257,6 +1300,16 @@ export interface NexusAPI {
   updateHubPreferences: (prefs: Partial<HubPreferences>) => Promise<HubPreferences>;
   recordToolUsage: (toolId: string) => Promise<void>;
 
+  // NEXUS Connect Management
+  getConnectApps: () => Promise<ConnectApp[]>;
+  saveConnectApp: (app: Partial<ConnectApp> & { name: string; url: string }) => Promise<ConnectApp>;
+  deleteConnectApp: (id: string) => Promise<boolean>;
+  reorderConnectApps: (appIds: string[]) => Promise<ConnectApp[]>;
+  resetDefaultConnectApps: () => Promise<ConnectApp[]>;
+  getConnectWorkspaces: () => Promise<ConnectWorkspace[]>;
+  saveConnectWorkspace: (ws: Partial<ConnectWorkspace> & { name: string }) => Promise<ConnectWorkspace>;
+  deleteConnectWorkspace: (id: string) => Promise<boolean>;
+
   // Event Listeners
   onTabsUpdated: (callback: (tabs: TabState[], activeTabId: string) => void) => () => void;
   onWindowMaximizedChange: (callback: (isMaximized: boolean) => void) => () => void;
@@ -1278,6 +1331,7 @@ export interface NexusAPI {
   onSendToNotesRequested: (callback: (data: SendToNotesPayload) => void) => () => void;
   onMarketsAlertTriggered: (callback: (payload: MarketsAlertPayload) => void) => () => void;
   onTodosUpdated: (callback: (todos: NexusTodo[]) => void) => () => void;
+  onConnectUpdated: (callback: (data: { apps: ConnectApp[]; workspaces: ConnectWorkspace[] }) => void) => () => void;
 
   // Central Browser Settings & Feedback
   getBrowserSettings: () => Promise<BrowserSettings>;

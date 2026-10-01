@@ -15,6 +15,7 @@ import {
 const DEFAULT_HUB_PREFERENCES: HubPreferences = {
   cardOrder: [
     'tools',
+    'connect',
     'todos',
     'shortcuts',
     'bookmarks',
@@ -28,7 +29,7 @@ const DEFAULT_HUB_PREFERENCES: HubPreferences = {
     { id: 'sc-2', title: 'Hacker News', url: 'https://news.ycombinator.com', category: 'Tech' },
     { id: 'sc-3', title: 'MDN Web Docs', url: 'https://developer.mozilla.org', category: 'Documentation' },
   ],
-  recentTools: ['notes', 'markets', 'explore', 'shield'],
+  recentTools: ['connect', 'notes', 'markets', 'explore', 'shield'],
 };
 
 // Priority weight for sorting
@@ -192,7 +193,10 @@ export class TodoManager {
             (t.description && t.description.toLowerCase().includes(q)) ||
             t.category.toLowerCase().includes(q) ||
             (t.associatedUrl && t.associatedUrl.toLowerCase().includes(q)) ||
-            (t.associatedTitle && t.associatedTitle.toLowerCase().includes(q))
+            (t.associatedTitle && t.associatedTitle.toLowerCase().includes(q)) ||
+            (t.associatedConnectAppName && t.associatedConnectAppName.toLowerCase().includes(q)) ||
+            (t.associatedWorkspaceName && t.associatedWorkspaceName.toLowerCase().includes(q)) ||
+            (t.associatedNoteTitle && t.associatedNoteTitle.toLowerCase().includes(q))
         );
       }
 
@@ -246,6 +250,12 @@ export class TodoManager {
           category: todo.category ? todo.category.trim() : existing.category || 'General',
           associatedUrl: todo.associatedUrl !== undefined ? todo.associatedUrl : existing.associatedUrl,
           associatedTitle: todo.associatedTitle !== undefined ? todo.associatedTitle : existing.associatedTitle,
+          associatedNoteId: todo.associatedNoteId !== undefined ? todo.associatedNoteId : existing.associatedNoteId,
+          associatedNoteTitle: todo.associatedNoteTitle !== undefined ? todo.associatedNoteTitle : existing.associatedNoteTitle,
+          associatedConnectAppId: todo.associatedConnectAppId !== undefined ? todo.associatedConnectAppId : existing.associatedConnectAppId,
+          associatedConnectAppName: todo.associatedConnectAppName !== undefined ? todo.associatedConnectAppName : existing.associatedConnectAppName,
+          associatedWorkspaceId: todo.associatedWorkspaceId !== undefined ? todo.associatedWorkspaceId : existing.associatedWorkspaceId,
+          associatedWorkspaceName: todo.associatedWorkspaceName !== undefined ? todo.associatedWorkspaceName : existing.associatedWorkspaceName,
           completed: todo.completed !== undefined ? todo.completed : existing.completed,
           completedAt: todo.completed ? (existing.completedAt || now) : undefined,
           updatedAt: now,
@@ -271,6 +281,12 @@ export class TodoManager {
       category: todo.category ? todo.category.trim() : 'General',
       associatedUrl: todo.associatedUrl || undefined,
       associatedTitle: todo.associatedTitle || undefined,
+      associatedNoteId: todo.associatedNoteId || undefined,
+      associatedNoteTitle: todo.associatedNoteTitle || undefined,
+      associatedConnectAppId: todo.associatedConnectAppId || undefined,
+      associatedConnectAppName: todo.associatedConnectAppName || undefined,
+      associatedWorkspaceId: todo.associatedWorkspaceId || undefined,
+      associatedWorkspaceName: todo.associatedWorkspaceName || undefined,
       createdAt: now,
       updatedAt: now,
     };

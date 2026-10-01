@@ -836,6 +836,7 @@ export class TabManager {
     else if (url === 'nexus://permissions') initialTitle = 'Site Permissions';
     else if (url === 'nexus://shield' || url.startsWith('nexus://shield')) initialTitle = 'NEXUS Shield';
     else if (url === 'nexus://hub' || url.startsWith('nexus://hub')) initialTitle = 'NEXUS Hub';
+    else if (url === 'nexus://connect' || url.startsWith('nexus://connect')) initialTitle = 'NEXUS Connect';
     else if (url === 'nexus://todo' || url.startsWith('nexus://todo')) initialTitle = 'NEXUS Todo';
     else if (url === 'nexus://notes' || url.startsWith('nexus://notes')) initialTitle = 'NEXUS Notes';
     else if (url === 'nexus://explore' || url.startsWith('nexus://explore')) initialTitle = 'NEXUS Explore';
@@ -1223,6 +1224,8 @@ export class TabManager {
         tab.title = 'NEXUS Shield';
       } else if (formatted === 'nexus://hub' || formatted.startsWith('nexus://hub')) {
         tab.title = 'NEXUS Hub';
+      } else if (formatted === 'nexus://connect' || formatted.startsWith('nexus://connect')) {
+        tab.title = 'NEXUS Connect';
       } else if (formatted === 'nexus://todo' || formatted.startsWith('nexus://todo')) {
         tab.title = 'NEXUS Todo';
       } else if (formatted === 'nexus://notes' || formatted.startsWith('nexus://notes')) {

@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   BookmarkItem,
+  ConnectApp,
   DownloadRecord,
+  HistoryEntry,
   HubCardId,
   HubPreferences,
   HubShortcut,
@@ -33,6 +35,7 @@ import {
   Globe,
   X,
   Check,
+  MessageSquare,
 } from 'lucide-react';
 
 interface HubWorkspaceProps {
@@ -42,6 +45,7 @@ interface HubWorkspaceProps {
 
 const DEFAULT_CARD_LABELS: Record<HubCardId, { title: string; icon: React.ReactNode }> = {
   tools: { title: 'NEXUS Utilities', icon: <Compass size={15} /> },
+  connect: { title: 'NEXUS Connect', icon: <MessageSquare size={15} /> },
   todos: { title: 'Active Tasks', icon: <CheckSquare size={15} /> },
   shortcuts: { title: 'Saved Shortcuts', icon: <Globe size={15} /> },
   bookmarks: { title: 'Recent Bookmarks', icon: <Bookmark size={15} /> },
@@ -57,11 +61,13 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
   const api = window.nexusAPI;
 
   const [preferences, setPreferences] = useState<HubPreferences | null>(null);
+  const [connectApps, setConnectApps] = useState<ConnectApp[]>([]);
   const [todos, setTodos] = useState<NexusTodo[]>([]);
   const [bookmarks, setBookmarks] = useState<BookmarkItem[]>([]);
   const [downloads, setDownloads] = useState<DownloadRecord[]>([]);
   const [notes, setNotes] = useState<NexusNote[]>([]);
   const [watchlist, setWatchlist] = useState<StockWatchlistItem[]>([]);
+  const [recentHistory, setRecentHistory] = useState<HistoryEntry[]>([]);
 
   // Modals
   const [isCustomizeOpen, setIsCustomizeOpen] = useState<boolean>(false);
@@ -76,6 +82,10 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
       if (api.getHubPreferences) {
         const prefs = await api.getHubPreferences();
         setPreferences(prefs);
+      }
+      if (api.getConnectApps) {
+        const apps = await api.getConnectApps();
+        setConnectApps(apps);
       }
       if (api.getTodos) {
         const t = await api.getTodos({ status: 'active' });
@@ -97,6 +107,10 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
         const w = await api.getStockWatchlist();
         setWatchlist(w.slice(0, 5));
       }
+      if (api.getHistory) {
+        const h = await api.getHistory(6);
+        setRecentHistory(h);
+      }
     } catch (err) {
       console.error('Failed to load Hub data:', err);
     }
@@ -105,13 +119,30 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
   useEffect(() => {
     loadData();
 
+    const cleanups: (() => void)[] = [];
+
     if (api?.onTodosUpdated) {
       const unsub = api.onTodosUpdated((updated) => {
         setTodos(updated.filter((t) => !t.completed).slice(0, 5));
       });
-      return unsub;
+      cleanups.push(unsub);
     }
-    return undefined;
+    if (api?.onConnectUpdated) {
+      const unsub = api.onConnectUpdated((state) => {
+        setConnectApps(state.apps);
+      });
+      cleanups.push(unsub);
+    }
+    if (api?.onHistoryUpdated) {
+      const unsub = api.onHistoryUpdated((hist) => {
+        setRecentHistory(hist.slice(0, 6));
+      });
+      cleanups.push(unsub);
+    }
+
+    return () => {
+      cleanups.forEach((c) => c());
+    };
   }, [api, loadData]);
 
   // Card Reordering & Visibility Handlers
@@ -143,6 +174,7 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
     if (!api?.updateHubPreferences) return;
     const defaultOrder: HubCardId[] = [
       'tools',
+      'connect',
       'todos',
       'shortcuts',
       'bookmarks',
@@ -199,6 +231,7 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
 
   const cardOrder = preferences?.cardOrder || [
     'tools',
+    'connect',
     'todos',
     'shortcuts',
     'bookmarks',
@@ -247,7 +280,7 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
             <span>Frequently Used NEXUS Utilities</span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2">
             <button
               className="nexus-btn-ghost text-xs p-2.5 rounded-lg flex flex-col items-center gap-1.5 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
               onClick={() => onNavigate && onNavigate('nexus://newtab')}
@@ -258,10 +291,10 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
 
             <button
               className="nexus-btn-ghost text-xs p-2.5 rounded-lg flex flex-col items-center gap-1.5 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
-              onClick={() => onNavigate && onNavigate('nexus://notes')}
+              onClick={() => onNavigate && onNavigate('nexus://connect')}
             >
-              <FileText size={16} className="text-blue-400" />
-              <span className="text-2xs font-medium text-primary">Notes</span>
+              <MessageSquare size={16} className="text-indigo-400" />
+              <span className="text-2xs font-medium text-primary">Connect</span>
             </button>
 
             <button
@@ -274,10 +307,10 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
 
             <button
               className="nexus-btn-ghost text-xs p-2.5 rounded-lg flex flex-col items-center gap-1.5 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
-              onClick={() => onNavigate && onNavigate('nexus://markets')}
+              onClick={() => onNavigate && onNavigate('nexus://notes')}
             >
-              <TrendingUp size={16} className="text-amber-400" />
-              <span className="text-2xs font-medium text-primary">Markets</span>
+              <FileText size={16} className="text-blue-400" />
+              <span className="text-2xs font-medium text-primary">Notes</span>
             </button>
 
             <button
@@ -298,6 +331,14 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
 
             <button
               className="nexus-btn-ghost text-xs p-2.5 rounded-lg flex flex-col items-center gap-1.5 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
+              onClick={() => onNavigate && onNavigate('nexus://markets')}
+            >
+              <TrendingUp size={16} className="text-amber-400" />
+              <span className="text-2xs font-medium text-primary">Markets</span>
+            </button>
+
+            <button
+              className="nexus-btn-ghost text-xs p-2.5 rounded-lg flex flex-col items-center gap-1.5 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
               onClick={() => onNavigate && onNavigate('nexus://dev')}
             >
               <Code2 size={16} className="text-cyan-400" />
@@ -314,14 +355,117 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
           </div>
         </div>
 
+        {/* Continue where you left off */}
+        <div className="bg-surface/30 p-4 rounded-xl border border-subtle space-y-2.5">
+          <div className="flex items-center justify-between">
+            <div className="text-2xs font-semibold text-secondary uppercase tracking-wider flex items-center gap-1.5">
+              <Clock size={12} className="text-accent" />
+              <span>Continue where you left off</span>
+            </div>
+            {recentHistory.length > 0 && (
+              <span className="text-3xs text-secondary font-mono">{recentHistory.length} recent</span>
+            )}
+          </div>
+
+          {recentHistory.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {recentHistory.map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => onNavigate && onNavigate(item.url)}
+                  className="flex items-center justify-between p-2.5 rounded-lg bg-surface/50 hover:bg-surface border border-subtle hover:border-accent/40 cursor-pointer transition-all group"
+                >
+                  <div className="flex items-center gap-2 truncate flex-1 mr-2">
+                    <Globe size={13} className="text-secondary group-hover:text-accent shrink-0 transition-colors" />
+                    <div className="truncate">
+                      <div className="text-xs font-medium text-primary truncate">{item.title || item.url}</div>
+                      <div className="text-3xs text-secondary truncate font-mono">{item.url}</div>
+                    </div>
+                  </div>
+                  <ChevronRight size={12} className="text-secondary/60 group-hover:text-primary shrink-0 transition-colors" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-4 text-center text-secondary text-2xs flex flex-col items-center justify-center gap-1">
+              <Clock size={16} className="text-secondary/40" />
+              <span>No recent activity</span>
+              <span className="text-3xs text-muted">Web pages you visit will appear here locally.</span>
+            </div>
+          )}
+        </div>
+
         {/* Dynamic Rearrangeable Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {visibleCards.map((cardId, index) => {
             const meta = DEFAULT_CARD_LABELS[cardId];
+            if (!meta) return null;
             const isFirst = index === 0;
             const isLast = index === visibleCards.length - 1;
 
             switch (cardId) {
+              // NEXUS Connect Card
+              case 'connect': {
+                const favoriteApps = connectApps.filter((a) => a.isFavorite);
+                const displayApps = favoriteApps.length > 0 ? favoriteApps.slice(0, 6) : connectApps.slice(0, 6);
+                return (
+                  <HubCard
+                    key="connect"
+                    id="connect"
+                    title={meta.title}
+                    icon={meta.icon}
+                    badge={
+                      connectApps.length > 0 ? (
+                        <span className="text-3xs font-mono bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-1.5 py-0.2 rounded">
+                          {connectApps.length} Apps
+                        </span>
+                      ) : null
+                    }
+                    actionText="Open Connect"
+                    onAction={() => onNavigate && onNavigate('nexus://connect')}
+                    onMoveUp={() => handleMoveCard(index, 'up')}
+                    onMoveDown={() => handleMoveCard(index, 'down')}
+                    onHide={() => handleToggleHideCard('connect')}
+                    isFirst={isFirst}
+                    isLast={isLast}
+                  >
+                    {displayApps.length > 0 ? (
+                      <div className="grid grid-cols-2 gap-2">
+                        {displayApps.map((app) => (
+                          <div
+                            key={app.id}
+                            onClick={() => onNavigate && onNavigate(app.url)}
+                            className="flex items-center gap-2 p-2 rounded bg-surface/50 border border-subtle hover:border-accent/40 hover:bg-surface cursor-pointer transition-all group"
+                          >
+                            <div className="w-6 h-6 rounded bg-accent/10 border border-accent/20 flex items-center justify-center text-xs font-bold text-accent shrink-0">
+                              {app.icon || app.name.charAt(0)}
+                            </div>
+                            <div className="truncate flex-1">
+                              <div className="font-semibold text-xs text-primary truncate flex items-center gap-1">
+                                <span className="truncate">{app.name}</span>
+                                {app.isFavorite && <span className="text-amber-400 text-3xs shrink-0">★</span>}
+                              </div>
+                              <div className="text-3xs text-secondary capitalize truncate">{app.category}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="h-full flex flex-col items-center justify-center text-center p-3 text-secondary text-2xs space-y-1">
+                        <MessageSquare size={20} className="text-secondary/40" />
+                        <div>No Connect apps available.</div>
+                        <button
+                          className="text-accent hover:underline text-3xs font-semibold"
+                          onClick={() => onNavigate && onNavigate('nexus://connect')}
+                        >
+                          Open NEXUS Connect
+                        </button>
+                      </div>
+                    )}
+                  </HubCard>
+                );
+              }
+
               // 1. Tools Card
               case 'tools':
                 return (
@@ -671,6 +815,7 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
               {cardOrder.map((id, index) => {
                 const isHidden = hiddenCards.includes(id);
                 const meta = DEFAULT_CARD_LABELS[id];
+                if (!meta) return null;
 
                 return (
                   <div
@@ -690,7 +835,7 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
                       </span>
                     </label>
 
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-2">
                       <button
                         type="button"
                         disabled={index === 0}
@@ -715,7 +860,7 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
               })}
             </div>
 
-            <div className="flex items-center justify-between pt-3 border-t border-subtle text-xs">
+            <div className="flex items-center justify-between gap-3 pt-3 border-t border-subtle text-xs">
               <button
                 type="button"
                 className="text-secondary hover:text-primary flex items-center gap-1 text-2xs"

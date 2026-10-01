@@ -27,6 +27,8 @@ import {
   LayoutGrid,
   CheckSquare,
   Settings,
+  MessageSquare,
+  FileText,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -264,6 +266,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
           <button
             className="pinned-site-item"
+            onClick={() => onNavigate('nexus://connect')}
+            title="NEXUS Connect"
+          >
+            <div className="pinned-site-icon"><MessageSquare size={13} className="text-accent" /></div>
+            {!collapsed && <span className="pinned-site-name">Connect</span>}
+          </button>
+          <button
+            className="pinned-site-item"
+            onClick={() => onNavigate('nexus://notes')}
+            title="NEXUS Notes"
+          >
+            <div className="pinned-site-icon"><FileText size={13} className="text-accent" /></div>
+            {!collapsed && <span className="pinned-site-name">Notes</span>}
+          </button>
+          <button
+            className="pinned-site-item"
             onClick={() => onNavigate('nexus://todo')}
             title="NEXUS Todo"
           >
@@ -272,19 +290,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
           <button
             className="pinned-site-item"
+            onClick={() => onNavigate('nexus://shield')}
+            title="NEXUS Shield"
+          >
+            <div className="pinned-site-icon"><Shield size={13} className="text-accent" /></div>
+            {!collapsed && <span className="pinned-site-name">Shield</span>}
+          </button>
+          <button
+            className="pinned-site-item"
             onClick={() => onNavigate('nexus://explore')}
             title="NEXUS Explore"
           >
             <div className="pinned-site-icon"><Compass size={13} className="text-accent" /></div>
             {!collapsed && <span className="pinned-site-name">Explore</span>}
-          </button>
-          <button
-            className="pinned-site-item"
-            onClick={() => onNavigate('nexus://news')}
-            title="Fact-Focused News"
-          >
-            <div className="pinned-site-icon"><Newspaper size={13} className="text-accent" /></div>
-            {!collapsed && <span className="pinned-site-name">Fact News</span>}
           </button>
           <button
             className="pinned-site-item"
