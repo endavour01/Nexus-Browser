@@ -49,6 +49,15 @@ const ExtensionsPageComponent: React.FC<ExtensionsPageProps> = ({
     );
   }, [extensions, searchQuery]);
 
+  const handleOpenChromeWebStore = () => {
+    const url = 'https://chromewebstore.google.com';
+    if (typeof window !== 'undefined' && window.nexusAPI?.createTab) {
+      window.nexusAPI.createTab(url);
+    } else {
+      window.open(url, '_blank');
+    }
+  };
+
   return (
     <div className="nexus-extensions-page">
       {/* Top Header */}
@@ -59,11 +68,15 @@ const ExtensionsPageComponent: React.FC<ExtensionsPageProps> = ({
             <h1 className="extensions-page-title">Extensions & Plugins</h1>
           </div>
           <p className="extensions-page-subtitle">
-            Manage local unpacked extensions
+            Manage local unpacked extensions & Chrome Web Store addons
           </p>
         </div>
 
         <div className="extensions-header-actions">
+          <button className="nexus-btn nexus-btn-secondary" onClick={handleOpenChromeWebStore}>
+            <ExternalLink size={15} />
+            <span>Chrome Web Store</span>
+          </button>
           <button className="nexus-btn nexus-btn-secondary" onClick={onOpenCompatibility}>
             <HelpCircle size={15} />
             <span>Compatibility Guide</span>
@@ -72,6 +85,52 @@ const ExtensionsPageComponent: React.FC<ExtensionsPageProps> = ({
             <FolderPlus size={15} />
             <span>Load Unpacked</span>
           </button>
+        </div>
+      </div>
+
+      {/* Chrome Web Store & Installation Instructions Card */}
+      <div className="p-4 mb-4 rounded-lg border border-border-subtle bg-surface/50">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-semibold text-sm text-foreground">Download Extensions from Chrome Web Store</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent/15 text-accent font-medium">Manifest V2 / V3</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Find extensions on the Chrome Web Store, extract the extension files, and click Load Unpacked to apply them in Nexus.
+            </p>
+          </div>
+          <button
+            className="nexus-btn nexus-btn-primary nexus-btn-sm shrink-0 flex items-center gap-1.5"
+            onClick={handleOpenChromeWebStore}
+          >
+            <ExternalLink size={13} />
+            <span>Open Chrome Web Store</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3 pt-3 border-t border-border-subtle/60 text-xs">
+          <div className="flex items-start gap-2">
+            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-accent/20 text-accent font-bold text-[11px] shrink-0">1</span>
+            <div className="text-muted-foreground">
+              <strong className="text-foreground block font-medium">Find Extension</strong>
+              Browse the <button onClick={handleOpenChromeWebStore} className="text-accent underline inline-block">Chrome Web Store</button> and find your desired tool or theme.
+            </div>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-accent/20 text-accent font-bold text-[11px] shrink-0">2</span>
+            <div className="text-muted-foreground">
+              <strong className="text-foreground block font-medium">Download & Extract</strong>
+              Download the extension files (or extract using a CRX extractor) into a local folder.
+            </div>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-accent/20 text-accent font-bold text-[11px] shrink-0">3</span>
+            <div className="text-muted-foreground">
+              <strong className="text-foreground block font-medium">Load in Nexus</strong>
+              Click <strong className="text-foreground">&ldquo;Load Unpacked&rdquo;</strong> above and select the folder with <code className="text-accent text-[11px] bg-secondary/15 px-1 py-0.5 rounded">manifest.json</code>.
+            </div>
+          </div>
         </div>
       </div>
 
@@ -130,9 +189,13 @@ const ExtensionsPageComponent: React.FC<ExtensionsPageProps> = ({
               <>
                 <h3 className="empty-title">No Extensions Installed</h3>
                 <p className="empty-desc">
-                  Add an extension from a folder on your device.
+                  Browse the Chrome Web Store or add an unpacked extension from your device.
                 </p>
-                <div className="flex items-center gap-3 mt-4">
+                <div className="flex flex-wrap items-center justify-center gap-3 mt-4">
+                  <button className="nexus-btn nexus-btn-secondary" onClick={handleOpenChromeWebStore}>
+                    <ExternalLink size={15} />
+                    <span>Chrome Web Store</span>
+                  </button>
                   <button className="nexus-btn nexus-btn-primary" onClick={onInstallUnpacked}>
                     <FolderPlus size={15} />
                     <span>Load Unpacked Extension</span>

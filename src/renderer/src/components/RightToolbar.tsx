@@ -145,11 +145,12 @@ export const RightToolbar: React.FC<RightToolbarProps> = ({
         {downloadCount > 0 && <span className="toolbar-badge">{downloadCount}</span>}
       </button>
 
-      {/* Notes Companion Button */}
+      {/* Notes Button */}
       <button
+        type="button"
         className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'notes' ? 'active' : ''}`}
         onClick={() => toggle('notes')}
-        title="NEXUS Notes Companion (Ctrl+Shift+N)"
+        title="Nexus Notes (Ctrl+Shift+N)"
       >
         <FileText size={17} />
       </button>

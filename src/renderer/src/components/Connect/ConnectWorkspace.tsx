@@ -384,9 +384,6 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
             <div className="flex items-center gap-2">
               <Share2 size={22} className="text-accent" />
               <h1 className="text-xl font-bold text-primary tracking-tight">NEXUS Connect</h1>
-              <span className="text-3xs uppercase font-mono bg-accent/15 text-accent px-2 py-0.5 rounded border border-accent/30 font-semibold">
-                Apps & Workspaces
-              </span>
             </div>
             <p className="text-xs text-secondary mt-1 max-w-xl">
               Unified launcher and collaboration workspace for messaging, video meetings, and productivity tools.
@@ -396,7 +393,7 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              className="nexus-btn-ghost text-xs px-3 py-1.5 flex items-center gap-1.5"
+              className="nexus-btn nexus-btn-secondary text-xs px-3 py-1.5 flex items-center gap-1.5"
               onClick={handleOpenAddWorkspaceModal}
               title="Create new workspace group"
             >
@@ -406,7 +403,7 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
 
             <button
               type="button"
-              className="nexus-btn-primary text-xs px-3.5 py-1.5 flex items-center gap-1.5"
+              className="nexus-btn nexus-btn-primary text-xs px-3.5 py-1.5 flex items-center gap-1.5"
               onClick={handleOpenAddAppModal}
               title="Add web application"
             >

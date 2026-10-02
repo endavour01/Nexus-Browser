@@ -1,0 +1,143 @@
+/* ==========================================================================
+   NEXUS CANONICAL TABS STYLES
+   ========================================================================== */
+
+.nexus-tabs-list {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  user-select: none;
+  position: relative;
+}
+
+/* Variant: Segmented (Pill Container) */
+.nexus-tabs-list--segmented {
+  background: var(--nexus-bg-canvas, #0B0D12);
+  border: 1px solid var(--nexus-border-subtle, #1C202C);
+  border-radius: var(--nexus-radius-sm, 5px);
+  padding: 2px;
+  gap: 2px;
+}
+
+.nexus-tabs-list--segmented .nexus-tab-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--nexus-radius-xs, 3px);
+  border: none;
+  background: transparent;
+  color: var(--nexus-text-secondary, #9298A8);
+  font-family: var(--font-ui, sans-serif);
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--nexus-transition-fast, 120ms ease);
+  gap: 6px;
+  outline: none;
+}
+
+.nexus-tabs-list--segmented .nexus-tab-item:hover:not(:disabled):not(.nexus-tab-item--active) {
+  color: var(--nexus-text-primary, #F4F4F5);
+  background: var(--nexus-bg-hover, #1A1E29);
+}
+
+.nexus-tabs-list--segmented .nexus-tab-item--active {
+  background: var(--nexus-bg-elevated, #191D28);
+  color: var(--nexus-text-primary, #F4F4F5);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--nexus-border-subtle, #1C202C);
+}
+
+/* Variant: Underline */
+.nexus-tabs-list--underline {
+  border-bottom: 1px solid var(--nexus-border-subtle, #1C202C);
+  gap: var(--nexus-space-md, 12px);
+  width: 100%;
+}
+
+.nexus-tabs-list--underline .nexus-tab-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--nexus-text-secondary, #9298A8);
+  font-family: var(--font-ui, sans-serif);
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  position: relative;
+  transition: color var(--nexus-transition-fast, 120ms ease);
+  gap: 6px;
+  outline: none;
+  padding-bottom: 8px;
+}
+
+.nexus-tabs-list--underline .nexus-tab-item:hover:not(:disabled) {
+  color: var(--nexus-text-primary, #F4F4F5);
+}
+
+.nexus-tabs-list--underline .nexus-tab-item--active {
+  color: var(--nexus-accent-primary, #A78BFA);
+  font-weight: 600;
+}
+
+.nexus-tabs-list--underline .nexus-tab-item--active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--nexus-accent-primary, #A78BFA);
+  border-radius: var(--nexus-radius-full, 9999px);
+  box-shadow: 0 0 8px var(--nexus-accent-glow, rgba(167, 139, 250, 0.3));
+}
+
+/* Sizes */
+.nexus-tabs-list--sm .nexus-tab-item {
+  height: 24px;
+  padding: 0 8px;
+  font-size: var(--nexus-font-metadata, 11px);
+}
+
+.nexus-tabs-list--md .nexus-tab-item {
+  height: 28px;
+  padding: 0 12px;
+  font-size: var(--nexus-font-secondary, 12px);
+}
+
+/* States */
+.nexus-tab-item:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.nexus-tab-item:focus-visible {
+  outline: 2px solid var(--nexus-accent-primary, #A78BFA);
+  outline-offset: 1px;
+}
+
+.nexus-tab-item__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nexus-tab-item__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  padding: 0 4px;
+  height: 14px;
+  border-radius: var(--nexus-radius-full, 9999px);
+  background: var(--nexus-bg-hover, #1A1E29);
+  color: var(--nexus-text-muted, #575D6E);
+}
+
+.nexus-tab-item--active .nexus-tab-item__badge {
+  background: var(--nexus-accent-dim, rgba(167, 139, 250, 0.12));
+  color: var(--nexus-accent-primary, #A78BFA);
+}

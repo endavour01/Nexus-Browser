@@ -58,6 +58,7 @@ import { NexusNote } from '@shared/types';
 import { SketchCanvasModal } from './SketchCanvasModal';
 import { NOTE_TEMPLATES, NoteTemplate } from './templates';
 import { autocorrectWord, getSpellingSuggestions, isWordMisspelled } from './spellcheck';
+import { Button } from '../ui';
 
 interface NotesEditorProps {
   note: NexusNote | null;
@@ -95,6 +96,10 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [replaceQuery, setReplaceQuery] = useState('');
   const [autocorrectEnabled, setAutocorrectEnabled] = useState(true);
+  const autocorrectEnabledRef = useRef(autocorrectEnabled);
+  useEffect(() => {
+    autocorrectEnabledRef.current = autocorrectEnabled;
+  }, [autocorrectEnabled]);
   const [isTemplatesOpen, setIsTemplatesOpen] = useState(false);
   const [isTableMenuOpen, setIsTableMenuOpen] = useState(false);
   const [isColorMenuOpen, setIsColorMenuOpen] = useState(false);
@@ -123,16 +128,32 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
     '#E2E8F0', // Light slate
     '#64748B', // Slate
     '#0F172A', // Dark slate
+    '#FFFFFF', // Crisp White
+    '#818CF8', // Indigo
+    '#C084FC', // Soft Purple
+    '#2DD4BF', // Teal
+    '#A3E635', // Lime
+    '#FBBF24', // Warm Gold
+    '#EC4899', // Vibrant Pink
+    '#60A5FA', // Sky Blue
+    '#94A3B8', // Muted Slate
+    '#F87171', // Coral Red
   ];
 
   const highlightColors = [
-    '#fef08a', // Yellow
-    '#bbf7d0', // Green
-    '#bae6fd', // Blue
-    '#fed7aa', // Orange
-    '#fbcfe8', // Pink
-    '#e9d5ff', // Purple
+    '#854D0E', // Amber / Gold
+    '#166534', // Emerald Green
+    '#1E40AF', // Sapphire Blue
+    '#9A3412', // Burnt Orange
+    '#9D174D', // Deep Rose / Pink
+    '#6B21A8', // Royal Purple
+    '#155E75', // Deep Cyan
+    '#991B1B', // Crimson Red
+    '#3F6212', // Olive / Lime
+    '#334155', // Charcoal Slate
   ];
+
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
 
   // Initialize Tiptap editor
   const editor = useEditor({
@@ -175,6 +196,37 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
         placeholder: 'Start writing your note, paste images, or draw diagrams...',
       }),
     ],
+    editorProps: {
+      handleKeyDown(view, event) {
+        if (!autocorrectEnabledRef.current) return false;
+
+        if (event.key === ' ' || event.key === 'Enter') {
+          const { selection } = view.state;
+          if (!selection.empty) return false;
+
+          const from = selection.from;
+          const $from = selection.$from;
+          const textBefore = $from.parent.textBetween(0, $from.parentOffset, ' ');
+          const match = textBefore.match(/([a-zA-Z]+)$/);
+
+          if (match) {
+            const lastWord = match[1];
+            const res = autocorrectWord(lastWord);
+            if (res.wasCorrected) {
+              const wordStart = from - lastWord.length;
+              const tr = view.state.tr.replaceWith(
+                wordStart,
+                from,
+                view.state.schema.text(res.corrected)
+              );
+              view.dispatch(tr);
+              return false;
+            }
+          }
+        }
+        return false;
+      },
+    },
     content: note?.content || '',
     editable: !readOnly,
     onUpdate: ({ editor }) => {
@@ -238,31 +290,7 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Autocorrect on Space / Enter
-  const handleEditorKeyDown = (e: React.KeyboardEvent) => {
-    if (!autocorrectEnabled || !editor) return;
 
-    if (e.key === ' ' || e.key === 'Enter') {
-      const { state } = editor;
-      const { from } = state.selection;
-      const textBefore = state.doc.textBetween(Math.max(0, from - 30), from, ' ');
-      const match = textBefore.match(/([a-zA-Z]+)$/);
-
-      if (match) {
-        const lastWord = match[1];
-        const res = autocorrectWord(lastWord);
-        if (res.wasCorrected) {
-          const wordStart = from - lastWord.length;
-          editor
-            .chain()
-            .focus()
-            .deleteRange({ from: wordStart, to: from })
-            .insertContent(res.corrected)
-            .run();
-        }
-      }
-    }
-  };
 
   // Tag management
   const handleAddTag = (e: React.KeyboardEvent) => {
@@ -284,6 +312,52 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
     onSave({ id: note.id, tags: updatedTags });
   };
 
+  // Custom user templates state from localStorage
+  const [customTemplates, setCustomTemplates] = useState<NoteTemplate[]>(() => {
+    try {
+      const saved = localStorage.getItem('nexus_custom_note_templates');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const handleSaveAsTemplate = () => {
+    if (!editor || !note) return;
+    const name = prompt('Enter a name for your custom template:', note.title || 'My Template');
+    if (!name?.trim()) return;
+    const newTemplate: NoteTemplate = {
+      id: 'custom-' + Date.now(),
+      name: name.trim(),
+      description: 'Custom user template',
+      icon: 'FileText',
+      defaultTitle: name.trim(),
+      tags: ['custom'],
+      content: editor.getHTML(),
+    };
+    const updated = [newTemplate, ...customTemplates];
+    setCustomTemplates(updated);
+    try {
+      localStorage.setItem('nexus_custom_note_templates', JSON.stringify(updated));
+    } catch (e) {
+      console.error('Failed to save custom template:', e);
+    }
+    alert(`Custom template "${name.trim()}" saved successfully!`);
+  };
+
+  const handleNotionSync = () => {
+    if (!editor || !note) return;
+    const text = editor.getText();
+    navigator.clipboard.writeText(`# ${note.title || 'Untitled'}\n\n${text}`);
+    if (confirm('Note content copied to clipboard in Notion-compatible Markdown format!\n\nWould you like to open Notion?')) {
+      if (onOpenUrl) {
+        onOpenUrl('https://www.notion.so');
+      } else {
+        window.open('https://www.notion.so', '_blank');
+      }
+    }
+  };
+
   // Insert template into note
   const handleApplyTemplate = (tmpl: NoteTemplate) => {
     if (!editor || !note) return;
@@ -300,12 +374,31 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
     }
   };
 
-  // Insert image dialog
+  // Insert image dialog (File picker or URL prompt fallback)
   const handleInsertImage = () => {
-    const url = prompt('Enter image URL or paste data URI:');
-    if (url && editor) {
-      editor.chain().focus().setImage({ src: url }).run();
+    if (imageInputRef.current) {
+      imageInputRef.current.click();
+    } else {
+      const url = prompt('Enter image URL or paste data URI:');
+      if (url && editor) {
+        editor.chain().focus().setImage({ src: url }).run();
+      }
     }
+  };
+
+  const handleSelectImageFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && editor) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        if (dataUrl) {
+          editor.chain().focus().setImage({ src: dataUrl, alt: file.name }).run();
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+    e.target.value = '';
   };
 
   // Insert link dialog
@@ -540,28 +633,46 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
             onClick={() => {
               setIsColorMenuOpen((prev) => !prev);
               setIsHighlightMenuOpen(false);
+              setIsTableMenuOpen(false);
+              setIsTemplatesOpen(false);
             }}
             title="Text Color"
           >
             <Palette size={16} />
           </button>
           {isColorMenuOpen && (
-            <div className="editor-dropdown-popover">
-              <div className="popover-title">Text Color</div>
-              <div className="color-swatches-grid">
-                {paletteColors.map((c) => (
-                  <button
-                    key={c}
-                    className="swatch-btn"
-                    style={{ backgroundColor: c }}
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setIsColorMenuOpen(false)} />
+              <div className="editor-dropdown-popover z-50">
+                <div className="flex items-center justify-between pb-2 border-b border-[var(--nexus-border-subtle,#1C202C)] mb-2.5">
+                  <span className="text-xs font-semibold text-[var(--nexus-text-primary,#F4F4F5)]">Text Color</span>
+                  <Button
+                    variant="secondary"
+                    size="xs"
                     onClick={() => {
-                      editor?.chain().focus().setColor(c).run();
+                      editor?.chain().focus().unsetColor().run();
                       setIsColorMenuOpen(false);
                     }}
-                  />
-                ))}
+                  >
+                    Reset
+                  </Button>
+                </div>
+                <div className="color-swatches-grid">
+                  {paletteColors.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className="swatch-btn"
+                      style={{ backgroundColor: c }}
+                      onClick={() => {
+                        editor?.chain().focus().setColor(c).run();
+                        setIsColorMenuOpen(false);
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            </>
           )}
 
           <button
@@ -569,28 +680,46 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
             onClick={() => {
               setIsHighlightMenuOpen((prev) => !prev);
               setIsColorMenuOpen(false);
+              setIsTableMenuOpen(false);
+              setIsTemplatesOpen(false);
             }}
             title="Highlight Color"
           >
             <Highlighter size={16} />
           </button>
           {isHighlightMenuOpen && (
-            <div className="editor-dropdown-popover">
-              <div className="popover-title">Highlight</div>
-              <div className="color-swatches-grid">
-                {highlightColors.map((c) => (
-                  <button
-                    key={c}
-                    className="swatch-btn"
-                    style={{ backgroundColor: c }}
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setIsHighlightMenuOpen(false)} />
+              <div className="editor-dropdown-popover z-50">
+                <div className="flex items-center justify-between pb-2 border-b border-[var(--nexus-border-subtle,#1C202C)] mb-2.5">
+                  <span className="text-xs font-semibold text-[var(--nexus-text-primary,#F4F4F5)]">Highlight</span>
+                  <Button
+                    variant="secondary"
+                    size="xs"
                     onClick={() => {
-                      editor?.chain().focus().toggleHighlight({ color: c }).run();
+                      editor?.chain().focus().unsetHighlight().run();
                       setIsHighlightMenuOpen(false);
                     }}
-                  />
-                ))}
+                  >
+                    Clear
+                  </Button>
+                </div>
+                <div className="color-swatches-grid">
+                  {highlightColors.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className="swatch-btn"
+                      style={{ backgroundColor: c }}
+                      onClick={() => {
+                        editor?.chain().focus().toggleHighlight({ color: c }).run();
+                        setIsHighlightMenuOpen(false);
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            </>
           )}
         </div>
 
@@ -600,69 +729,77 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
         <div className="toolbar-btn-group relative">
           <button
             className={`nexus-icon-btn editor-btn ${editor?.isActive('table') ? 'active' : ''}`}
-            onClick={() => setIsTableMenuOpen((prev) => !prev)}
+            onClick={() => {
+              setIsTableMenuOpen((prev) => !prev);
+              setIsColorMenuOpen(false);
+              setIsHighlightMenuOpen(false);
+              setIsTemplatesOpen(false);
+            }}
             title="Table Tools"
           >
             <TableIcon size={16} />
             <ChevronDown size={12} />
           </button>
           {isTableMenuOpen && (
-            <div className="editor-dropdown-popover table-actions-popover">
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
-                  setIsTableMenuOpen(false);
-                }}
-              >
-                Insert 3x3 Table
-              </button>
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  editor?.chain().focus().addRowAfter().run();
-                  setIsTableMenuOpen(false);
-                }}
-              >
-                Add Row Below
-              </button>
-              <button
-                className="dropdown-item"
-                onClick={() => {
-                  editor?.chain().focus().addColumnAfter().run();
-                  setIsTableMenuOpen(false);
-                }}
-              >
-                Add Column Right
-              </button>
-              <button
-                className="dropdown-item text-danger"
-                onClick={() => {
-                  editor?.chain().focus().deleteRow().run();
-                  setIsTableMenuOpen(false);
-                }}
-              >
-                Delete Row
-              </button>
-              <button
-                className="dropdown-item text-danger"
-                onClick={() => {
-                  editor?.chain().focus().deleteColumn().run();
-                  setIsTableMenuOpen(false);
-                }}
-              >
-                Delete Column
-              </button>
-              <button
-                className="dropdown-item text-danger"
-                onClick={() => {
-                  editor?.chain().focus().deleteTable().run();
-                  setIsTableMenuOpen(false);
-                }}
-              >
-                Delete Table
-              </button>
-            </div>
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setIsTableMenuOpen(false)} />
+              <div className="editor-dropdown-popover table-actions-popover z-50">
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    editor?.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+                    setIsTableMenuOpen(false);
+                  }}
+                >
+                  Insert 3x3 Table
+                </button>
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    editor?.chain().focus().addRowAfter().run();
+                    setIsTableMenuOpen(false);
+                  }}
+                >
+                  Add Row Below
+                </button>
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    editor?.chain().focus().addColumnAfter().run();
+                    setIsTableMenuOpen(false);
+                  }}
+                >
+                  Add Column Right
+                </button>
+                <button
+                  className="dropdown-item text-danger"
+                  onClick={() => {
+                    editor?.chain().focus().deleteRow().run();
+                    setIsTableMenuOpen(false);
+                  }}
+                >
+                  Delete Row
+                </button>
+                <button
+                  className="dropdown-item text-danger"
+                  onClick={() => {
+                    editor?.chain().focus().deleteColumn().run();
+                    setIsTableMenuOpen(false);
+                  }}
+                >
+                  Delete Column
+                </button>
+                <button
+                  className="dropdown-item text-danger"
+                  onClick={() => {
+                    editor?.chain().focus().deleteTable().run();
+                    setIsTableMenuOpen(false);
+                  }}
+                >
+                  Delete Table
+                </button>
+              </div>
+            </>
           )}
         </div>
 
@@ -671,9 +808,17 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
           <button className="nexus-icon-btn editor-btn" onClick={handleInsertLink} title="Insert Link">
             <LinkIcon size={16} />
           </button>
-          <button className="nexus-icon-btn editor-btn" onClick={handleInsertImage} title="Insert Image">
+          <button className="nexus-icon-btn editor-btn" onClick={handleInsertImage} title="Insert Image / Gallery">
             <ImageIcon size={16} />
           </button>
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleSelectImageFile}
+            tabIndex={-1}
+          />
           <button
             className="nexus-icon-btn editor-btn text-accent"
             onClick={() => setIsSketchOpen(true)}
@@ -689,26 +834,72 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
         <div className="toolbar-btn-group relative">
           <button
             className="nexus-icon-btn editor-btn"
-            onClick={() => setIsTemplatesOpen((prev) => !prev)}
+            onClick={() => {
+              setIsTemplatesOpen((prev) => !prev);
+              setIsColorMenuOpen(false);
+              setIsHighlightMenuOpen(false);
+              setIsTableMenuOpen(false);
+            }}
             title="Insert Template"
           >
             <Bookmark size={16} />
             <span style={{ fontSize: '11px', marginLeft: '4px' }}>Templates</span>
           </button>
           {isTemplatesOpen && (
-            <div className="editor-dropdown-popover templates-popover">
-              <div className="popover-title">Select Template</div>
-              {NOTE_TEMPLATES.map((tmpl) => (
-                <button
-                  key={tmpl.id}
-                  className="template-item-btn"
-                  onClick={() => handleApplyTemplate(tmpl)}
-                >
-                  <div className="template-item-title">{tmpl.name}</div>
-                  <div className="template-item-desc">{tmpl.description}</div>
-                </button>
-              ))}
-            </div>
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setIsTemplatesOpen(false)} />
+              <div className="editor-dropdown-popover templates-popover z-50">
+                <div className="flex items-center justify-between pb-1.5 border-b border-subtle mb-1.5">
+                  <span className="popover-title">Templates</span>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      className="px-2 py-0.5 text-[10px] rounded bg-accent/15 text-accent hover:bg-accent/25 transition-colors font-medium"
+                      onClick={handleSaveAsTemplate}
+                      title="Save current note as custom template"
+                    >
+                      + Save Current
+                    </button>
+                    <button
+                      className="px-2 py-0.5 text-[10px] rounded bg-secondary/15 text-primary hover:bg-secondary/25 transition-colors font-medium"
+                      onClick={handleNotionSync}
+                      title="Copy Notion-formatted Markdown"
+                    >
+                      Notion Sync
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  {customTemplates.length > 0 && (
+                    <div className="pt-1 pb-1">
+                      <div className="text-[10px] font-semibold text-accent uppercase tracking-wider mb-1">My Templates</div>
+                      {customTemplates.map((tmpl) => (
+                        <button
+                          key={tmpl.id}
+                          className="template-item-btn"
+                          onClick={() => handleApplyTemplate(tmpl)}
+                        >
+                          <div className="template-item-title text-accent">{tmpl.name}</div>
+                          <div className="template-item-desc">{tmpl.description}</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">Preset Templates</div>
+                  {NOTE_TEMPLATES.map((tmpl) => (
+                    <button
+                      key={tmpl.id}
+                      className="template-item-btn"
+                      onClick={() => handleApplyTemplate(tmpl)}
+                    >
+                      <div className="template-item-title">{tmpl.name}</div>
+                      <div className="template-item-desc">{tmpl.description}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
           )}
         </div>
 
@@ -781,13 +972,13 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
             />
           </div>
           <div className="search-actions">
-            <button className="nexus-btn btn-secondary btn-sm" onClick={handleFindNext}>
+            <button className="nexus-btn nexus-btn-secondary nexus-btn-sm" onClick={handleFindNext}>
               Find Next
             </button>
-            <button className="nexus-btn btn-secondary btn-sm" onClick={handleReplace}>
+            <button className="nexus-btn nexus-btn-secondary nexus-btn-sm" onClick={handleReplace}>
               Replace
             </button>
-            <button className="nexus-btn btn-secondary btn-sm" onClick={handleReplaceAll}>
+            <button className="nexus-btn nexus-btn-secondary nexus-btn-sm" onClick={handleReplaceAll}>
               Replace All
             </button>
             <button className="nexus-icon-btn btn-sm" onClick={() => setIsSearchOpen(false)}>
@@ -830,13 +1021,6 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
               </button>
             )}
           </div>
-        </div>
-      ) : activeTabUrl && activeTabUrl !== 'nexus://notes' && onLinkActiveTab ? (
-        <div className="link-tab-prompt">
-          <button className="link-tab-btn" onClick={onLinkActiveTab}>
-            <ExternalLink size={13} />
-            Link current browser tab ({activeTabTitle || activeTabUrl})
-          </button>
         </div>
       ) : null}
 
@@ -881,7 +1065,7 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
       </div>
 
       {/* 5. Central Rich-Text Editor Content */}
-      <div className="note-editor-body" onKeyDown={handleEditorKeyDown}>
+      <div className="note-editor-body">
         <EditorContent editor={editor} className="tiptap-content-host" />
       </div>
 

@@ -1,0 +1,77 @@
+/* ==========================================================================
+   NEXUS CANONICAL BADGE STYLES
+   ========================================================================== */
+
+.nexus-badge-core {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-ui, sans-serif);
+  font-weight: 500;
+  line-height: 1;
+  border-radius: var(--nexus-radius-full, 9999px);
+  border: 1px solid transparent;
+  white-space: nowrap;
+  user-select: none;
+  box-sizing: border-box;
+  gap: 4px;
+}
+
+/* Sizes */
+.nexus-badge-core--sm {
+  height: 18px;
+  padding: 0 6px;
+  font-size: var(--nexus-font-metadata, 11px);
+}
+
+.nexus-badge-core--md {
+  height: 22px;
+  padding: 0 8px;
+  font-size: var(--nexus-font-secondary, 12px);
+}
+
+/* Variants */
+.nexus-badge-core--neutral {
+  background: var(--nexus-bg-surface, #12151D);
+  color: var(--nexus-text-secondary, #9298A8);
+  border-color: var(--nexus-border-subtle, #1C202C);
+}
+
+.nexus-badge-core--accent {
+  background: var(--nexus-accent-dim, rgba(167, 139, 250, 0.12));
+  color: var(--nexus-accent-primary, #A78BFA);
+  border-color: var(--nexus-border-accent, rgba(167, 139, 250, 0.3));
+}
+
+.nexus-badge-core--success {
+  background: var(--nexus-status-success-muted, rgba(52, 211, 153, 0.12));
+  color: var(--nexus-status-success, #34D399);
+  border-color: rgba(52, 211, 153, 0.3);
+}
+
+.nexus-badge-core--warning {
+  background: var(--nexus-status-warning-muted, rgba(251, 191, 36, 0.12));
+  color: var(--nexus-status-warning, #FBBF24);
+  border-color: rgba(251, 191, 36, 0.3);
+}
+
+.nexus-badge-core--danger {
+  background: var(--nexus-status-danger-muted, rgba(248, 113, 113, 0.12));
+  color: var(--nexus-status-danger, #F87171);
+  border-color: rgba(248, 113, 113, 0.3);
+}
+
+.nexus-badge-core--info {
+  background: var(--nexus-status-info-muted, rgba(96, 165, 250, 0.12));
+  color: var(--nexus-status-info, #60A5FA);
+  border-color: rgba(96, 165, 250, 0.3);
+}
+
+/* Dot indicator */
+.nexus-badge-core__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: var(--nexus-radius-full, 9999px);
+  background-color: currentColor;
+  flex-shrink: 0;
+}

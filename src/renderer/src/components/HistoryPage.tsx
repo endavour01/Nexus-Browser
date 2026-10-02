@@ -107,10 +107,11 @@ const HistoryPageComponent: React.FC<HistoryPageProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {selectedIds.size > 0 && (
             <button
-              className="nexus-btn-sm nexus-btn-danger flex items-center gap-1.5"
+              type="button"
+              className="nexus-btn-sm text-xs px-3.5 py-1.5 rounded-md bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 flex items-center gap-1.5 font-medium transition-colors cursor-pointer"
               onClick={handleDeleteSelected}
             >
               <Trash2 size={13} />
@@ -118,7 +119,8 @@ const HistoryPageComponent: React.FC<HistoryPageProps> = ({
             </button>
           )}
           <button
-            className="nexus-btn-sm nexus-btn-secondary flex items-center gap-1.5"
+            type="button"
+            className="nexus-btn-sm text-xs px-3.5 py-1.5 rounded-md bg-[#191D28] hover:bg-[#222838] text-[#F4F4F5] border border-[#272C3D] flex items-center gap-1.5 font-medium transition-colors cursor-pointer"
             onClick={onOpenClearDialog}
           >
             <Trash2 size={13} />

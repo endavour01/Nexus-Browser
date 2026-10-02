@@ -1,0 +1,75 @@
+/* ==========================================================================
+   NEXUS CANONICAL PANEL HEADER STYLES
+   ========================================================================== */
+
+.nexus-panel-header-core {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+  max-height: 52px;
+  padding: 0 var(--nexus-space-md, 12px);
+  background: var(--nexus-bg-canvas, #0B0D12);
+  border-bottom: 1px solid var(--nexus-border-subtle, #1C202C);
+  box-sizing: border-box;
+  flex-shrink: 0;
+  gap: var(--nexus-space-sm, 8px);
+}
+
+.nexus-panel-header-core__left {
+  display: flex;
+  align-items: center;
+  gap: var(--nexus-space-sm, 8px);
+  min-width: 0;
+  flex: 1;
+}
+
+.nexus-panel-header-core__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--nexus-accent-primary, #A78BFA);
+  flex-shrink: 0;
+}
+
+.nexus-panel-header-core__titles {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  justify-content: center;
+}
+
+.nexus-panel-header-core__title {
+  font-size: var(--nexus-font-section-title, 14px);
+  font-weight: 600;
+  color: var(--nexus-text-primary, #F4F4F5);
+  margin: 0;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nexus-panel-header-core__description {
+  font-size: var(--nexus-font-metadata, 11px);
+  color: var(--nexus-text-secondary, #9298A8);
+  margin: 0;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nexus-panel-header-core__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--nexus-space-xs, 4px);
+  flex-shrink: 0;
+}
+
+.nexus-panel-header-core__divider {
+  width: 1px;
+  height: 16px;
+  background: var(--nexus-border-subtle, #1C202C);
+  margin: 0 2px;
+}

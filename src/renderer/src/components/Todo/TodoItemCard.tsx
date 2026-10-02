@@ -13,6 +13,7 @@ import {
   Layers,
   FileText,
 } from 'lucide-react';
+import { Badge, IconButton } from '../ui';
 
 interface TodoItemCardProps {
   todo: NexusTodo;
@@ -34,30 +35,14 @@ export const TodoItemCard: React.FC<TodoItemCardProps> = ({
   const getPriorityBadge = (priority: TodoPriority) => {
     switch (priority) {
       case 'urgent':
-        return (
-          <span className="todo-priority-badge priority-urgent" title="Urgent Priority">
-            Urgent
-          </span>
-        );
+        return <Badge variant="danger" size="sm">Urgent</Badge>;
       case 'high':
-        return (
-          <span className="todo-priority-badge priority-high" title="High Priority">
-            High
-          </span>
-        );
+        return <Badge variant="warning" size="sm">High</Badge>;
       case 'medium':
-        return (
-          <span className="todo-priority-badge priority-medium" title="Medium Priority">
-            Medium
-          </span>
-        );
+        return <Badge variant="accent" size="sm">Medium</Badge>;
       case 'low':
       default:
-        return (
-          <span className="todo-priority-badge priority-low" title="Low Priority">
-            Low
-          </span>
-        );
+        return <Badge variant="neutral" size="sm">Low</Badge>;
     }
   };
 
@@ -116,10 +101,10 @@ export const TodoItemCard: React.FC<TodoItemCardProps> = ({
             </h4>
             {getPriorityBadge(todo.priority)}
             {todo.category && (
-              <span className="todo-category-badge text-2xs">
+              <Badge variant="neutral" size="sm">
                 <Tag size={10} className="inline mr-1 opacity-70" />
                 {todo.category}
-              </span>
+              </Badge>
             )}
           </div>
 
@@ -206,24 +191,22 @@ export const TodoItemCard: React.FC<TodoItemCardProps> = ({
 
         {/* Hover / Focus Actions */}
         <div className={`todo-actions flex items-center gap-1 ${isHovered ? 'opacity-100' : 'opacity-0 sm:opacity-40'} transition-opacity`}>
-          <button
-            type="button"
-            className="nexus-icon-btn p-1.5 text-secondary hover:text-primary"
-            onClick={() => onEdit(todo)}
-            title="Edit task"
+          <IconButton
+            icon={<Edit2 size={13} />}
             aria-label="Edit task"
-          >
-            <Edit2 size={13} />
-          </button>
-          <button
-            type="button"
-            className="nexus-icon-btn p-1.5 text-secondary hover:text-red-400"
-            onClick={() => onDelete(todo.id)}
-            title="Delete task"
+            tooltip="Edit task"
+            variant="ghost"
+            size="xs"
+            onClick={() => onEdit(todo)}
+          />
+          <IconButton
+            icon={<Trash2 size={13} />}
             aria-label="Delete task"
-          >
-            <Trash2 size={13} />
-          </button>
+            tooltip="Delete task"
+            variant="ghost"
+            size="xs"
+            onClick={() => onDelete(todo.id)}
+          />
         </div>
       </div>
     </div>

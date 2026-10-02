@@ -548,7 +548,7 @@ export const ShieldDashboard: React.FC<ShieldDashboardProps> = ({
               value={newAllowedDomain}
               onChange={(e) => setNewAllowedDomain(e.target.value)}
             />
-            <button type="submit" className="nexus-btn-primary">
+            <button type="submit" className="nexus-btn nexus-btn-primary h-9 px-4 text-xs font-semibold shrink-0">
               <Plus size={14} />
               <span>Allow Site</span>
             </button>
@@ -566,7 +566,7 @@ export const ShieldDashboard: React.FC<ShieldDashboardProps> = ({
                   <span className="allowlist-domain">{site}</span>
                   <button
                     type="button"
-                    className="nexus-btn-ghost danger-text"
+                    className="nexus-btn nexus-btn-ghost text-xs px-2.5 py-1 text-danger hover:bg-danger/10"
                     onClick={() => handleRemoveAllowedSite(site)}
                     title="Remove exception and re-protect this site"
                   >

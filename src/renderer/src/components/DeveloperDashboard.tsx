@@ -127,48 +127,52 @@ const DeveloperDashboardComponent: React.FC<DeveloperDashboardProps> = ({
     <div className="dev-dashboard-container">
       {/* Top Banner */}
       <header className="dev-dashboard-header">
-        <div className="dev-dashboard-title">
-          <Terminal size={24} className="text-purple" />
-          <div>
-            <h1>NEXUS Developer Dashboard</h1>
-            <p>Developer workbench & telemetry</p>
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-accent/15 text-accent shrink-0">
+              <Terminal size={22} />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-foreground tracking-tight">NEXUS Developer Dashboard</h1>
+              <p className="text-xs text-muted-foreground">Developer workbench & telemetry</p>
+            </div>
           </div>
-        </div>
 
-        {/* System Info Chips */}
-        {systemInfo && (
-          <div className="dev-system-chips">
-            <div className="sys-chip" title="Chromium engine version">
-              <span className="chip-label">Chrome:</span>
-              <span className="chip-val font-mono">{systemInfo.chrome}</span>
+          {/* System Info Chips */}
+          {systemInfo && (
+            <div className="dev-system-chips flex flex-wrap gap-2">
+              <div className="dev-sys-chip" title="Chromium engine version">
+                <span className="chip-label text-foreground font-medium">Chrome:</span>
+                <span className="chip-val font-mono text-accent">{systemInfo.chrome}</span>
+              </div>
+              <div className="dev-sys-chip" title="Electron framework version">
+                <span className="chip-label text-foreground font-medium">Electron:</span>
+                <span className="chip-val font-mono text-accent">{systemInfo.electron}</span>
+              </div>
+              <div className="dev-sys-chip" title="Node.js runtime version">
+                <span className="chip-label text-foreground font-medium">Node:</span>
+                <span className="chip-val font-mono text-accent">{systemInfo.node}</span>
+              </div>
+              <div className="dev-sys-chip" title="Operating system and CPU architecture">
+                <span className="chip-label text-foreground font-medium">Platform:</span>
+                <span className="chip-val font-mono text-accent">
+                  {systemInfo.platform} ({systemInfo.arch})
+                </span>
+              </div>
             </div>
-            <div className="sys-chip" title="Electron framework version">
-              <span className="chip-label">Electron:</span>
-              <span className="chip-val font-mono">{systemInfo.electron}</span>
-            </div>
-            <div className="sys-chip" title="Node.js runtime version">
-              <span className="chip-label">Node:</span>
-              <span className="chip-val font-mono">{systemInfo.node}</span>
-            </div>
-            <div className="sys-chip" title="Operating system and CPU architecture">
-              <span className="chip-label">Platform:</span>
-              <span className="chip-val font-mono">
-                {systemInfo.platform} ({systemInfo.arch})
-              </span>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </header>
 
       {/* Grid Content */}
-      <div className="dev-dashboard-grid">
+      <div className="dev-dashboard-grid grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column: Quick Launchpad & Open Tabs */}
-        <div className="dev-grid-col">
+        <div className="dev-grid-col flex flex-col gap-6">
           {/* Quick Launchpad */}
           <section className="dev-dashboard-card">
-            <div className="card-header">
-              <Code size={16} className="text-blue" />
-              <h2>Developer Toolkit Launchpad</h2>
+            <div className="card-header flex items-center gap-2 mb-3">
+              <Code size={16} className="text-accent" />
+              <h2 className="text-sm font-semibold text-foreground tracking-tight m-0">Developer Toolkit Launchpad</h2>
             </div>
             <div className="dev-launchpad-grid">
               <button className="dev-tile-btn" onClick={onToggleDevTools}>
@@ -215,10 +219,10 @@ const DeveloperDashboardComponent: React.FC<DeveloperDashboardProps> = ({
           </section>
 
           {/* Active Tabs Matrix */}
-          <section className="dev-dashboard-card" style={{ marginTop: '20px' }}>
-            <div className="card-header">
-              <Layers size={16} className="text-green" />
-              <h2>Active Tabs Monitor ({tabs.length})</h2>
+          <section className="dev-dashboard-card">
+            <div className="card-header flex items-center gap-2 mb-3">
+              <Layers size={16} className="text-emerald-400" />
+              <h2 className="text-sm font-semibold text-foreground tracking-tight m-0">Active Tabs Monitor ({tabs.length})</h2>
             </div>
             <div className="dev-tabs-list">
               {tabs.map((tab) => (
@@ -258,11 +262,11 @@ const DeveloperDashboardComponent: React.FC<DeveloperDashboardProps> = ({
         {/* Right Column: Pinned Developer Resources */}
         <div className="dev-grid-col">
           <section className="dev-dashboard-card">
-            <div className="card-header">
-              <Globe size={16} className="text-purple" />
-              <h2>Pinned Developer Documentation & Resources</h2>
+            <div className="card-header flex items-center gap-2 mb-3">
+              <Globe size={16} className="text-accent" />
+              <h2 className="text-sm font-semibold text-foreground tracking-tight m-0">Pinned Developer Documentation & Resources</h2>
             </div>
-            <div className="dev-resources-list">
+            <div className="dev-resources-list flex flex-col gap-3">
               {DEV_LINKS.map((link) => (
                 <div
                   key={link.url}

@@ -251,9 +251,6 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
             <div className="flex items-center gap-2">
               <LayoutGrid size={22} className="text-accent" />
               <h1 className="text-xl font-bold text-primary tracking-tight">NEXUS Hub</h1>
-              <span className="text-3xs uppercase font-mono bg-accent/15 text-accent px-2 py-0.5 rounded border border-accent/30 font-semibold">
-                Workspace Central
-              </span>
             </div>
             <p className="text-xs text-secondary mt-1 max-w-xl">
               Instant access to browser tools, notes, active tasks, downloads, and market watchlists.
@@ -263,7 +260,7 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              className="nexus-btn-ghost text-xs px-3 py-1.5 flex items-center gap-1.5"
+              className="nexus-btn nexus-btn-secondary text-xs px-3 py-1.5 flex items-center gap-1.5"
               onClick={() => setIsCustomizeOpen(true)}
               title="Rearrange or hide Hub cards"
             >
@@ -274,83 +271,83 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
         </div>
 
         {/* Quick Utilities Action Bar */}
-        <div className="bg-surface/50 p-4 rounded-xl border border-subtle space-y-2">
-          <div className="text-2xs font-semibold text-secondary uppercase tracking-wider flex items-center gap-1">
-            <Sparkles size={11} className="text-accent" />
-            <span>Frequently Used NEXUS Utilities</span>
+        <div className="bg-surface/50 p-4 rounded-xl border border-subtle space-y-3">
+          <div className="text-xs font-semibold text-secondary uppercase tracking-wider flex items-center gap-1.5">
+            <Sparkles size={13} className="text-accent" />
+            <span>Frequently Used Utilities</span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2">
+          <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-3">
             <button
-              className="nexus-btn-ghost text-xs p-2.5 rounded-lg flex flex-col items-center gap-1.5 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
+              className="nexus-btn nexus-btn-secondary text-xs p-3 rounded-lg flex flex-col items-center justify-center gap-2 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
               onClick={() => onNavigate && onNavigate('nexus://newtab')}
             >
-              <Plus size={16} className="text-accent" />
-              <span className="text-2xs font-medium text-primary">New Tab</span>
+              <Plus size={18} className="text-accent" />
+              <span className="text-xs font-medium text-primary">New Tab</span>
             </button>
 
             <button
-              className="nexus-btn-ghost text-xs p-2.5 rounded-lg flex flex-col items-center gap-1.5 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
+              className="nexus-btn nexus-btn-secondary text-xs p-3 rounded-lg flex flex-col items-center justify-center gap-2 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
               onClick={() => onNavigate && onNavigate('nexus://connect')}
             >
-              <MessageSquare size={16} className="text-indigo-400" />
-              <span className="text-2xs font-medium text-primary">Connect</span>
+              <MessageSquare size={18} className="text-indigo-400" />
+              <span className="text-xs font-medium text-primary">Connect</span>
             </button>
 
             <button
-              className="nexus-btn-ghost text-xs p-2.5 rounded-lg flex flex-col items-center gap-1.5 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
+              className="nexus-btn nexus-btn-secondary text-xs p-3 rounded-lg flex flex-col items-center justify-center gap-2 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
               onClick={() => onNavigate && onNavigate('nexus://todo')}
             >
-              <CheckSquare size={16} className="text-emerald-400" />
-              <span className="text-2xs font-medium text-primary">Todo</span>
+              <CheckSquare size={18} className="text-emerald-400" />
+              <span className="text-xs font-medium text-primary">Todo</span>
             </button>
 
             <button
-              className="nexus-btn-ghost text-xs p-2.5 rounded-lg flex flex-col items-center gap-1.5 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
+              className="nexus-btn nexus-btn-secondary text-xs p-3 rounded-lg flex flex-col items-center justify-center gap-2 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
               onClick={() => onNavigate && onNavigate('nexus://notes')}
             >
-              <FileText size={16} className="text-blue-400" />
-              <span className="text-2xs font-medium text-primary">Notes</span>
+              <FileText size={18} className="text-blue-400" />
+              <span className="text-xs font-medium text-primary">Notes</span>
             </button>
 
             <button
-              className="nexus-btn-ghost text-xs p-2.5 rounded-lg flex flex-col items-center gap-1.5 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
+              className="nexus-btn nexus-btn-secondary text-xs p-3 rounded-lg flex flex-col items-center justify-center gap-2 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
               onClick={() => onNavigate && onNavigate('nexus://shield')}
             >
-              <Shield size={16} className="text-rose-400" />
-              <span className="text-2xs font-medium text-primary">Shield</span>
+              <Shield size={18} className="text-rose-400" />
+              <span className="text-xs font-medium text-primary">Shield</span>
             </button>
 
             <button
-              className="nexus-btn-ghost text-xs p-2.5 rounded-lg flex flex-col items-center gap-1.5 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
+              className="nexus-btn nexus-btn-secondary text-xs p-3 rounded-lg flex flex-col items-center justify-center gap-2 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
               onClick={() => onNavigate && onNavigate('nexus://explore')}
             >
-              <Compass size={16} className="text-purple-400" />
-              <span className="text-2xs font-medium text-primary">Explore</span>
+              <Compass size={18} className="text-purple-400" />
+              <span className="text-xs font-medium text-primary">Explore</span>
             </button>
 
             <button
-              className="nexus-btn-ghost text-xs p-2.5 rounded-lg flex flex-col items-center gap-1.5 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
+              className="nexus-btn nexus-btn-secondary text-xs p-3 rounded-lg flex flex-col items-center justify-center gap-2 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
               onClick={() => onNavigate && onNavigate('nexus://markets')}
             >
-              <TrendingUp size={16} className="text-amber-400" />
-              <span className="text-2xs font-medium text-primary">Markets</span>
+              <TrendingUp size={18} className="text-amber-400" />
+              <span className="text-xs font-medium text-primary">Markets</span>
             </button>
 
             <button
-              className="nexus-btn-ghost text-xs p-2.5 rounded-lg flex flex-col items-center gap-1.5 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
+              className="nexus-btn nexus-btn-secondary text-xs p-3 rounded-lg flex flex-col items-center justify-center gap-2 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
               onClick={() => onNavigate && onNavigate('nexus://dev')}
             >
-              <Code2 size={16} className="text-cyan-400" />
-              <span className="text-2xs font-medium text-primary">DevTools</span>
+              <Code2 size={18} className="text-cyan-400" />
+              <span className="text-xs font-medium text-primary">DevTools</span>
             </button>
 
             <button
-              className="nexus-btn-ghost text-xs p-2.5 rounded-lg flex flex-col items-center gap-1.5 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
+              className="nexus-btn nexus-btn-secondary text-xs p-3 rounded-lg flex flex-col items-center justify-center gap-2 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
               onClick={onOpenSettings}
             >
-              <Settings size={16} className="text-secondary" />
-              <span className="text-2xs font-medium text-primary">Settings</span>
+              <Settings size={18} className="text-secondary" />
+              <span className="text-xs font-medium text-primary">Settings</span>
             </button>
           </div>
         </div>

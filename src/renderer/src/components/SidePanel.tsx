@@ -215,7 +215,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
           {type === 'profiles' && 'Profiles'}
           {type === 'settings' && 'Settings'}
           {type === 'devtools' && 'Developer Toolkit'}
-          {type === 'notes' && 'Notes Companion'}
+          {type === 'notes' && 'Nexus Notes'}
           {type === 'intelligence' && 'NEXUS Explore'}
           {type === 'hub' && 'NEXUS Hub'}
           {type === 'todo' && 'NEXUS Todo'}
@@ -226,7 +226,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
       </div>
 
       {/* Body */}
-      <div className="side-panel-body">
+      <div className={`side-panel-body ${type === 'notes' ? '!p-0 overflow-hidden flex flex-col' : ''}`}>
         {/* ================= Bookmarks View ================= */}
         {type === 'bookmarks' && (
           <div className="panel-section">
@@ -251,14 +251,15 @@ export const SidePanel: React.FC<SidePanelProps> = ({
               </button>
             </div>
 
-            <div className="flex items-center justify-between px-1 my-2">
-              <span className="text-[11px] text-muted">{filteredBookmarks.length} items</span>
+            <div className="flex items-center justify-between px-1 my-3">
+              <span className="text-[10px] text-[#9298A8] font-mono tracking-tight">{filteredBookmarks.length} items</span>
               {onOpenBookmarksPage && (
                 <button
-                  className="panel-inline-action"
+                  type="button"
+                  className="px-3 py-1.5 text-xs rounded-md bg-[#191D28] hover:bg-[#222838] text-[#F4F4F5] border border-[#272C3D] transition-colors flex items-center gap-1.5 font-medium ml-auto shadow-sm"
                   onClick={onOpenBookmarksPage}
+                  title="Open full Bookmarks Manager"
                 >
-                  <ExternalLink size={12} />
                   <span>Open Full Manager</span>
                 </button>
               )}
@@ -327,22 +328,25 @@ export const SidePanel: React.FC<SidePanelProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center justify-between px-1 my-2">
+            <div className="flex items-center justify-between gap-4 px-1 my-3">
               {onOpenClearDataModal && (
                 <button
-                  className="text-[11px] text-red-400 hover:underline flex items-center gap-1"
+                  type="button"
+                  className="text-xs text-rose-400 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5 font-medium shadow-sm cursor-pointer"
                   onClick={onOpenClearDataModal}
+                  title="Clear browsing data..."
                 >
-                  <Trash2 size={11} />
-                  <span>Clear data...</span>
+                  <Trash2 size={13} />
+                  <span>Clear Data...</span>
                 </button>
               )}
               {onOpenHistoryPage && (
                 <button
-                  className="text-[11px] text-accent hover:underline flex items-center gap-1"
+                  type="button"
+                  className="text-xs text-[#A78BFA] bg-[#A78BFA]/10 hover:bg-[#A78BFA]/20 border border-[#A78BFA]/30 px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5 font-medium shadow-sm cursor-pointer"
                   onClick={onOpenHistoryPage}
+                  title="Open full History workspace"
                 >
-                  <ExternalLink size={11} />
                   <span>Full History</span>
                 </button>
               )}
@@ -719,27 +723,27 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                 <span className="text-[12px] font-semibold text-primary">NEXUS Control System</span>
                 <span className="text-[10px] text-muted">Dedicated Workspaces</span>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2.5">
                 <button
-                  className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded text-[11px] font-medium bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-semibold bg-accent/15 hover:bg-accent/25 text-accent border border-accent/30 transition-all shadow-xs"
                   onClick={() => {
                     if (onNavigate) onNavigate('nexus://settings');
                     onClose();
                   }}
-                  title="Open full Settings workspace"
+                  title="Open All Settings workspace"
                 >
-                  <Sliders size={12} />
-                  <span>Full Settings</span>
+                  <Sliders size={13} />
+                  <span>All Settings</span>
                 </button>
                 <button
-                  className="flex-1 flex items-center justify-center gap-1.5 py-1.5 px-2 rounded text-[11px] font-medium bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/25 transition-all shadow-xs"
                   onClick={() => {
                     if (onNavigate) onNavigate('nexus://privacy');
                     onClose();
                   }}
                   title="Open Privacy Center matrix"
                 >
-                  <ShieldCheck size={12} />
+                  <ShieldCheck size={13} />
                   <span>Privacy Center</span>
                 </button>
               </div>

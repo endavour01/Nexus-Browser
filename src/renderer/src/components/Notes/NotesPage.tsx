@@ -3,6 +3,7 @@ import { NotesLibrary } from './NotesLibrary';
 import { NotesEditor } from './NotesEditor';
 import { NexusNote, NexusNotebook, NexusFolder } from '@shared/types';
 import { FileText, ArrowLeft, Download, RefreshCw } from 'lucide-react';
+import { Button, IconButton } from '../ui';
 
 interface NotesPageProps {
   onNavigate: (url: string) => void;
@@ -23,6 +24,7 @@ export const NotesPage: React.FC<NotesPageProps> = ({
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const api = typeof window !== 'undefined' ? window.nexusAPI : null;
 
@@ -261,44 +263,53 @@ export const NotesPage: React.FC<NotesPageProps> = ({
     }
   };
 
+  const handleSync = async () => {
+    setIsSyncing(true);
+    await refreshData();
+    setTimeout(() => setIsSyncing(false), 500);
+  };
+
   return (
     <div className={`nexus-internal-page nexus-notes-page ${isFocusMode ? 'in-focus-mode' : ''}`}>
       {/* Top Header Bar */}
       {!isFocusMode && (
         <header className="notes-page-header">
           <div className="flex items-center gap-3">
-            <button
-              className="nexus-icon-btn"
+            <IconButton
+              icon={<ArrowLeft size={18} />}
+              aria-label="Return to New Tab"
+              tooltip="Return to New Tab"
+              variant="ghost"
+              size="sm"
               onClick={() => onNavigate('nexus://newtab')}
-              title="Return to New Tab"
-            >
-              <ArrowLeft size={18} />
-            </button>
+            />
             <div className="flex items-center gap-2">
               <FileText size={20} className="text-accent" />
               <h2 className="notes-app-title">NEXUS Notes</h2>
             </div>
-            <span className="notes-version-tag">Local &amp; Offline</span>
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              className="nexus-btn btn-secondary btn-sm"
-              onClick={refreshData}
-              title="Refresh Notes Database"
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />}
+              onClick={handleSync}
+              disabled={isSyncing}
+              title="Sync & refresh local notes database"
             >
-              <RefreshCw size={14} />
-              Sync
-            </button>
+              {isSyncing ? 'Syncing...' : 'Sync'}
+            </Button>
             {activeNote && (
-              <button
-                className="nexus-btn btn-secondary btn-sm"
+              <Button
+                variant="secondary"
+                size="sm"
+                leftIcon={<Download size={14} />}
                 onClick={handleExportNotePdf}
                 title="Export active note to PDF"
               >
-                <Download size={14} />
                 Export Note PDF
-              </button>
+              </Button>
             )}
           </div>
         </header>

@@ -119,9 +119,6 @@ export const SettingsWorkspace: React.FC<SettingsWorkspaceProps> = ({
             <div className="flex items-center gap-2">
               <Settings size={22} className="text-accent" />
               <h1 className="text-xl font-bold text-primary tracking-tight">Settings & Privacy Center</h1>
-              <span className="text-3xs uppercase font-mono bg-accent/15 text-accent px-2 py-0.5 rounded border border-accent/30 font-semibold">
-                Central Control System
-              </span>
             </div>
             <p className="text-xs text-secondary mt-1 max-w-xl">
               Configure browser startup, appearance themes, privacy engines, notification memory, and local workspaces.

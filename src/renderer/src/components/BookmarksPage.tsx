@@ -184,24 +184,8 @@ const BookmarksPageComponent: React.FC<BookmarksPageProps> = ({
 
         <div className="flex items-center gap-2">
           <button
-            className="nexus-btn-sm nexus-btn-secondary flex items-center gap-1.5"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isImporting}
-            title="Import Netscape Bookmark HTML"
-          >
-            <Upload size={13} />
-            <span>Import HTML</span>
-          </button>
-          <button
-            className="nexus-btn-sm nexus-btn-secondary flex items-center gap-1.5"
-            onClick={handleExport}
-            title="Export Netscape Bookmark HTML"
-          >
-            <Download size={13} />
-            <span>Export HTML</span>
-          </button>
-          <button
-            className="nexus-btn-sm nexus-btn-primary flex items-center gap-1.5"
+            type="button"
+            className="nexus-btn-sm nexus-btn-primary flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md shadow-sm cursor-pointer"
             onClick={handleAddBookmark}
           >
             <Plus size={13} />
@@ -217,11 +201,13 @@ const BookmarksPageComponent: React.FC<BookmarksPageProps> = ({
           <div className="flex items-center justify-between px-3 py-2 text-xs font-semibold text-secondary uppercase tracking-wider">
             <span>Folders</span>
             <button
-              className="text-accent hover:text-white"
+              type="button"
+              className="ml-auto px-2.5 py-1 rounded-md bg-[#191D28] hover:bg-[#222838] text-[#F4F4F5] border border-[#272C3D] transition-colors flex items-center gap-1.5 text-xs font-medium mr-1.5 shadow-sm cursor-pointer"
               onClick={handleCreateFolder}
               title="Create new folder"
             >
-              <FolderPlus size={14} />
+              <FolderPlus size={13} />
+              <span>New</span>
             </button>
           </div>
 
@@ -294,12 +280,12 @@ const BookmarksPageComponent: React.FC<BookmarksPageProps> = ({
               </div>
 
               {/* Sort Selector */}
-              <div className="flex items-center gap-1.5 text-xs text-secondary">
-                <ArrowUpDown size={12} />
+              <div className="flex items-center gap-2 text-xs text-secondary ml-1">
+                <ArrowUpDown size={12} className="text-[#9298A8]" />
                 <select
                   value={sortOrder}
                   onChange={(e) => setSortOrder(e.target.value as SortOrder)}
-                  className="nexus-select text-xs py-1"
+                  className="nexus-select text-xs py-1.5 px-3 rounded-md bg-[#12151D] hover:bg-[#1A1E29] border border-[#1C202C] hover:border-[#272C3D] text-[#F4F4F5] font-medium cursor-pointer transition-colors outline-none shadow-sm"
                 >
                   <option value="name-asc">Name (A-Z)</option>
                   <option value="name-desc">Name (Z-A)</option>

@@ -54,14 +54,14 @@ export const ClearBrowsingDataModal: React.FC<ClearBrowsingDataModalProps> = ({
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-4 space-y-4">
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
           {/* Time Range Selector */}
           <div>
-            <label className="text-[11px] font-medium text-secondary block mb-1">Time range</label>
+            <label className="text-xs font-semibold text-secondary block mb-1.5">Time range</label>
             <select
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value as ClearDataOptions['timeRange'])}
-              className="nexus-input w-full text-xs bg-[var(--bg-elevated)]"
+              className="nexus-select w-full text-xs"
             >
               <option value="1h">Last hour</option>
               <option value="24h">Last 24 hours</option>
@@ -72,74 +72,74 @@ export const ClearBrowsingDataModal: React.FC<ClearBrowsingDataModalProps> = ({
           </div>
 
           {/* Selective Options */}
-          <div className="space-y-3 pt-1">
-            <label className="flex items-start gap-2.5 cursor-pointer">
+          <div className="space-y-2.5 pt-1">
+            <label className="flex items-start gap-3 p-3 rounded-lg border border-subtle/70 bg-surface/30 hover:bg-surface/60 transition-colors cursor-pointer">
               <input
                 type="checkbox"
                 checked={clearHistory}
                 onChange={(e) => setClearHistory(e.target.checked)}
-                className="mt-0.5"
+                className="mt-0.5 accent-accent"
               />
-              <div className="text-xs">
-                <div className="flex items-center gap-1.5 font-medium text-primary">
-                  <History size={13} className="text-secondary" />
+              <div className="text-xs flex-1">
+                <div className="flex items-center gap-1.5 font-semibold text-primary">
+                  <History size={14} className="text-secondary" />
                   <span>Browsing history</span>
                 </div>
-                <p className="text-[11px] text-muted mt-0.5">
+                <p className="text-[11px] text-muted mt-0.5 leading-relaxed">
                   Clears recorded URLs and search queries across sessions
                 </p>
               </div>
             </label>
 
-            <label className="flex items-start gap-2.5 cursor-pointer">
+            <label className="flex items-start gap-3 p-3 rounded-lg border border-subtle/70 bg-surface/30 hover:bg-surface/60 transition-colors cursor-pointer">
               <input
                 type="checkbox"
                 checked={clearDownloads}
                 onChange={(e) => setClearDownloads(e.target.checked)}
-                className="mt-0.5"
+                className="mt-0.5 accent-accent"
               />
-              <div className="text-xs">
-                <div className="flex items-center gap-1.5 font-medium text-primary">
-                  <Download size={13} className="text-secondary" />
+              <div className="text-xs flex-1">
+                <div className="flex items-center gap-1.5 font-semibold text-primary">
+                  <Download size={14} className="text-secondary" />
                   <span>Download history</span>
                 </div>
-                <p className="text-[11px] text-muted mt-0.5">
+                <p className="text-[11px] text-muted mt-0.5 leading-relaxed">
                   Clears download list entries (downloaded files on disk are preserved)
                 </p>
               </div>
             </label>
 
-            <label className="flex items-start gap-2.5 cursor-pointer">
+            <label className="flex items-start gap-3 p-3 rounded-lg border border-subtle/70 bg-surface/30 hover:bg-surface/60 transition-colors cursor-pointer">
               <input
                 type="checkbox"
                 checked={clearCookies}
                 onChange={(e) => setClearCookies(e.target.checked)}
-                className="mt-0.5"
+                className="mt-0.5 accent-accent"
               />
-              <div className="text-xs">
-                <div className="flex items-center gap-1.5 font-medium text-primary">
-                  <Cookie size={13} className="text-secondary" />
+              <div className="text-xs flex-1">
+                <div className="flex items-center gap-1.5 font-semibold text-primary">
+                  <Cookie size={14} className="text-secondary" />
                   <span>Cookies and other site data</span>
                 </div>
-                <p className="text-[11px] text-muted mt-0.5">
+                <p className="text-[11px] text-muted mt-0.5 leading-relaxed">
                   Signs you out of most websites and resets session partitions
                 </p>
               </div>
             </label>
 
-            <label className="flex items-start gap-2.5 cursor-pointer">
+            <label className="flex items-start gap-3 p-3 rounded-lg border border-subtle/70 bg-surface/30 hover:bg-surface/60 transition-colors cursor-pointer">
               <input
                 type="checkbox"
                 checked={clearCache}
                 onChange={(e) => setClearCache(e.target.checked)}
-                className="mt-0.5"
+                className="mt-0.5 accent-accent"
               />
-              <div className="text-xs">
-                <div className="flex items-center gap-1.5 font-medium text-primary">
-                  <HardDrive size={13} className="text-secondary" />
+              <div className="text-xs flex-1">
+                <div className="flex items-center gap-1.5 font-semibold text-primary">
+                  <HardDrive size={14} className="text-secondary" />
                   <span>Cached images and files</span>
                 </div>
-                <p className="text-[11px] text-muted mt-0.5">
+                <p className="text-[11px] text-muted mt-0.5 leading-relaxed">
                   Frees up disk cache and forces fresh network loads
                 </p>
               </div>
@@ -147,10 +147,10 @@ export const ClearBrowsingDataModal: React.FC<ClearBrowsingDataModalProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-[rgba(255,255,255,0.06)]">
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-subtle">
             <button
               type="button"
-              className="nexus-btn-secondary text-xs px-3 py-1.5"
+              className="nexus-btn nexus-btn-secondary text-xs px-4 py-2 font-medium bg-[#191D28] hover:bg-[#222838] text-[#F4F4F5] border border-[#272C3D] rounded-md transition-colors cursor-pointer"
               onClick={onClose}
               disabled={clearing}
             >
@@ -158,7 +158,7 @@ export const ClearBrowsingDataModal: React.FC<ClearBrowsingDataModalProps> = ({
             </button>
             <button
               type="submit"
-              className="nexus-btn-danger text-xs px-4 py-1.5 font-medium flex items-center gap-1.5"
+              className="nexus-btn nexus-btn-danger text-xs px-4 py-2 font-semibold flex items-center gap-1.5 bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 rounded-md transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
               disabled={clearing || (!clearHistory && !clearDownloads && !clearCookies && !clearCache)}
             >
               {clearing ? (

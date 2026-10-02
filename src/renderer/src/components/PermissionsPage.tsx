@@ -142,9 +142,10 @@ export const PermissionsPage: React.FC<PermissionsPageProps> = () => {
               </p>
             </div>
           </div>
-          <div className="permissions-header-actions">
+          <div className="permissions-header-actions flex items-center gap-3">
             <button
-              className="nexus-btn-ghost danger"
+              type="button"
+              className="nexus-btn text-xs px-3.5 py-1.5 rounded-md bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 flex items-center gap-1.5 font-medium transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               onClick={handleClearAll}
               disabled={rules.length === 0}
             >
@@ -152,7 +153,8 @@ export const PermissionsPage: React.FC<PermissionsPageProps> = () => {
               <span>Reset All Permissions</span>
             </button>
             <button
-              className="nexus-btn-primary"
+              type="button"
+              className="nexus-btn text-xs px-4 py-1.5 rounded-md bg-[#8B5CF6] hover:bg-[#7C3AED] text-white border border-[#8B5CF6] flex items-center gap-1.5 font-semibold transition-colors shadow-sm cursor-pointer"
               onClick={() => setShowAddForm(!showAddForm)}
             >
               <Plus size={14} />
@@ -210,12 +212,12 @@ export const PermissionsPage: React.FC<PermissionsPageProps> = () => {
             <div className="form-actions-right">
               <button
                 type="button"
-                className="nexus-btn-ghost"
+                className="nexus-btn nexus-btn-ghost text-xs px-3.5 py-1.5 rounded-md bg-[#191D28] hover:bg-[#222838] text-[#F4F4F5] border border-[#272C3D] transition-colors"
                 onClick={() => setShowAddForm(false)}
               >
                 Cancel
               </button>
-              <button type="submit" className="nexus-btn-primary">
+              <button type="submit" className="nexus-btn nexus-btn-primary text-xs px-4 py-1.5 rounded-md bg-[#8B5CF6] hover:bg-[#7C3AED] text-white border border-[#8B5CF6] font-semibold transition-colors shadow-sm">
                 Save Rule
               </button>
             </div>
@@ -235,9 +237,9 @@ export const PermissionsPage: React.FC<PermissionsPageProps> = () => {
             />
           </div>
 
-          <div className="filter-controls">
+          <div className="filter-controls flex items-center gap-3">
             <select
-              className="nexus-select small"
+              className="nexus-select text-xs py-1.5 px-3 rounded-md bg-[#12151D] hover:bg-[#1A1E29] border border-[#1C202C] hover:border-[#272C3D] text-[#F4F4F5] font-medium cursor-pointer transition-colors outline-none shadow-sm"
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
             >
@@ -250,7 +252,7 @@ export const PermissionsPage: React.FC<PermissionsPageProps> = () => {
             </select>
 
             <select
-              className="nexus-select small"
+              className="nexus-select text-xs py-1.5 px-3 rounded-md bg-[#12151D] hover:bg-[#1A1E29] border border-[#1C202C] hover:border-[#272C3D] text-[#F4F4F5] font-medium cursor-pointer transition-colors outline-none shadow-sm"
               value={filterDecision}
               onChange={(e) => setFilterDecision(e.target.value)}
             >

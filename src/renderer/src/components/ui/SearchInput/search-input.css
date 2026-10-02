@@ -1,0 +1,38 @@
+/* ==========================================================================
+   NEXUS CANONICAL SEARCH INPUT STYLES
+   ========================================================================== */
+
+.nexus-search-input__clear-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--nexus-radius-full, 9999px);
+  background: var(--nexus-bg-hover, #1A1E29);
+  color: var(--nexus-text-muted, #575D6E);
+  cursor: pointer;
+  border: none;
+  padding: 0;
+  margin-left: 4px;
+  transition: all var(--nexus-transition-fast, 120ms ease);
+}
+
+.nexus-search-input__clear-btn:hover {
+  background: var(--nexus-bg-active, #222838);
+  color: var(--nexus-text-primary, #F4F4F5);
+}
+
+.nexus-search-input__shortcut {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  color: var(--nexus-text-muted, #575D6E);
+  background: var(--nexus-bg-surface, #12151D);
+  border: 1px solid var(--nexus-border-subtle, #1C202C);
+  border-radius: var(--nexus-radius-xs, 3px);
+  padding: 1px 4px;
+  margin-left: 6px;
+  line-height: 1.2;
+}

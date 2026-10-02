@@ -290,6 +290,16 @@ async function runNotesTestSuite() {
     }
     console.log(`    ✓ Suggestions for "seperate" included: ${suggestions.join(', ')}`);
 
+    // Editor integration check
+    const editorSource = fs.readFileSync(path.resolve(__dirname, '../src/renderer/src/components/Notes/NotesEditor.tsx'), 'utf8');
+    if (!editorSource.includes('editorProps') || !editorSource.includes('autocorrectEnabledRef')) {
+      throw new Error('NotesEditor missing editorProps.handleKeyDown or autocorrectEnabledRef wiring');
+    }
+    if (editorSource.includes('note-editor-body" onKeyDown')) {
+      throw new Error('NotesEditor still has legacy onKeyDown on outer wrapper div');
+    }
+    console.log('    ✓ TipTap editorProps.handleKeyDown and autocorrectEnabledRef properly integrated');
+
     // ----------------------------------------------------
     // SUITE 6: PDF & Print Layout Formatting
     // ----------------------------------------------------

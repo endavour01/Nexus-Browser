@@ -110,15 +110,15 @@ export const ResponsiveDeviceBar: React.FC<ResponsiveDeviceBarProps> = ({ active
   };
 
   return (
-    <div className="responsive-device-bar">
-      <div className="responsive-bar-left">
-        <span className="responsive-tag">
+    <div className="responsive-device-bar bg-[#12151D] border border-[#272C3D] text-[#F4F4F5] shadow-2xl rounded-lg px-4 py-2 flex items-center gap-3">
+      <div className="responsive-bar-left flex items-center gap-2.5">
+        <span className="responsive-tag flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#8B5CF6]/15 text-[#A78BFA] text-xs font-semibold border border-[#8B5CF6]/30">
           <Smartphone size={13} />
           <span>Device Emulation</span>
         </span>
 
         <select
-          className="responsive-select"
+          className="responsive-select bg-[#0B0D12] text-[#F4F4F5] border border-[#1C202C] hover:border-[#272C3D] px-2.5 py-1 rounded text-xs outline-none cursor-pointer"
           value={selectedPresetId}
           onChange={(e) => {
             const preset = PRESETS.find((p) => p.id === e.target.value);
@@ -126,46 +126,58 @@ export const ResponsiveDeviceBar: React.FC<ResponsiveDeviceBarProps> = ({ active
           }}
         >
           {PRESETS.map((p) => (
-            <option key={p.id} value={p.id}>
+            <option key={p.id} value={p.id} className="bg-[#0B0D12] text-[#F4F4F5]">
               {p.name} ({p.width} × {p.height})
             </option>
           ))}
         </select>
       </div>
 
-      <div className="responsive-bar-center">
-        <div className="dimension-inputs">
+      <div className="responsive-bar-center flex items-center gap-2.5">
+        <div className="dimension-inputs flex items-center gap-1.5 bg-[#0B0D12] border border-[#1C202C] px-2 py-1 rounded">
           <input
             type="number"
-            className="dimension-num"
+            className="dimension-num bg-transparent text-[#F4F4F5] text-xs text-center w-12 font-mono outline-none"
             value={width}
             onChange={(e) => {
               const val = parseInt(e.target.value, 10) || 320;
               applyCustomDimensions(val, height);
             }}
           />
-          <span className="dimension-x">×</span>
+          <span className="dimension-x text-[#575D6E] text-xs">×</span>
           <input
             type="number"
-            className="dimension-num"
+            className="dimension-num bg-transparent text-[#F4F4F5] text-xs text-center w-12 font-mono outline-none"
             value={height}
             onChange={(e) => {
               const val = parseInt(e.target.value, 10) || 480;
               applyCustomDimensions(width, val);
             }}
           />
-          <span className="dimension-unit">px</span>
+          <span className="dimension-unit text-[#575D6E] text-[10px]">px</span>
         </div>
 
-        <button className="responsive-action-btn" onClick={handleRotate} title="Rotate Orientation">
+        <button
+          type="button"
+          className="responsive-action-btn flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#191D28] hover:bg-[#222838] text-[#F4F4F5] border border-[#272C3D] text-xs font-medium cursor-pointer transition-colors"
+          onClick={handleRotate}
+          title="Rotate Orientation"
+        >
           <RotateCcw size={13} />
           <span>Rotate</span>
         </button>
       </div>
 
-      <div className="responsive-bar-right">
-        <span className="scale-indicator">{scaleFactor}x DPR</span>
-        <button className="responsive-close-btn" onClick={handleExit} title="Exit Responsive Mode">
+      <div className="responsive-bar-right flex items-center gap-2.5">
+        <span className="scale-indicator px-2 py-1 rounded bg-[#0B0D12] text-[#9298A8] border border-[#1C202C] text-xs font-mono">
+          {scaleFactor}x DPR
+        </span>
+        <button
+          type="button"
+          className="responsive-close-btn flex items-center gap-1 px-2.5 py-1 rounded bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 border border-rose-500/30 text-xs font-semibold cursor-pointer transition-colors"
+          onClick={handleExit}
+          title="Exit Responsive Mode"
+        >
           <X size={14} />
           <span>Exit</span>
         </button>

@@ -237,7 +237,7 @@ export const NewsDashboardView: React.FC<NewsDashboardViewProps> = ({
             onClick={() => handleToggleEnabled(true)}
             disabled={isLoading}
           >
-            {isLoading ? 'Enabling…' : 'Enable News'}
+            {isLoading ? 'Turning On…' : 'Turn On'}
           </button>
         </div>
       </div>
@@ -262,6 +262,15 @@ export const NewsDashboardView: React.FC<NewsDashboardViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Direct Turn Off / Turn On button */}
+          <button
+            className="nexus-btn nexus-btn-secondary nexus-btn-sm text-danger hover:bg-danger/10 border-danger/20 font-medium"
+            onClick={() => handleToggleEnabled(!settings.enabled)}
+            title={settings.enabled ? 'Turn off news feed' : 'Turn on news feed'}
+          >
+            {settings.enabled ? 'Turn Off' : 'Turn On'}
+          </button>
+
           {/* View mode toggle */}
           <div className="news-view-toggle">
             <button
@@ -295,10 +304,10 @@ export const NewsDashboardView: React.FC<NewsDashboardViewProps> = ({
           <div className="news-settings-header justify-between">
             <span className="font-semibold text-sm">News settings</span>
             <button
-              className="nexus-btn-danger nexus-btn-sm"
-              onClick={() => handleToggleEnabled(false)}
+              className={`nexus-btn nexus-btn-sm ${settings.enabled ? 'nexus-btn-danger' : 'nexus-btn-primary'}`}
+              onClick={() => handleToggleEnabled(!settings.enabled)}
             >
-              Turn off
+              {settings.enabled ? 'Turn Off' : 'Turn On'}
             </button>
           </div>
 
@@ -322,7 +331,7 @@ export const NewsDashboardView: React.FC<NewsDashboardViewProps> = ({
       {/* Filter and Search Bar */}
       <div className="news-filters-row">
         {/* Category Pills */}
-        <div className="news-category-pills">
+        <div className="news-category-pills flex items-center gap-2.5">
           {CATEGORIES.map((cat) => (
             <button
               key={cat.id}

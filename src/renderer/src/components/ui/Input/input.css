@@ -1,0 +1,121 @@
+/* ==========================================================================
+   NEXUS CANONICAL INPUT STYLES
+   ========================================================================== */
+
+.nexus-input-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--nexus-space-xs, 4px);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.nexus-input-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+  background: var(--nexus-bg-input, #0E1017);
+  border: 1px solid var(--nexus-border-subtle, #1C202C);
+  border-radius: var(--nexus-radius-sm, 5px);
+  color: var(--nexus-text-primary, #F4F4F5);
+  transition: border-color var(--nexus-transition-fast, 120ms ease),
+              box-shadow var(--nexus-transition-fast, 120ms ease),
+              background-color var(--nexus-transition-fast, 120ms ease);
+  box-sizing: border-box;
+}
+
+.nexus-input-container:hover:not(.nexus-input-container--disabled) {
+  border-color: var(--nexus-border-prominent, #272C3D);
+}
+
+.nexus-input-container--focused {
+  border-color: var(--nexus-accent-primary, #A78BFA) !important;
+  box-shadow: 0 0 0 2px var(--nexus-accent-dim, rgba(167, 139, 250, 0.15));
+}
+
+.nexus-input-container--error {
+  border-color: var(--nexus-status-danger, #F87171) !important;
+}
+
+.nexus-input-container--error.nexus-input-container--focused {
+  box-shadow: 0 0 0 2px var(--nexus-status-danger-muted, rgba(248, 113, 113, 0.15));
+}
+
+.nexus-input-container--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: var(--nexus-bg-surface, #12151D);
+}
+
+/* Sizes */
+.nexus-input-container--sm {
+  height: 28px;
+  padding: 0 8px;
+  font-size: var(--nexus-font-secondary, 12px);
+}
+
+.nexus-input-container--md {
+  height: 32px;
+  padding: 0 10px;
+  font-size: var(--nexus-font-body, 13px);
+}
+
+.nexus-input-container--lg {
+  height: 38px;
+  padding: 0 12px;
+  font-size: var(--nexus-font-section-title, 14px);
+  border-radius: var(--nexus-radius-md, 7px);
+}
+
+/* Inner Input Element */
+.nexus-input-field {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--nexus-text-primary, #F4F4F5);
+  font-family: var(--font-ui, sans-serif);
+  font-size: inherit;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.nexus-input-field::placeholder {
+  color: var(--nexus-text-muted, #575D6E);
+}
+
+.nexus-input-field:disabled {
+  cursor: not-allowed;
+}
+
+/* Icons */
+.nexus-input-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--nexus-text-muted, #575D6E);
+  flex-shrink: 0;
+}
+
+.nexus-input-icon--left {
+  margin-right: 6px;
+}
+
+.nexus-input-icon--right {
+  margin-left: 6px;
+}
+
+/* Feedback Messages */
+.nexus-input-helper {
+  font-size: var(--nexus-font-metadata, 11px);
+  color: var(--nexus-text-muted, #575D6E);
+  margin-top: 2px;
+}
+
+.nexus-input-helper--error {
+  color: var(--nexus-status-danger, #F87171);
+}

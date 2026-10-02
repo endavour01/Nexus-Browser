@@ -21,6 +21,15 @@ import {
   VocabularyItem,
 } from '@shared/types';
 import { NexusState } from '../NexusState';
+import {
+  Button,
+  IconButton,
+  Card,
+  SearchInput,
+  Select,
+  Badge,
+  Tabs,
+} from '../ui';
 
 interface DictionaryViewProps {
   initialText?: string;
@@ -181,27 +190,23 @@ export const DictionaryView: React.FC<DictionaryViewProps> = ({
       {/* Header Bar */}
       <div className="dictionary-header">
         <div className="flex items-center gap-2">
-          <div className="dict-icon-badge">
+          <div className="dict-icon-badge" title="Dictionary & Vocabulary">
             <BookOpen size={16} className="text-accent" />
           </div>
-          <h2 className="dict-title">NEXUS Contextual Dictionary</h2>
+          <span className="dict-title">Dictionary</span>
         </div>
 
         {/* Tab Switcher */}
-        <div className="dict-tab-group">
-          <button
-            className={`filter-pill ${activeTab === 'explainer' ? 'active' : ''}`}
-            onClick={() => setActiveTab('explainer')}
-          >
-            Lookup & Explainer
-          </button>
-          <button
-            className={`filter-pill ${activeTab === 'vocabulary' ? 'active' : ''}`}
-            onClick={() => setActiveTab('vocabulary')}
-          >
-            Vocabulary ({vocabulary.length})
-          </button>
-        </div>
+        <Tabs
+          tabs={[
+            { id: 'explainer', label: 'Lookup & Explainer' },
+            { id: 'vocabulary', label: 'Vocabulary', badge: vocabulary.length },
+          ]}
+          activeTab={activeTab}
+          onChange={(tab) => setActiveTab(tab as 'explainer' | 'vocabulary')}
+          variant="segmented"
+          size="sm"
+        />
       </div>
 
       {activeTab === 'explainer' ? (
@@ -214,72 +219,80 @@ export const DictionaryView: React.FC<DictionaryViewProps> = ({
               handleExplain(query);
             }}
           >
-            <div className="dict-search-input-wrapper">
-              <Search size={15} className="dict-search-icon" />
-              <input
-                type="text"
-                className="dict-search-input"
+            <div className="flex-1">
+              <SearchInput
+                size="sm"
                 placeholder="Enter word, phrase, sentence, or paragraph..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                onClear={() => {
+                  setQuery('');
+                  setExplanation(null);
+                }}
               />
-              {query && (
-                <button
-                  type="button"
-                  className="dict-clear-btn"
-                  onClick={() => {
-                    setQuery('');
-                    setExplanation(null);
-                  }}
-                  title="Clear"
-                >
-                  &times;
-                </button>
-              )}
             </div>
-            <button
+            <Button
               type="submit"
-              className="nexus-btn-primary nexus-btn-sm dict-submit-btn"
+              variant="primary"
+              size="sm"
+              isLoading={isLoading}
               disabled={isLoading || !query.trim()}
             >
-              {isLoading ? 'Explaining...' : 'Explain'}
-            </button>
+              Explain
+            </Button>
           </form>
 
           {/* Reading Level & Language Controls */}
           <div className="dict-controls-row">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-2">
               <span className="dict-ctrl-label">Reading Level:</span>
-              {(['simple', 'standard', 'advanced'] as IntelligenceReadingLevel[]).map((lvl) => (
-                <button
-                  key={lvl}
-                  type="button"
-                  className={`dict-level-pill ${readingLevel === lvl ? 'active' : ''}`}
-                  onClick={() => {
-                    setReadingLevel(lvl);
-                    if (query.trim()) handleExplain(query);
-                  }}
-                >
-                  {lvl.charAt(0).toUpperCase() + lvl.slice(1)}
-                </button>
-              ))}
+              <Select
+                size="sm"
+                fullWidth={false}
+                value={readingLevel}
+                className="dict-reading-level-select"
+                onChange={(e) => {
+                  setReadingLevel(e.target.value as IntelligenceReadingLevel);
+                  if (query.trim()) handleExplain(query);
+                }}
+                options={[
+                  { value: 'simple', label: 'Simple' },
+                  { value: 'standard', label: 'Standard' },
+                  { value: 'advanced', label: 'Advanced' },
+                ]}
+              />
             </div>
 
-            <div className="flex items-center gap-1.5 ml-auto">
+            <div className="flex items-center gap-2 ml-auto">
               <span className="dict-ctrl-label">Language:</span>
-              <select
-                className="dict-lang-select"
+              <Select
+                size="sm"
+                fullWidth={false}
                 value={targetLanguage}
+                className="dict-language-select"
                 onChange={(e) => {
                   setTargetLanguage(e.target.value);
                   if (query.trim()) handleExplain(query);
                 }}
-              >
-                <option value="en">English</option>
-                <option value="es">Español</option>
-                <option value="fr">Français</option>
-                <option value="de">Deutsch</option>
-              </select>
+                options={[
+                  { value: 'en', label: 'English' },
+                  { value: 'es', label: 'Español (Spanish)' },
+                  { value: 'fr', label: 'Français (French)' },
+                  { value: 'de', label: 'Deutsch (German)' },
+                  { value: 'it', label: 'Italiano (Italian)' },
+                  { value: 'pt', label: 'Português (Portuguese)' },
+                  { value: 'ja', label: '日本語 (Japanese)' },
+                  { value: 'zh', label: '中文 (Chinese)' },
+                  { value: 'ko', label: '한국어 (Korean)' },
+                  { value: 'ru', label: 'Русский (Russian)' },
+                  { value: 'ar', label: 'العربية (Arabic)' },
+                  { value: 'hi', label: 'हिन्दी (Hindi)' },
+                  { value: 'nl', label: 'Nederlands (Dutch)' },
+                  { value: 'tr', label: 'Türkçe (Turkish)' },
+                  { value: 'pl', label: 'Polski (Polish)' },
+                  { value: 'sv', label: 'Svenska (Swedish)' },
+                ]}
+              />
             </div>
           </div>
 
@@ -299,12 +312,14 @@ export const DictionaryView: React.FC<DictionaryViewProps> = ({
               title="Explanation Unavailable"
               description={errorMessage}
               action={
-                <button
-                  className="nexus-btn-secondary nexus-btn-sm mt-2"
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="mt-2"
                   onClick={() => handleExplain(query)}
                 >
                   Retry Lookup
-                </button>
+                </Button>
               }
               className="my-6"
             />
@@ -323,39 +338,41 @@ export const DictionaryView: React.FC<DictionaryViewProps> = ({
           {!isLoading && !errorMessage && explanation && (
             <div className="dict-result-container">
               {/* Original Selection Card */}
-              <div className="dict-card dict-original-card">
+              <Card padding="sm" className="dict-original-card">
                 <div className="dict-card-header justify-between">
-                  <span className="dict-card-tag">Original Selection ({explanation.selectionType})</span>
+                  <Badge variant="neutral" size="sm">Original Selection ({explanation.selectionType})</Badge>
                   <div className="flex items-center gap-1">
-                    <button
-                      className="nexus-icon-btn dict-tool-btn"
+                    <IconButton
+                      size="xs"
+                      variant="ghost"
+                      icon={copiedId === 'orig' ? <Check size={13} className="text-success" /> : <Copy size={13} />}
                       onClick={() => handleCopy(explanation.originalText, 'orig')}
-                      title="Copy text"
-                    >
-                      {copiedId === 'orig' ? <Check size={13} className="text-success" /> : <Copy size={13} />}
-                    </button>
+                      aria-label="Copy text"
+                      tooltip="Copy text"
+                    />
                     {onSendToNotes && (
-                      <button
-                        className="nexus-icon-btn dict-tool-btn"
+                      <IconButton
+                        size="xs"
+                        variant="ghost"
+                        icon={<Plus size={13} />}
                         onClick={() =>
                           onSendToNotes(
                             explanation.originalText,
                             `Note: ${explanation.wordResult?.word || explanation.originalText.slice(0, 30)}`
                           )
                         }
-                        title="Send to NEXUS Notes"
-                      >
-                        <Plus size={13} />
-                      </button>
+                        aria-label="Send to NEXUS Notes"
+                        tooltip="Send to NEXUS Notes"
+                      />
                     )}
                   </div>
                 </div>
                 <div className="dict-original-text">"{explanation.originalText}"</div>
-              </div>
+              </Card>
 
               {/* Single Word View */}
               {explanation.wordResult ? (
-                <div className="dict-card dict-word-card">
+                <Card padding="md" className="dict-word-card">
                   <div className="dict-word-header">
                     <div>
                       <h3 className="dict-word-title">{explanation.wordResult.word}</h3>
@@ -363,42 +380,37 @@ export const DictionaryView: React.FC<DictionaryViewProps> = ({
                         <div className="flex items-center gap-2 mt-1">
                           <span className="dict-phonetic-text">{explanation.wordResult.phonetics[0].text}</span>
                           {explanation.wordResult.phonetics[0].audio && (
-                            <button
-                              className="dict-audio-btn"
+                            <IconButton
+                              size="xs"
+                              variant="ghost"
+                              icon={<Volume2 size={14} />}
                               onClick={() => handlePlayAudio(explanation.wordResult?.phonetics?.[0]?.audio)}
-                              title="Listen to pronunciation"
-                            >
-                              <Volume2 size={14} />
-                            </button>
+                              aria-label="Listen to pronunciation"
+                              tooltip="Listen to pronunciation"
+                            />
                           )}
                         </div>
                       )}
                     </div>
 
-                    <button
-                      className={`dict-save-vocab-btn ${isCurrentTermSaved ? 'saved' : ''}`}
+                    <Button
+                      variant={isCurrentTermSaved ? 'primary' : 'secondary'}
+                      size="xs"
+                      leftIcon={isCurrentTermSaved ? <BookmarkCheck size={14} /> : <Bookmark size={14} />}
                       onClick={handleToggleVocabulary}
                       title={isCurrentTermSaved ? 'Saved in Personal Vocabulary' : 'Save to Personal Vocabulary'}
                     >
-                      {isCurrentTermSaved ? (
-                        <>
-                          <BookmarkCheck size={14} className="text-accent" />
-                          <span>Saved</span>
-                        </>
-                      ) : (
-                        <>
-                          <Bookmark size={14} />
-                          <span>Save Word</span>
-                        </>
-                      )}
-                    </button>
+                      {isCurrentTermSaved ? 'Saved' : 'Save Word'}
+                    </Button>
                   </div>
 
                   {/* Meanings */}
                   <div className="dict-meanings-list">
                     {explanation.wordResult.meanings.map((meaning, mIdx) => (
                       <div key={mIdx} className="dict-meaning-block">
-                        <div className="dict-pos-pill">{meaning.partOfSpeech}</div>
+                        <Badge variant="neutral" size="sm" className="mb-2">
+                          {meaning.partOfSpeech}
+                        </Badge>
                         <ol className="dict-definitions-list">
                           {meaning.definitions.map((def, dIdx) => (
                             <li key={dIdx} className="dict-definition-item">
@@ -413,40 +425,41 @@ export const DictionaryView: React.FC<DictionaryViewProps> = ({
                           <div className="dict-synonyms-row">
                             <span className="dict-syn-label">Synonyms:</span>
                             {meaning.synonyms.map((syn, sIdx) => (
-                              <button
+                              <Button
                                 key={sIdx}
-                                className="dict-syn-tag"
+                                variant="secondary"
+                                size="xs"
                                 onClick={() => {
                                   setQuery(syn);
                                   handleExplain(syn);
                                 }}
                               >
                                 {syn}
-                              </button>
+                              </Button>
                             ))}
                           </div>
                         )}
                       </div>
                     ))}
                   </div>
-                </div>
+                </Card>
               ) : (
                 /* Phrase / Sentence / Paragraph View */
                 <div className="dict-explanation-body">
                   {/* Simplified Meaning */}
                   {explanation.simplifiedMeaning && (
-                    <div className="dict-card dict-highlight-card">
+                    <Card padding="md" className="dict-highlight-card">
                       <div className="dict-card-header">
                         <Sparkles size={14} className="text-accent" />
                         <span className="dict-card-title">Plain Language Breakdown</span>
                       </div>
                       <p className="dict-simple-text">{explanation.simplifiedMeaning}</p>
-                    </div>
+                    </Card>
                   )}
 
                   {/* Key Ideas */}
                   {explanation.keyIdeas && explanation.keyIdeas.length > 0 && (
-                    <div className="dict-card">
+                    <Card padding="md">
                       <div className="dict-card-header">
                         <Layers size={14} className="text-secondary" />
                         <span className="dict-card-title">Key Ideas & Context</span>
@@ -459,12 +472,12 @@ export const DictionaryView: React.FC<DictionaryViewProps> = ({
                           </li>
                         ))}
                       </ul>
-                    </div>
+                    </Card>
                   )}
 
                   {/* Difficult Vocabulary Glossary */}
                   {explanation.difficultVocabulary && explanation.difficultVocabulary.length > 0 && (
-                    <div className="dict-card">
+                    <Card padding="md">
                       <div className="dict-card-header">
                         <BookOpen size={14} className="text-secondary" />
                         <span className="dict-card-title">Difficult Vocabulary Identified</span>
@@ -476,27 +489,27 @@ export const DictionaryView: React.FC<DictionaryViewProps> = ({
                               <span className="dict-subvocab-word">{item.word}</span>
                               <span className="dict-subvocab-def">{item.definition}</span>
                             </div>
-                            <button
-                              className="nexus-icon-btn dict-add-vocab-btn"
+                            <IconButton
+                              size="xs"
+                              variant="ghost"
+                              icon={<Plus size={13} />}
                               onClick={() => handleSaveSubWord(item.word, item.definition)}
-                              title="Add to Personal Vocabulary"
-                            >
-                              <Plus size={13} />
-                            </button>
+                              aria-label="Add to Personal Vocabulary"
+                              tooltip="Add to Personal Vocabulary"
+                            />
                           </div>
                         ))}
                       </div>
-                    </div>
+                    </Card>
                   )}
                 </div>
               )}
 
               {/* Attribution & AI Transparency Banner */}
               <div className="dict-attribution-footer">
-                <div className="dict-source-badge">
-                  <span className="dict-source-dot" />
-                  <span>Source: {explanation.sourceAttribution}</span>
-                </div>
+                <Badge variant="neutral" size="sm" dot>
+                  Source: {explanation.sourceAttribution}
+                </Badge>
 
                 {explanation.isAIGenerated ? (
                   <div className="dict-disclaimer-banner">
@@ -519,14 +532,13 @@ export const DictionaryView: React.FC<DictionaryViewProps> = ({
       ) : (
         /* Vocabulary List Tab */
         <div className="dictionary-vocab-pane">
-          <div className="vocab-search-row">
-            <Search size={14} className="vocab-search-icon" />
-            <input
-              type="text"
-              className="vocab-search-input"
+          <div className="mb-3">
+            <SearchInput
+              size="sm"
               placeholder="Search saved vocabulary..."
               value={vocabSearch}
               onChange={(e) => setVocabSearch(e.target.value)}
+              onClear={() => setVocabSearch('')}
             />
           </div>
 
@@ -540,36 +552,43 @@ export const DictionaryView: React.FC<DictionaryViewProps> = ({
           ) : (
             <div className="vocab-items-list">
               {filteredVocabulary.map((item) => (
-                <div key={item.id} className="vocab-card">
+                <Card key={item.id} variant="default" padding="sm" className="vocab-card">
                   <div className="vocab-card-header">
                     <div className="flex items-center gap-2">
                       <span className="vocab-term">{item.term}</span>
-                      {item.partOfSpeech && <span className="vocab-pos">{item.partOfSpeech}</span>}
+                      {item.partOfSpeech && (
+                        <Badge variant="neutral" size="sm">
+                          {item.partOfSpeech}
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex items-center gap-1">
-                      <button
-                        className="nexus-icon-btn vocab-action-btn"
+                      <IconButton
+                        size="xs"
+                        variant="ghost"
+                        icon={<Search size={13} />}
                         onClick={() => {
                           setQuery(item.term);
                           handleExplain(item.term);
                         }}
-                        title="Explain again"
-                      >
-                        <Search size={13} />
-                      </button>
-                      <button
-                        className="nexus-icon-btn vocab-action-btn text-danger"
+                        aria-label="Explain again"
+                        tooltip="Explain again"
+                      />
+                      <IconButton
+                        size="xs"
+                        variant="ghost"
+                        icon={<Trash2 size={13} />}
                         onClick={() => handleDeleteVocab(item.id)}
-                        title="Delete from vocabulary"
-                      >
-                        <Trash2 size={13} />
-                      </button>
+                        className="text-danger"
+                        aria-label="Delete from vocabulary"
+                        tooltip="Delete from vocabulary"
+                      />
                     </div>
                   </div>
                   <p className="vocab-definition">{item.definition}</p>
                   {item.example && <p className="vocab-example">"{item.example}"</p>}
                   <div className="vocab-date">Added {new Date(item.dateAdded).toLocaleDateString()}</div>
-                </div>
+                </Card>
               ))}
             </div>
           )}

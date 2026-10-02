@@ -202,10 +202,10 @@ export const ConnectAppCard: React.FC<ConnectAppCardProps> = ({
         </div>
 
         {/* Buttons Row */}
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2.5">
           <button
             type="button"
-            className="flex-1 py-1.5 px-2.5 rounded-lg text-xs font-semibold bg-accent text-bg-app hover:brightness-110 flex items-center justify-center gap-1.5 transition-all shadow-sm"
+            className="nexus-btn nexus-btn-primary nexus-btn-sm flex-1 font-semibold flex items-center justify-center gap-1.5"
             onClick={() => onOpen(app, false)}
             title={`Open ${app.name} in a tab`}
           >
@@ -215,22 +215,22 @@ export const ConnectAppCard: React.FC<ConnectAppCardProps> = ({
 
           <button
             type="button"
-            className="py-1.5 px-2 rounded-lg text-xs font-medium text-secondary hover:text-primary bg-surface hover:bg-surface-hover border border-subtle flex items-center gap-1 transition-colors"
+            className="nexus-btn nexus-btn-secondary nexus-btn-sm px-2.5 flex items-center justify-center gap-1"
             onClick={() => onOpen(app, true)}
             title={`Open ${app.name} as a pinned app tab`}
           >
             <Pin size={11} />
-            <span className="hidden sm:inline">Pin</span>
+            <span>Pin</span>
           </button>
 
           <button
             type="button"
-            className="py-1.5 px-2 rounded-lg text-xs font-medium text-accent hover:bg-accent/10 border border-accent/25 flex items-center gap-1 transition-colors"
+            className="nexus-btn nexus-btn-secondary nexus-btn-sm px-2.5 text-accent hover:text-accent flex items-center justify-center gap-1"
             onClick={() => onAddTodo(app)}
             title={`Add task for ${app.name}`}
           >
             <CheckSquare size={11} />
-            <span className="hidden sm:inline">Todo</span>
+            <span>Todo</span>
           </button>
         </div>
       </div>

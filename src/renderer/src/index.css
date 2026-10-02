@@ -57,6 +57,34 @@
   --text-sm: 12px;
   --text-md: 13px;
   --text-lg: 15px;
+
+  /* Canonical NEXUS Universal Scale Tokens */
+  --nexus-space-xs: 4px;
+  --nexus-space-sm: 8px;
+  --nexus-space-md: 12px;
+  --nexus-space-lg: 16px;
+  --nexus-space-xl: 24px;
+  --nexus-space-2xl: 32px;
+
+  --nexus-font-display: 20px;
+  --nexus-font-page-title: 16px;
+  --nexus-font-section-title: 14px;
+  --nexus-font-card-title: 13px;
+  --nexus-font-body: 13px;
+  --nexus-font-secondary: 12px;
+  --nexus-font-metadata: 11px;
+  --nexus-font-micro: 10px;
+
+  --nexus-radius-xs: 3px;
+  --nexus-radius-sm: 5px;
+  --nexus-radius-md: 7px;
+  --nexus-radius-lg: 10px;
+  --nexus-radius-xl: 14px;
+  --nexus-radius-full: 9999px;
+
+  --nexus-transition-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --nexus-transition-base: 180ms cubic-bezier(0.4, 0, 0.2, 1);
+  --nexus-focus-ring: 0 0 0 2px var(--nexus-accent-primary, var(--accent-primary));
 }
 
 :root[data-reduced-motion='true'] *,
@@ -73,6 +101,55 @@
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Universal Form Control Resets to prevent Chromium default buttonface/white controls */
+button {
+  background: transparent;
+  color: inherit;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+  outline: none;
+  padding: 0;
+  margin: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--nexus-accent-primary, var(--accent-primary));
+  outline-offset: 2px;
+}
+
+select {
+  background-color: var(--nexus-bg-surface, var(--bg-surface, #12151D));
+  color: var(--nexus-text-primary, var(--text-primary, #F4F4F5));
+  border: 1px solid var(--nexus-border-subtle, var(--border-subtle, #1C202C));
+  border-radius: var(--nexus-radius-sm, var(--radius-sm, 5px));
+  font: inherit;
+  outline: none;
+  color-scheme: dark;
+}
+
+select:focus-visible {
+  border-color: var(--nexus-accent-primary, var(--accent-primary));
+  box-shadow: 0 0 0 2px var(--nexus-accent-dim, rgba(167, 139, 250, 0.15));
+}
+
+select option {
+  background-color: var(--nexus-bg-surface, var(--bg-surface, #12151D));
+  color: var(--nexus-text-primary, var(--text-primary, #F4F4F5));
+}
+
+input, textarea {
+  color: var(--nexus-text-primary, var(--text-primary, #F4F4F5));
+  font: inherit;
+  color-scheme: dark;
+}
+
+input:focus-visible, textarea:focus-visible {
+  outline: none;
 }
 
 html, body, #root {

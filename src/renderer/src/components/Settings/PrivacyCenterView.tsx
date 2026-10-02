@@ -134,9 +134,6 @@ export const PrivacyCenterView: React.FC<PrivacyCenterViewProps> = ({
             <div className="flex items-center gap-2">
               <ShieldCheck size={22} className="text-accent" />
               <h2 className="text-lg font-bold text-primary tracking-tight">NEXUS Privacy Center</h2>
-              <span className="text-3xs uppercase font-mono bg-accent/15 text-accent px-2 py-0.5 rounded border border-accent/30 font-semibold">
-                Verified Engine Telemetry
-              </span>
             </div>
             <p className="text-xs text-secondary mt-1 max-w-2xl leading-relaxed">
               Real-time audit of your browser privacy protections, active shield engines, site permissions, and data boundaries.
@@ -146,7 +143,7 @@ export const PrivacyCenterView: React.FC<PrivacyCenterViewProps> = ({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              className="nexus-btn-ghost text-xs px-3 py-1.5 flex items-center gap-1.5"
+              className="nexus-btn nexus-btn-secondary text-xs px-3 py-1.5 flex items-center gap-1.5"
               onClick={() => onNavigate('nexus://shield')}
               title="Open full NEXUS Shield dashboard"
             >
@@ -155,7 +152,7 @@ export const PrivacyCenterView: React.FC<PrivacyCenterViewProps> = ({
             </button>
             <button
               type="button"
-              className="nexus-btn-primary text-xs px-3 py-1.5 flex items-center gap-1.5"
+              className="nexus-btn nexus-btn-primary text-xs px-3 py-1.5 flex items-center gap-1.5"
               onClick={onOpenClearDataModal}
               title="Clear history, cookies, and cache"
             >
@@ -184,7 +181,7 @@ export const PrivacyCenterView: React.FC<PrivacyCenterViewProps> = ({
             <span className="text-muted">In-Memory Engine</span>
             <button
               type="button"
-              className="text-accent hover:underline text-3xs font-medium"
+              className="nexus-btn nexus-btn-secondary text-xs px-2.5 py-0.5 rounded font-medium"
               onClick={() => onUpdateSettings({
                 trackingProtectionMode: settings.trackingProtectionMode === 'off' ? 'standard' : 'off',
                 shieldTrackerBlocking: settings.trackingProtectionMode === 'off',
@@ -211,7 +208,7 @@ export const PrivacyCenterView: React.FC<PrivacyCenterViewProps> = ({
             <span className="text-muted">EasyList Rules</span>
             <button
               type="button"
-              className="text-accent hover:underline text-3xs font-medium"
+              className="nexus-btn nexus-btn-secondary text-xs px-2.5 py-0.5 rounded font-medium"
               onClick={() => onUpdateSettings({ shieldAdBlocking: !(settings.shieldAdBlocking ?? true) })}
             >
               {adBlockStatus === 'ACTIVE' ? 'Disable' : 'Enable'}
@@ -235,7 +232,7 @@ export const PrivacyCenterView: React.FC<PrivacyCenterViewProps> = ({
             <span className="text-muted">Window Intercept</span>
             <button
               type="button"
-              className="text-accent hover:underline text-3xs font-medium"
+              className="nexus-btn nexus-btn-secondary text-xs px-2.5 py-0.5 rounded font-medium"
               onClick={() => onUpdateSettings({
                 popupsBlocked: !(settings.popupsBlocked ?? true),
                 shieldPopupBlocking: !(settings.shieldPopupBlocking ?? true),
@@ -262,7 +259,7 @@ export const PrivacyCenterView: React.FC<PrivacyCenterViewProps> = ({
             <span className="text-muted">Safe Browsing</span>
             <button
               type="button"
-              className="text-accent hover:underline text-3xs font-medium"
+              className="nexus-btn nexus-btn-secondary text-xs px-2.5 py-0.5 rounded font-medium"
               onClick={() => onUpdateSettings({ shieldPhishingProtection: !(settings.shieldPhishingProtection ?? true) })}
             >
               {scamStatus === 'ACTIVE' ? 'Disable' : 'Enable'}
@@ -286,7 +283,7 @@ export const PrivacyCenterView: React.FC<PrivacyCenterViewProps> = ({
             <span className="text-muted">Partition Storage</span>
             <button
               type="button"
-              className="text-accent hover:underline text-3xs font-medium"
+              className="nexus-btn nexus-btn-secondary text-xs px-2.5 py-0.5 rounded font-medium"
               onClick={() => onUpdateSettings({ thirdPartyCookiesBlocked: !(settings.thirdPartyCookiesBlocked ?? true) })}
             >
               {cookiesStatus === 'BLOCKED' ? 'Allow' : 'Block'}
@@ -310,7 +307,7 @@ export const PrivacyCenterView: React.FC<PrivacyCenterViewProps> = ({
             <span className="text-muted">HTTP Header</span>
             <button
               type="button"
-              className="text-accent hover:underline text-3xs font-medium"
+              className="nexus-btn nexus-btn-secondary text-xs px-2.5 py-0.5 rounded font-medium"
               onClick={() => onUpdateSettings({ doNotTrack: !(settings.doNotTrack ?? true) })}
             >
               {dntStatus === 'ACTIVE' ? 'Disable' : 'Enable'}

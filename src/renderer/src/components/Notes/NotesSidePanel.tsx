@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import {
   FileText,
   Plus,
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { NexusNote } from '@shared/types';
 import { NotesEditor } from './NotesEditor';
+import { Button, IconButton, SearchInput } from '../ui';
 
 interface NotesSidePanelProps {
   onNavigate: (url: string) => void;
@@ -31,6 +32,7 @@ export const NotesSidePanel: React.FC<NotesSidePanelProps> = ({
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isNoteListOpen, setIsNoteListOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const api = typeof window !== 'undefined' ? window.nexusAPI : null;
 
@@ -60,6 +62,18 @@ export const NotesSidePanel: React.FC<NotesSidePanelProps> = ({
     return () => unsub();
   }, [refreshNotes, api]);
 
+  // Handle click outside dropdown cleanly without screen-freezing invisible backdrops
+  useEffect(() => {
+    if (!isNoteListOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsNoteListOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isNoteListOpen]);
+
   const activeNote = useMemo(() => {
     return notes.find((n) => n.id === activeNoteId) || null;
   }, [notes, activeNoteId]);
@@ -88,15 +102,7 @@ export const NotesSidePanel: React.FC<NotesSidePanelProps> = ({
       const newNote = await api.saveNote({
         title: linkCurrentTab && activeTabTitle ? `Notes: ${activeTabTitle}` : 'Quick Note',
         content: '<p></p>',
-        linkedTab:
-          linkCurrentTab && activeTabUrl
-            ? {
-                url: activeTabUrl,
-                title: activeTabTitle || activeTabUrl,
-                favicon: activeTabFavicon,
-                linkedAt: Date.now(),
-              }
-            : null,
+        linkedTab: null,
       });
       setNotes((prev) => [newNote, ...prev]);
       setActiveNoteId(newNote.id);
@@ -138,63 +144,62 @@ export const NotesSidePanel: React.FC<NotesSidePanelProps> = ({
   };
 
   return (
-    <div className="notes-sidepanel-root">
-      {/* SidePanel Header */}
-      <div className="sidepanel-notes-header">
-        <div className="flex items-center gap-2">
-          <FileText size={17} className="text-accent" />
-          <span className="sidepanel-header-title">Notes Companion</span>
-        </div>
-
-        <div className="flex items-center gap-1.5">
-          <button
-            className="nexus-icon-btn btn-sm"
-            onClick={() => handleCreateNote(false)}
-            title="Create New Note"
-          >
-            <Plus size={16} />
-          </button>
-          <button
-            className="nexus-icon-btn btn-sm"
-            onClick={() => onNavigate('nexus://notes')}
-            title="Open Full Workspace (nexus://notes)"
-          >
-            <Maximize2 size={15} />
-          </button>
-        </div>
-      </div>
-
-      {/* Note Selector Dropdown */}
-      <div className="sidepanel-note-selector relative">
+    <div className="notes-sidepanel-root flex flex-col h-full w-full bg-[var(--nexus-bg-surface,#12151D)] overflow-hidden">
+      {/* Streamlined Note Selector & Actions Bar (no duplicate title header) */}
+      <div ref={dropdownRef} className="sidepanel-note-selector relative flex items-center gap-2 p-2.5 bg-[var(--nexus-bg-canvas,#0E1017)] border-b border-[var(--nexus-border-subtle,#1C202C)]">
         <button
-          className="note-selector-toggle"
+          type="button"
+          className="note-selector-toggle flex-1 flex items-center justify-between px-3 py-1.5 rounded-md bg-[var(--nexus-bg-surface,#12151D)] hover:bg-[var(--nexus-bg-hover,#1A1E29)] border border-[var(--nexus-border-subtle,#1C202C)] text-[var(--nexus-text-primary,#F4F4F5)] text-xs font-medium cursor-pointer transition-colors"
           onClick={() => setIsNoteListOpen((prev) => !prev)}
         >
           <div className="flex items-center gap-2 truncate">
             {activeNote?.isPinned && <Pin size={12} className="text-accent" />}
             <span className="truncate">{activeNote?.title || 'Select a note...'}</span>
           </div>
-          <ChevronDown size={14} className="flex-shrink-0" />
+          <ChevronDown size={14} className="flex-shrink-0 text-[var(--nexus-text-secondary,#9298A8)] ml-1" />
         </button>
 
+        <IconButton
+          icon={<Plus size={15} />}
+          aria-label="Create New Note"
+          tooltip="Create New Note"
+          variant="secondary"
+          size="sm"
+          onClick={() => handleCreateNote(false)}
+        />
+
+        <IconButton
+          icon={<Maximize2 size={14} />}
+          aria-label="Open Full Workspace (nexus://notes)"
+          tooltip="Open Full Workspace (nexus://notes)"
+          variant="secondary"
+          size="sm"
+          onClick={() => onNavigate('nexus://notes')}
+        />
+
         {isNoteListOpen && (
-          <div className="note-selector-popover">
-            <div className="selector-search-box">
-              <Search size={14} className="text-secondary" />
-              <input
-                type="text"
+          <div className="note-selector-popover absolute top-full left-2.5 right-2.5 mt-1.5 bg-[var(--nexus-bg-elevated,#191D28)] border border-[var(--nexus-border-prominent,#272C3D)] rounded-lg shadow-2xl z-50 flex flex-col max-h-64 overflow-hidden">
+            <div className="selector-search-box p-2 border-b border-[var(--nexus-border-subtle,#1C202C)] bg-[var(--nexus-bg-surface,#12151D)]">
+              <SearchInput
+                size="sm"
                 placeholder="Search notes..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onClear={() => setSearchQuery('')}
                 autoFocus
               />
             </div>
 
-            <div className="selector-list">
+            <div className="selector-list overflow-y-auto p-1.5 flex flex-col gap-1 max-h-48">
               {filteredNotes.map((n) => (
                 <button
                   key={n.id}
-                  className={`selector-item ${n.id === activeNoteId ? 'active' : ''}`}
+                  type="button"
+                  className={`selector-item flex items-center justify-between p-2 rounded text-left text-xs transition-colors ${
+                    n.id === activeNoteId
+                      ? 'bg-[var(--nexus-accent-dim,rgba(167,139,250,0.12))] text-[var(--nexus-accent-primary,#A78BFA)] font-medium'
+                      : 'text-[var(--nexus-text-secondary,#9298A8)] hover:bg-[var(--nexus-bg-surface,#12151D)] hover:text-[var(--nexus-text-primary,#F4F4F5)]'
+                  }`}
                   onClick={() => {
                     setActiveNoteId(n.id);
                     setIsNoteListOpen(false);
@@ -204,7 +209,7 @@ export const NotesSidePanel: React.FC<NotesSidePanelProps> = ({
                     {n.isPinned && <Pin size={12} className="text-accent" />}
                     <span className="truncate">{n.title || 'Untitled Note'}</span>
                   </div>
-                  <span className="text-secondary" style={{ fontSize: '10px' }}>
+                  <span className="text-[var(--nexus-text-muted,#575D6E)] text-[10px] ml-2 shrink-0">
                     {new Date(n.updatedAt).toLocaleDateString(undefined, {
                       month: 'numeric',
                       day: 'numeric',
@@ -213,42 +218,27 @@ export const NotesSidePanel: React.FC<NotesSidePanelProps> = ({
                 </button>
               ))}
               {filteredNotes.length === 0 && (
-                <div className="selector-empty">No matching notes found.</div>
+                <div className="selector-empty p-3 text-center text-xs text-[var(--nexus-text-muted,#575D6E)]">No matching notes found.</div>
               )}
             </div>
 
-            <div className="selector-footer">
-              <button
-                className="nexus-btn btn-secondary btn-xs w-full"
+            <div className="selector-footer p-2 border-t border-[var(--nexus-border-subtle,#1C202C)] bg-[var(--nexus-bg-surface,#12151D)]">
+              <Button
+                variant="primary"
+                size="sm"
+                fullWidth
+                leftIcon={<Plus size={13} />}
                 onClick={() => handleCreateNote(false)}
               >
-                <Plus size={13} />
                 New Note
-              </button>
+              </Button>
             </div>
           </div>
         )}
       </div>
 
-      {/* 1-Click Tab Linker Quick Action */}
-      {activeTabUrl && activeTabUrl !== 'nexus://notes' && activeTabUrl !== 'nexus://newtab' && (
-        <div className="sidepanel-tab-link-action">
-          {activeNote?.linkedTab?.url === activeTabUrl ? (
-            <div className="tab-linked-badge">
-              <Check size={12} />
-              <span className="truncate">Linked to active tab</span>
-            </div>
-          ) : (
-            <button className="link-active-tab-action" onClick={handleLinkActiveTab}>
-              <ExternalLink size={12} />
-              <span className="truncate">Link current tab to this note</span>
-            </button>
-          )}
-        </div>
-      )}
-
       {/* Embedded Streamlined Editor */}
-      <div className="sidepanel-editor-host">
+      <div className="sidepanel-editor-host flex-1 overflow-hidden">
         <NotesEditor
           note={activeNote}
           onSave={handleSaveNote}
