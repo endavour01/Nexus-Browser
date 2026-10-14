@@ -1,6 +1,7 @@
 import React from 'react';
 import { HubCardId } from '@shared/types';
 import { ChevronUp, ChevronDown, EyeOff, ExternalLink } from 'lucide-react';
+import { IconButton } from '../ui';
 
 interface HubCardProps {
   id: HubCardId;
@@ -31,21 +32,21 @@ export const HubCard: React.FC<HubCardProps> = ({
   children,
 }) => {
   return (
-    <div className="markets-card hub-card flex flex-col justify-between p-4.5 space-y-3 relative group">
+    <div className="hub-card relative group" role="region" aria-label={title}>
       {/* Card Header */}
-      <div className="flex items-center justify-between border-b border-subtle pb-2.5">
-        <div className="flex items-center gap-2 min-w-0">
-          <div className="text-accent shrink-0">{icon}</div>
-          <h3 className="font-semibold text-xs text-primary truncate tracking-tight">{title}</h3>
+      <div className="hub-card-header">
+        <div className="hub-card-title-group">
+          <div className="text-accent shrink-0 flex items-center">{icon}</div>
+          <h3 className="hub-card-title" title={title}>{title}</h3>
           {badge}
         </div>
 
         {/* Card Controls & Link */}
-        <div className="flex items-center gap-1">
+        <div className="hub-card-controls">
           {actionText && onAction && (
             <button
               type="button"
-              className="text-3xs text-secondary hover:text-primary flex items-center gap-0.5 px-1.5 py-0.5 rounded hover:bg-surface transition-colors"
+              className="text-3xs text-secondary hover:text-primary flex items-center gap-1 px-2 py-1 rounded hover:bg-surface-hover transition-colors font-medium"
               onClick={onAction}
             >
               <span>{actionText}</span>
@@ -53,49 +54,48 @@ export const HubCard: React.FC<HubCardProps> = ({
             </button>
           )}
 
-          {/* Reordering & Visibility Controls (visible on hover or focus) */}
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity ml-1 pl-1 border-l border-subtle">
-            {onMoveUp && (
-              <button
-                type="button"
-                disabled={isFirst}
-                className="nexus-icon-btn p-1 text-secondary hover:text-primary disabled:opacity-20"
-                onClick={onMoveUp}
-                title="Move card up"
-                aria-label="Move card up"
-              >
-                <ChevronUp size={12} />
-              </button>
-            )}
-            {onMoveDown && (
-              <button
-                type="button"
-                disabled={isLast}
-                className="nexus-icon-btn p-1 text-secondary hover:text-primary disabled:opacity-20"
-                onClick={onMoveDown}
-                title="Move card down"
-                aria-label="Move card down"
-              >
-                <ChevronDown size={12} />
-              </button>
-            )}
-            {onHide && (
-              <button
-                type="button"
-                className="nexus-icon-btn p-1 text-secondary hover:text-amber-400"
-                onClick={onHide}
-                title="Hide this card"
-                aria-label="Hide card"
-              >
-                <EyeOff size={12} />
-              </button>
-            )}
-          </div>
+          {/* Reordering & Visibility Controls */}
+          {(onMoveUp || onMoveDown || onHide) && (
+            <div className="flex items-center gap-0.5 opacity-80 group-hover:opacity-100 transition-opacity ml-1 pl-1 border-l border-subtle">
+              {onMoveUp && (
+                <IconButton
+                  icon={<ChevronUp size={12} />}
+                  aria-label="Move card up"
+                  tooltip="Move card up"
+                  variant="ghost"
+                  size="xs"
+                  disabled={isFirst}
+                  onClick={onMoveUp}
+                />
+              )}
+              {onMoveDown && (
+                <IconButton
+                  icon={<ChevronDown size={12} />}
+                  aria-label="Move card down"
+                  tooltip="Move card down"
+                  variant="ghost"
+                  size="xs"
+                  disabled={isLast}
+                  onClick={onMoveDown}
+                />
+              )}
+              {onHide && (
+                <IconButton
+                  icon={<EyeOff size={12} />}
+                  aria-label="Hide card"
+                  tooltip="Hide this card"
+                  variant="ghost"
+                  size="xs"
+                  onClick={onHide}
+                />
+              )}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Card Content Body */}
-      <div className="flex-1 min-h-[90px]">{children}</div>
+      <div className="hub-card-body">{children}</div>
     </div>
   );
 };

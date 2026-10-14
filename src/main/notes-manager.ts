@@ -10,6 +10,7 @@ import {
   NotesExportOptions,
   NexusNotesData,
 } from '../shared/types';
+import { privateDecrypt } from 'crypto';
 
 export class NotesManager {
   private filePath: string;
@@ -223,8 +224,18 @@ console.log("Welcome to distraction-free note taking!");
   }
 
   private computeMetrics(content: string): { wordCount: number; readingTimeMinutes: number } {
-    // Strip HTML tags for clean word count
-    const cleanText = content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    // Strip HTML tags and entities for clean word count
+    const cleanText = content
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&(?:nbsp|#160|#xA0);/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
+      .replace(/&apos;/gi, "'")
+      .replace(/\s+/g, ' ')
+      .trim();
     if (!cleanText) return { wordCount: 0, readingTimeMinutes: 1 };
     const words = cleanText.split(/\s+/).filter(Boolean);
     const wordCount = words.length;
@@ -278,7 +289,8 @@ console.log("Welcome to distraction-free note taking!");
       const q = filter.searchQuery.toLowerCase().trim();
       list = list.filter((n) => {
         const titleMatch = n.title.toLowerCase().includes(q);
-        const contentMatch = n.content.toLowerCase().includes(q);
+        const cleanContent = n.content.replace(/&(?:nbsp|#160|#xA0);/gi, ' ').toLowerCase();
+        const contentMatch = cleanContent.includes(q);
         const tagMatch = n.tags && n.tags.some((t) => t.toLowerCase().includes(q));
         return titleMatch || contentMatch || tagMatch;
       });
@@ -307,9 +319,20 @@ console.log("Welcome to distraction-free note taking!");
 
     const primaryNotebook = this.notebooks.keys().next().value || 'default-notebook';
 
+    const cleanTitle = (data.title || '')
+      .replace(/&(?:nbsp|#160|#xA0);/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
+      .replace(/&apos;/gi, "'")
+      .replace(/\s+/g, ' ')
+      .trim();
+
     const note: NexusNote = {
       id,
-      title: data.title.trim() || 'Untitled Note',
+      title: cleanTitle || 'Untitled Note',
       content,
       notebookId: data.notebookId || existing?.notebookId || primaryNotebook,
       folderId: data.folderId !== undefined ? data.folderId : existing?.folderId || null,
@@ -843,3 +866,5 @@ console.log("Welcome to distraction-free note taking!");
     }
   }
 }
+
+

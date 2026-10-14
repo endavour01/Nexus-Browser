@@ -58,7 +58,7 @@ import { NexusNote } from '@shared/types';
 import { SketchCanvasModal } from './SketchCanvasModal';
 import { NOTE_TEMPLATES, NoteTemplate } from './templates';
 import { autocorrectWord, getSpellingSuggestions, isWordMisspelled } from './spellcheck';
-import { Button } from '../ui';
+import { Button, IconButton } from '../ui';
 
 interface NotesEditorProps {
   note: NexusNote | null;
@@ -249,7 +249,7 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
 
   // Debounced auto-save
   const triggerAutoSave = useCallback(
-    (htmlContent?: string) => {
+    (htmlContent?: string, updatedTitle?: string) => {
       if (!note) return;
       setSaveStatus('saving');
 
@@ -259,9 +259,20 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
 
       saveTimerRef.current = setTimeout(() => {
         const contentToSave = htmlContent !== undefined ? htmlContent : editor?.getHTML() || '';
+        const rawTitle = updatedTitle !== undefined ? updatedTitle : title;
+        const cleanTitle = (rawTitle || '')
+          .replace(/&(?:nbsp|#160|#xA0);/gi, ' ')
+          .replace(/&amp;/gi, '&')
+          .replace(/&lt;/gi, '<')
+          .replace(/&gt;/gi, '>')
+          .replace(/&quot;/gi, '"')
+          .replace(/&#39;/gi, "'")
+          .replace(/&apos;/gi, "'")
+          .replace(/\s+/g, ' ')
+          .trim();
         onSave({
           id: note.id,
-          title: title.trim() || 'Untitled Note',
+          title: cleanTitle || 'Untitled Note',
           content: contentToSave,
         });
         setSaveStatus('saved');
@@ -275,7 +286,7 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
     const newTitle = e.target.value;
     setTitle(newTitle);
     setSaveStatus('unsaved');
-    triggerAutoSave();
+    triggerAutoSave(undefined, newTitle);
   };
 
   // Keyboard shortcut listener for formatting and in-note search
@@ -726,7 +737,7 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
         <div className="toolbar-divider" />
 
         {/* Table Management */}
-        <div className="toolbar-btn-group relative">
+        <div className="toolbar-btn-group relative flex items-center gap-1">
           <button
             className={`nexus-icon-btn editor-btn ${editor?.isActive('table') ? 'active' : ''}`}
             onClick={() => {
@@ -740,6 +751,20 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
             <TableIcon size={16} />
             <ChevronDown size={12} />
           </button>
+
+          {editor?.isActive('table') && (
+            <IconButton
+              icon={<Trash2 size={13} />}
+              aria-label="Delete table"
+              tooltip="Delete table"
+              variant="ghost"
+              size="sm"
+              className="text-danger hover:text-danger"
+              onClick={() => {
+                editor?.chain().focus().deleteTable().run();
+              }}
+            />
+          )}
           {isTableMenuOpen && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setIsTableMenuOpen(false)} />

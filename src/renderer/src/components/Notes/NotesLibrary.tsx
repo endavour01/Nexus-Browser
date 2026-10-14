@@ -136,7 +136,8 @@ export const NotesLibrary: React.FC<NotesLibraryProps> = ({
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const titleMatch = note.title.toLowerCase().includes(q);
-        const contentMatch = note.content.toLowerCase().includes(q);
+        const cleanContent = note.content.replace(/&(?:nbsp|#160|#xA0);/gi, ' ').toLowerCase();
+        const contentMatch = cleanContent.includes(q);
         const tagMatch = note.tags && note.tags.some((t) => t.toLowerCase().includes(q));
         if (!titleMatch && !contentMatch && !tagMatch) return false;
       }
@@ -181,7 +182,21 @@ export const NotesLibrary: React.FC<NotesLibraryProps> = ({
   };
 
   const getCleanSnippet = (html: string) => {
-    return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 95);
+    if (!html) return '';
+    return html
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&(?:nbsp|#160|#xA0);/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/&quot;/gi, '"')
+      .replace(/&#39;/gi, "'")
+      .replace(/&apos;/gi, "'")
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 95);
   };
 
   return (
@@ -514,9 +529,11 @@ export const NotesLibrary: React.FC<NotesLibraryProps> = ({
                   onClick={() => onSelectNote(note.id)}
                 >
                   <div className="card-top-row">
-                    <div className="card-title-group">
-                      {note.isPinned && <Pin size={13} className="pin-icon text-accent" />}
-                      <span className="card-title truncate">{note.title || 'Untitled Note'}</span>
+                    <div className="card-title-group min-w-0 flex-1">
+                      {note.isPinned && <Pin size={13} className="pin-icon text-accent shrink-0" />}
+                      <span className="card-title truncate" title={note.title || 'Untitled Note'}>
+                        {note.title || 'Untitled Note'}
+                      </span>
                     </div>
 
                     {/* Quick Action Buttons */}

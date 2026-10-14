@@ -152,6 +152,14 @@ input:focus-visible, textarea:focus-visible {
   outline: none;
 }
 
+/* Universal Truncation Utility */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
 html, body, #root {
   width: 100%;
   height: 100%;

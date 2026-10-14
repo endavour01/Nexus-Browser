@@ -3,23 +3,17 @@ import { ConnectApp, ConnectCategory, ConnectWorkspace as IConnectWorkspace, Nex
 import { ConnectAppCard } from './ConnectAppCard';
 import {
   Share2,
-  Search,
   Plus,
   Layers,
   Star,
   RotateCcw,
-  Sparkles,
-  ExternalLink,
-  Sliders,
   X,
-  Check,
   Trash2,
   Edit3,
-  HelpCircle,
   FolderPlus,
   Play,
-  CheckSquare,
 } from 'lucide-react';
+import { Button, IconButton, Badge, Tabs, SearchInput } from '../ui';
 
 interface ConnectWorkspaceProps {
   onNavigate?: (url: string) => void;
@@ -67,9 +61,6 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
   const [wsDescription, setWsDescription] = useState<string>('');
   const [wsSelectedAppIds, setWsSelectedAppIds] = useState<string[]>([]);
   const [wsFormError, setWsFormError] = useState<string | null>(null);
-
-  // Workspace App Selector Modal
-  const [isManageWsAppsOpen, setIsManageWsAppsOpen] = useState<boolean>(false);
 
   const loadData = useCallback(async () => {
     if (!api) return;
@@ -376,166 +367,127 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
   };
 
   return (
-    <div className="nexus-fullpage-container connect-workspace-container p-6 overflow-y-auto">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="nexus-fullpage-container connect-workspace-container">
+      <div className="connect-content-wrap">
         {/* Header & Quick Action Launchpad */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-subtle pb-5">
-          <div>
-            <div className="flex items-center gap-2">
+        <div className="connect-header">
+          <div className="connect-header-title-group">
+            <div className="connect-header-title-row">
               <Share2 size={22} className="text-accent" />
-              <h1 className="text-xl font-bold text-primary tracking-tight">NEXUS Connect</h1>
+              <h1 className="connect-header-title">NEXUS Connect</h1>
             </div>
-            <p className="text-xs text-secondary mt-1 max-w-xl">
+            <p className="connect-header-desc">
               Unified launcher and collaboration workspace for messaging, video meetings, and productivity tools.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="nexus-btn nexus-btn-secondary text-xs px-3 py-1.5 flex items-center gap-1.5"
+          <div className="connect-header-actions">
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<FolderPlus size={13} />}
               onClick={handleOpenAddWorkspaceModal}
               title="Create new workspace group"
             >
-              <FolderPlus size={13} />
-              <span>New Workspace</span>
-            </button>
+              New Workspace
+            </Button>
 
-            <button
-              type="button"
-              className="nexus-btn nexus-btn-primary text-xs px-3.5 py-1.5 flex items-center gap-1.5"
+            <Button
+              variant="primary"
+              size="sm"
+              leftIcon={<Plus size={13} />}
               onClick={handleOpenAddAppModal}
               title="Add web application"
             >
-              <Plus size={13} />
-              <span>Add App</span>
-            </button>
+              Add App
+            </Button>
           </div>
         </div>
 
         {/* Navigation & Workspace Groups Strip */}
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-surface/40 p-2.5 rounded-xl border border-subtle">
-          <div className="flex flex-wrap items-center gap-1.5">
-            {/* Category Tabs */}
-            <button
-              type="button"
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                activeTab === 'all'
-                  ? 'bg-accent/20 text-accent font-semibold border border-accent/30'
-                  : 'text-secondary hover:text-primary hover:bg-surface-hover/60 border border-transparent'
-              }`}
-              onClick={() => setActiveTab('all')}
-            >
-              All Apps ({apps.length})
-            </button>
+        <div className="connect-toolbar">
+          <div className="connect-toolbar-top">
+            <div className="connect-toolbar-left">
+              <Tabs
+                variant="segmented"
+                size="sm"
+                activeTab={activeTab.startsWith('ws:') ? '' : activeTab}
+                onChange={(tabId) => setActiveTab(tabId)}
+                tabs={[
+                  { id: 'all', label: `All Apps (${apps.length})` },
+                  { id: 'chill', label: 'Chill' },
+                  { id: 'work', label: 'Work' },
+                  { id: 'create', label: 'Create / Productivity' },
+                ]}
+              />
+            </div>
 
-            <button
-              type="button"
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                activeTab === 'chill'
-                  ? 'bg-emerald-500/20 text-emerald-400 font-semibold border border-emerald-500/30'
-                  : 'text-secondary hover:text-primary hover:bg-surface-hover/60 border border-transparent'
-              }`}
-              onClick={() => setActiveTab('chill')}
-            >
-              Chill
-            </button>
+            <div className="connect-toolbar-right">
+              <Button
+                variant={onlyFavorites ? 'primary' : 'secondary'}
+                size="sm"
+                leftIcon={<Star size={12} fill={onlyFavorites ? 'currentColor' : 'none'} />}
+                onClick={() => setOnlyFavorites(!onlyFavorites)}
+                title="Show starred apps only"
+              >
+                Favorites
+              </Button>
 
-            <button
-              type="button"
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                activeTab === 'work'
-                  ? 'bg-blue-500/20 text-blue-400 font-semibold border border-blue-500/30'
-                  : 'text-secondary hover:text-primary hover:bg-surface-hover/60 border border-transparent'
-              }`}
-              onClick={() => setActiveTab('work')}
-            >
-              Work
-            </button>
+              <IconButton
+                variant="ghost"
+                size="sm"
+                icon={<RotateCcw size={13} />}
+                onClick={handleResetDefaultApps}
+                aria-label="Reset default apps"
+                title="Reset default apps"
+              />
+            </div>
+          </div>
 
-            <button
-              type="button"
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                activeTab === 'create'
-                  ? 'bg-purple-500/20 text-purple-400 font-semibold border border-purple-500/30'
-                  : 'text-secondary hover:text-primary hover:bg-surface-hover/60 border border-transparent'
-              }`}
-              onClick={() => setActiveTab('create')}
-            >
-              Create / Productivity
-            </button>
-
-            {/* Separator */}
-            <div className="w-px h-5 bg-subtle mx-1 hidden sm:block" />
-
-            {/* Custom Workspace Groups */}
-            {workspaces.map((ws) => {
-              const isSelected = activeTab === `ws:${ws.id}`;
-              return (
-                <button
-                  key={ws.id}
-                  type="button"
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-all ${
-                    isSelected
-                      ? 'bg-accent text-bg-app font-semibold shadow-sm'
-                      : 'text-secondary hover:text-primary hover:bg-surface-hover/60 border border-subtle/50'
-                  }`}
-                  onClick={() => setActiveTab(`ws:${ws.id}`)}
-                  title={ws.description || `Open ${ws.name} workspace`}
-                >
-                  <Layers size={12} />
-                  <span>{ws.name}</span>
-                  <span
-                    className={`text-3xs px-1.5 py-0.2 rounded font-mono ${
-                      isSelected ? 'bg-bg-app/20 text-bg-app' : 'bg-surface text-muted'
-                    }`}
+          {/* Custom Workspace Groups */}
+          {workspaces.length > 0 && (
+            <div className="connect-workspaces-strip">
+              <span className="text-3xs uppercase font-mono text-muted mr-1.5 font-semibold tracking-wider">
+                Workspaces:
+              </span>
+              {workspaces.map((ws) => {
+                const isSelected = activeTab === `ws:${ws.id}`;
+                return (
+                  <button
+                    key={ws.id}
+                    type="button"
+                    className={`connect-ws-chip ${isSelected ? 'active' : ''}`}
+                    onClick={() => setActiveTab(`ws:${ws.id}`)}
+                    title={ws.description || `Open ${ws.name} workspace`}
                   >
-                    {ws.appIds.length}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Right Controls: Favorites Toggle & Reset Defaults */}
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className={`px-2.5 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors border ${
-                onlyFavorites
-                  ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
-                  : 'text-secondary hover:text-primary bg-surface/50 border-subtle'
-              }`}
-              onClick={() => setOnlyFavorites(!onlyFavorites)}
-              title="Show starred apps only"
-            >
-              <Star size={12} fill={onlyFavorites ? 'currentColor' : 'none'} />
-              <span>Favorites</span>
-            </button>
-
-            <button
-              type="button"
-              className="p-1.5 rounded-lg text-muted hover:text-secondary hover:bg-surface transition-colors"
-              onClick={handleResetDefaultApps}
-              title="Reset default apps"
-            >
-              <RotateCcw size={13} />
-            </button>
-          </div>
+                    <Layers size={12} />
+                    <span>{ws.name}</span>
+                    <span
+                      className={`text-3xs px-1.5 py-0.2 rounded font-mono ${
+                        isSelected ? 'bg-black/20 text-current' : 'bg-surface text-muted'
+                      }`}
+                    >
+                      {ws.appIds.length}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Active Workspace Banner (if a workspace is active) */}
         {activeWorkspace && (
-          <div className="bg-surface/50 p-4 rounded-xl border border-accent/25 flex flex-wrap items-center justify-between gap-3">
+          <div className="connect-active-ws-banner">
             <div>
               <div className="flex items-center gap-2">
                 <Layers size={16} className="text-accent" />
                 <h2 className="text-sm font-bold text-primary tracking-tight">
                   {activeWorkspace.name} Workspace
                 </h2>
-                <span className="text-3xs font-mono bg-accent/15 text-accent px-1.5 py-0.5 rounded font-semibold">
+                <Badge variant="accent" size="sm" className="font-mono">
                   {activeWorkspace.appIds.length} Apps
-                </span>
+                </Badge>
               </div>
               {activeWorkspace.description && (
                 <p className="text-2xs text-secondary mt-0.5">{activeWorkspace.description}</p>
@@ -543,62 +495,51 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
             </div>
 
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                className="py-1.5 px-3 rounded-lg text-xs font-medium text-primary bg-accent/15 hover:bg-accent/25 border border-accent/30 flex items-center gap-1.5 transition-colors"
+              <Button
+                variant="primary"
+                size="sm"
+                leftIcon={<Play size={12} />}
                 onClick={handleLaunchAllWorkspaceApps}
                 title="Launch all apps in tabs"
               >
-                <Play size={12} className="text-accent" />
-                <span>Launch All Apps</span>
-              </button>
+                Launch All Apps
+              </Button>
 
-              <button
-                type="button"
-                className="py-1.5 px-2.5 rounded-lg text-xs font-medium text-secondary hover:text-primary bg-surface hover:bg-surface-hover border border-subtle flex items-center gap-1.5 transition-colors"
+              <Button
+                variant="secondary"
+                size="sm"
+                leftIcon={<Edit3 size={12} />}
                 onClick={() => handleOpenEditWorkspaceModal(activeWorkspace)}
                 title="Edit workspace properties"
               >
-                <Edit3 size={12} />
-                <span>Edit</span>
-              </button>
+                Edit
+              </Button>
 
-              <button
-                type="button"
-                className="p-1.5 rounded-lg text-secondary hover:text-rose-400 hover:bg-surface-hover transition-colors"
+              <IconButton
+                variant="ghost"
+                size="sm"
+                className="text-secondary hover:text-rose-400"
+                icon={<Trash2 size={13} />}
                 onClick={() => handleDeleteWorkspace(activeWorkspace)}
+                aria-label="Delete workspace group"
                 title="Delete workspace group"
-              >
-                <Trash2 size={13} />
-              </button>
+              />
             </div>
           </div>
         )}
 
         {/* Search Bar */}
-        <div className="relative">
-          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
-          <input
-            type="text"
-            placeholder="Search applications by name, category, or domain..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-surface/60 border border-subtle rounded-xl text-xs text-primary placeholder-muted focus:outline-none focus:border-accent/40 focus:bg-surface/90 transition-all"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-secondary p-1"
-            >
-              <X size={12} />
-            </button>
-          )}
-        </div>
+        <SearchInput
+          size="sm"
+          placeholder="Search applications by name, category, or domain..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onClear={() => setSearchQuery('')}
+        />
 
         {/* Apps Grid */}
         {filteredApps.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="connect-app-grid">
             {filteredApps.map((app) => (
               <ConnectAppCard
                 key={app.id}
@@ -623,13 +564,13 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
                 <p className="text-2xs text-secondary max-w-sm mx-auto">
                   No applications matched your search query "{searchQuery}".
                 </p>
-                <button
-                  type="button"
-                  className="nexus-btn-ghost text-xs px-3 py-1.5"
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setSearchQuery('')}
                 >
                   Clear Search
-                </button>
+                </Button>
               </>
             ) : activeWorkspace ? (
               <>
@@ -637,14 +578,14 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
                 <p className="text-2xs text-secondary max-w-sm mx-auto">
                   Add applications to "{activeWorkspace.name}" to build your focused launcher group.
                 </p>
-                <button
-                  type="button"
-                  className="nexus-btn-primary text-xs px-3.5 py-1.5 mt-2 inline-flex items-center gap-1.5"
+                <Button
+                  variant="primary"
+                  size="sm"
+                  leftIcon={<Plus size={13} />}
                   onClick={() => handleOpenEditWorkspaceModal(activeWorkspace)}
                 >
-                  <Plus size={13} />
-                  <span>Manage Workspace Apps</span>
-                </button>
+                  Manage Workspace Apps
+                </Button>
               </>
             ) : (
               <>
@@ -652,14 +593,14 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
                 <p className="text-2xs text-secondary max-w-sm mx-auto">
                   Add your favorite communication, meeting, or productivity web applications.
                 </p>
-                <button
-                  type="button"
-                  className="nexus-btn-primary text-xs px-3.5 py-1.5 mt-2 inline-flex items-center gap-1.5"
+                <Button
+                  variant="primary"
+                  size="sm"
+                  leftIcon={<Plus size={13} />}
                   onClick={handleOpenAddAppModal}
                 >
-                  <Plus size={13} />
-                  <span>Add your first app</span>
-                </button>
+                  Add your first app
+                </Button>
               </>
             )}
           </div>
@@ -668,21 +609,21 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
         {/* Modal: Add / Edit App */}
         {isAppModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="w-full max-w-md bg-elevated border border-subtle rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-              <div className="flex items-center justify-between p-4 border-b border-subtle">
+            <div className="markets-card w-full max-w-md p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+              <div className="flex items-center justify-between border-b border-subtle pb-3">
                 <h3 className="text-sm font-bold text-primary">
                   {editingApp ? 'Edit Application' : 'Add Web Application'}
                 </h3>
-                <button
-                  type="button"
-                  className="nexus-icon-btn p-1 text-secondary hover:text-primary"
+                <IconButton
+                  variant="ghost"
+                  size="sm"
+                  icon={<X size={15} />}
                   onClick={() => setIsAppModalOpen(false)}
-                >
-                  <X size={14} />
-                </button>
+                  aria-label="Close"
+                />
               </div>
 
-              <form onSubmit={handleSaveAppForm} className="p-4 space-y-4 text-xs">
+              <form onSubmit={handleSaveAppForm} className="space-y-4 text-xs">
                 {appFormError && (
                   <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-2xs">
                     {appFormError}
@@ -699,7 +640,7 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
                     placeholder="e.g. Linear, Google Meet, Asana"
                     value={appName}
                     onChange={(e) => setAppName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-surface border border-subtle text-primary focus:outline-none focus:border-accent/40"
+                    className="nexus-input w-full text-xs"
                   />
                 </div>
 
@@ -713,7 +654,7 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
                     placeholder="https://app.linear.app"
                     value={appUrl}
                     onChange={(e) => setAppUrl(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-surface border border-subtle text-primary font-mono focus:outline-none focus:border-accent/40"
+                    className="nexus-input w-full text-xs font-mono"
                   />
                   <span className="block text-3xs text-muted">
                     Only valid HTTP and HTTPS URLs are permitted. Scripts are blocked.
@@ -728,7 +669,7 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
                     <select
                       value={appCategory}
                       onChange={(e) => setAppCategory(e.target.value as any)}
-                      className="w-full px-3 py-2 rounded-lg bg-surface border border-subtle text-primary focus:outline-none focus:border-accent/40"
+                      className="nexus-input w-full text-xs"
                     >
                       <option value="chill">Chill</option>
                       <option value="work">Work</option>
@@ -744,7 +685,7 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
                     <select
                       value={appIcon}
                       onChange={(e) => setAppIcon(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg bg-surface border border-subtle text-primary focus:outline-none focus:border-accent/40"
+                      className="nexus-input w-full text-xs"
                     >
                       <option value="Globe">Globe</option>
                       <option value="MessageCircle">Message Circle</option>
@@ -769,7 +710,7 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
                     placeholder="Brief description of this workspace tool..."
                     value={appDescription}
                     onChange={(e) => setAppDescription(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-surface border border-subtle text-primary resize-none focus:outline-none focus:border-accent/40"
+                    className="nexus-input w-full text-xs resize-none"
                   />
                 </div>
 
@@ -784,16 +725,21 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
                 </label>
 
                 <div className="flex items-center justify-end gap-2 pt-3 border-t border-subtle">
-                  <button
+                  <Button
                     type="button"
-                    className="nexus-btn-ghost px-3 py-1.5 text-xs"
+                    variant="secondary"
+                    size="sm"
                     onClick={() => setIsAppModalOpen(false)}
                   >
                     Cancel
-                  </button>
-                  <button type="submit" className="nexus-btn-primary px-4 py-1.5 text-xs">
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="sm"
+                  >
                     {editingApp ? 'Save Changes' : 'Add Application'}
-                  </button>
+                  </Button>
                 </div>
               </form>
             </div>
@@ -803,21 +749,21 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
         {/* Modal: Create / Edit Workspace Group */}
         {isWsModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="w-full max-w-lg bg-elevated border border-subtle rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
-              <div className="flex items-center justify-between p-4 border-b border-subtle">
+            <div className="markets-card w-full max-w-lg p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+              <div className="flex items-center justify-between border-b border-subtle pb-3">
                 <h3 className="text-sm font-bold text-primary">
                   {editingWs ? `Edit Workspace: ${editingWs.name}` : 'Create Workspace Group'}
                 </h3>
-                <button
-                  type="button"
-                  className="nexus-icon-btn p-1 text-secondary hover:text-primary"
+                <IconButton
+                  variant="ghost"
+                  size="sm"
+                  icon={<X size={15} />}
                   onClick={() => setIsWsModalOpen(false)}
-                >
-                  <X size={14} />
-                </button>
+                  aria-label="Close"
+                />
               </div>
 
-              <form onSubmit={handleSaveWorkspaceForm} className="p-4 space-y-4 text-xs">
+              <form onSubmit={handleSaveWorkspaceForm} className="space-y-4 text-xs">
                 {wsFormError && (
                   <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-2xs">
                     {wsFormError}
@@ -834,7 +780,7 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
                     placeholder="e.g. STUDY, RESEARCH, DEV SPRINT"
                     value={wsName}
                     onChange={(e) => setWsName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-surface border border-subtle text-primary uppercase font-bold focus:outline-none focus:border-accent/40"
+                    className="nexus-input w-full text-xs uppercase font-bold"
                   />
                 </div>
 
@@ -847,7 +793,7 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
                     placeholder="Workspace purpose or project description..."
                     value={wsDescription}
                     onChange={(e) => setWsDescription(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg bg-surface border border-subtle text-primary focus:outline-none focus:border-accent/40"
+                    className="nexus-input w-full text-xs"
                   />
                 </div>
 
@@ -888,16 +834,21 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
                 </div>
 
                 <div className="flex items-center justify-end gap-2 pt-3 border-t border-subtle">
-                  <button
+                  <Button
                     type="button"
-                    className="nexus-btn-ghost px-3 py-1.5 text-xs"
+                    variant="secondary"
+                    size="sm"
                     onClick={() => setIsWsModalOpen(false)}
                   >
                     Cancel
-                  </button>
-                  <button type="submit" className="nexus-btn-primary px-4 py-1.5 text-xs">
+                  </Button>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="sm"
+                  >
                     {editingWs ? 'Save Workspace' : 'Create Workspace'}
-                  </button>
+                  </Button>
                 </div>
               </form>
             </div>

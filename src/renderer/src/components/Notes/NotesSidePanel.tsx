@@ -84,9 +84,10 @@ export const NotesSidePanel: React.FC<NotesSidePanelProps> = ({
       .filter((n) => {
         if (!searchQuery.trim()) return true;
         const q = searchQuery.toLowerCase().trim();
+        const cleanContent = n.content.replace(/&(?:nbsp|#160|#xA0);/gi, ' ').toLowerCase();
         return (
           n.title.toLowerCase().includes(q) ||
-          n.content.toLowerCase().includes(q) ||
+          cleanContent.includes(q) ||
           (n.tags && n.tags.some((t) => t.toLowerCase().includes(q)))
         );
       })
@@ -152,9 +153,11 @@ export const NotesSidePanel: React.FC<NotesSidePanelProps> = ({
           className="note-selector-toggle flex-1 flex items-center justify-between px-3 py-1.5 rounded-md bg-[var(--nexus-bg-surface,#12151D)] hover:bg-[var(--nexus-bg-hover,#1A1E29)] border border-[var(--nexus-border-subtle,#1C202C)] text-[var(--nexus-text-primary,#F4F4F5)] text-xs font-medium cursor-pointer transition-colors"
           onClick={() => setIsNoteListOpen((prev) => !prev)}
         >
-          <div className="flex items-center gap-2 truncate">
-            {activeNote?.isPinned && <Pin size={12} className="text-accent" />}
-            <span className="truncate">{activeNote?.title || 'Select a note...'}</span>
+          <div className="flex items-center gap-2 min-w-0 flex-1 truncate">
+            {activeNote?.isPinned && <Pin size={12} className="text-accent shrink-0" />}
+            <span className="truncate block min-w-0" title={activeNote?.title || 'Select a note...'}>
+              {activeNote?.title || 'Select a note...'}
+            </span>
           </div>
           <ChevronDown size={14} className="flex-shrink-0 text-[var(--nexus-text-secondary,#9298A8)] ml-1" />
         </button>
@@ -205,9 +208,11 @@ export const NotesSidePanel: React.FC<NotesSidePanelProps> = ({
                     setIsNoteListOpen(false);
                   }}
                 >
-                  <div className="flex items-center gap-1.5 truncate">
-                    {n.isPinned && <Pin size={12} className="text-accent" />}
-                    <span className="truncate">{n.title || 'Untitled Note'}</span>
+                  <div className="flex items-center gap-1.5 min-w-0 flex-1 truncate">
+                    {n.isPinned && <Pin size={12} className="text-accent shrink-0" />}
+                    <span className="truncate block min-w-0" title={n.title || 'Untitled Note'}>
+                      {n.title || 'Untitled Note'}
+                    </span>
                   </div>
                   <span className="text-[var(--nexus-text-muted,#575D6E)] text-[10px] ml-2 shrink-0">
                     {new Date(n.updatedAt).toLocaleDateString(undefined, {

@@ -641,9 +641,6 @@ export const TodoWorkspace: React.FC<TodoWorkspaceProps> = ({
                 size="sm"
               />
             )}
-            <p className="text-3xs text-secondary/70">
-              Explicit user linkage only. NEXUS never collects browser history automatically.
-            </p>
           </div>
 
           {/* Workspace & App Linkages */}
@@ -656,7 +653,7 @@ export const TodoWorkspace: React.FC<TodoWorkspaceProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-secondary text-3xs mb-1 font-semibold uppercase tracking-wider flex items-center gap-1">
-                  <MessageSquare size={10} className="text-indigo-400" />
+                  <MessageSquare size={10} className="text-accent" />
                   <span>Connect App</span>
                 </label>
                 <Select
@@ -702,7 +699,7 @@ export const TodoWorkspace: React.FC<TodoWorkspaceProps> = ({
 
               <div>
                 <label className="block text-secondary text-3xs mb-1 font-semibold uppercase tracking-wider flex items-center gap-1">
-                  <FileText size={10} className="text-blue-400" />
+                  <FileText size={10} className="text-accent" />
                   <span>NEXUS Note</span>
                 </label>
                 <Select

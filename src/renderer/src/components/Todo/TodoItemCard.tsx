@@ -46,7 +46,7 @@ export const TodoItemCard: React.FC<TodoItemCardProps> = ({
     }
   };
 
-  const getDueDateStatus = (dueDateStr?: string) => {
+  const renderDueDateBadge = (dueDateStr?: string) => {
     if (!dueDateStr) return null;
     const due = new Date(dueDateStr + 'T23:59:59');
     const now = new Date();
@@ -57,15 +57,28 @@ export const TodoItemCard: React.FC<TodoItemCardProps> = ({
       due.getDate() === now.getDate();
 
     if (isToday) {
-      return { text: 'Due Today', className: 'text-amber-400 bg-amber-500/10 border-amber-500/20' };
+      return (
+        <Badge variant="warning" size="sm">
+          <Calendar size={11} className="inline mr-1" />
+          Due Today
+        </Badge>
+      );
     }
     if (isPast) {
-      return { text: `Overdue (${dueDateStr})`, className: 'text-rose-400 bg-rose-500/10 border-rose-500/20' };
+      return (
+        <Badge variant="danger" size="sm">
+          <Calendar size={11} className="inline mr-1" />
+          Overdue ({dueDateStr})
+        </Badge>
+      );
     }
-    return { text: dueDateStr, className: 'text-secondary bg-surface border-subtle' };
+    return (
+      <Badge variant="neutral" size="sm">
+        <Calendar size={11} className="inline mr-1" />
+        {dueDateStr}
+      </Badge>
+    );
   };
-
-  const dueStatus = getDueDateStatus(todo.dueDate);
 
   return (
     <div
@@ -116,12 +129,7 @@ export const TodoItemCard: React.FC<TodoItemCardProps> = ({
 
           {/* Meta Line: Due Date & Linkages */}
           <div className="flex flex-wrap items-center gap-2.5 mt-2 text-2xs">
-            {dueStatus && (
-              <span className={`px-2 py-0.5 rounded border flex items-center gap-1 font-mono ${dueStatus.className}`}>
-                <Calendar size={11} />
-                <span>{dueStatus.text}</span>
-              </span>
-            )}
+            {renderDueDateBadge(todo.dueDate)}
 
             {/* Linked Connect Workspace */}
             {todo.associatedWorkspaceName && (
@@ -140,11 +148,11 @@ export const TodoItemCard: React.FC<TodoItemCardProps> = ({
             {todo.associatedConnectAppName && (
               <button
                 type="button"
-                className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-500/20 transition-colors text-3xs font-medium"
+                className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface border border-subtle text-secondary hover:text-accent hover:border-accent/40 transition-colors text-3xs font-mono"
                 onClick={() => onNavigate && onNavigate('nexus://connect')}
                 title={`Linked App: ${todo.associatedConnectAppName}`}
               >
-                <MessageSquare size={10} />
+                <MessageSquare size={10} className="text-accent" />
                 <span>{todo.associatedConnectAppName}</span>
               </button>
             )}
@@ -153,11 +161,11 @@ export const TodoItemCard: React.FC<TodoItemCardProps> = ({
             {todo.associatedNoteTitle && (
               <button
                 type="button"
-                className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-colors text-3xs font-medium"
+                className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface border border-subtle text-secondary hover:text-accent hover:border-accent/40 transition-colors text-3xs font-mono"
                 onClick={() => onNavigate && onNavigate('nexus://notes')}
                 title={`Linked Note: ${todo.associatedNoteTitle}`}
               >
-                <FileText size={10} />
+                <FileText size={10} className="text-accent" />
                 <span>{todo.associatedNoteTitle}</span>
               </button>
             )}

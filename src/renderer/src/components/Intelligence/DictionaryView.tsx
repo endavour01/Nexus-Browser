@@ -485,7 +485,7 @@ export const DictionaryView: React.FC<DictionaryViewProps> = ({
                       <div className="dict-subvocab-grid">
                         {explanation.difficultVocabulary.map((item, idx) => (
                           <div key={idx} className="dict-subvocab-row">
-                            <div className="flex-1">
+                            <div className="flex-1 min-w-0">
                               <span className="dict-subvocab-word">{item.word}</span>
                               <span className="dict-subvocab-def">{item.definition}</span>
                             </div>

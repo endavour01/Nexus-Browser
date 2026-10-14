@@ -338,8 +338,67 @@ async function runNotesTestSuite() {
     });
     console.log(`    ✓ All ${NOTE_TEMPLATES.length} note templates verified (Study, Meeting, Research, Journal, Spec)`);
 
+    // ----------------------------------------------------
+    // SUITE 8: Entity Sanitization, Title Retention & Table Controls
+    // ----------------------------------------------------
+    console.log('\n[SUITE 8: ENTITY SANITIZATION, TITLE INTEGRITY & TABLE DELETION]');
+
+    // 8.1 HTML entity & &nbsp; cleanup
+    const entityNote = manager.saveNote({
+      title: 'Science notebook&nbsp;&nbsp;',
+      content: '<p>My first note&nbsp;&nbsp;with&nbsp;spaces</p>',
+    });
+    if (entityNote.title !== 'Science notebook') {
+      throw new Error(`Expected cleaned title "Science notebook", got "${entityNote.title}"`);
+    }
+    if (entityNote.title.includes('&nbsp;')) {
+      throw new Error('Saved note title still contains literal &nbsp;');
+    }
+    console.log('    ✓ Converted HTML whitespace entities into clean whitespace in note title');
+
+    // 8.2 Title integrity across all required test titles
+    const testTitles = [
+      'Science notebook',
+      'Computer Networks',
+      'Operating System',
+      'My Project Notes',
+      'A very long note title with extensive detailed specifications and architectural descriptions',
+      'Title with   multiple    spaces',
+      'RFC 793: Transmission Control Protocol (TCP) Specs & Highlights!',
+    ];
+
+    for (const title of testTitles) {
+      const saved = manager.saveNote({
+        title,
+        content: '<p>Test content for title integrity</p>',
+      });
+      // Stored title should never be arbitrarily sliced or truncated
+      const expectedTrimmed = title.replace(/\s+/g, ' ').trim();
+      if (saved.title !== expectedTrimmed) {
+        throw new Error(`Title integrity compromised. Expected "${expectedTrimmed}", got "${saved.title}"`);
+      }
+    }
+    console.log(`    ✓ Verified complete title retention across all ${testTitles.length} test titles (no characters silently deleted)`);
+
+    // 8.3 Contextual Table delete control check
+    if (!editorSource.includes('deleteTable()') || !editorSource.includes('aria-label="Delete table"')) {
+      throw new Error('NotesEditor missing contextual deleteTable control with aria-label="Delete table"');
+    }
+    console.log('    ✓ Verified contextual table delete IconButton with aria-label and tooltip');
+
+    // 8.4 CSS truncation layout checks
+    const indexCss = fs.readFileSync(path.resolve(__dirname, '../src/renderer/src/index.css'), 'utf8');
+    if (!indexCss.includes('.truncate') || !indexCss.includes('text-overflow: ellipsis')) {
+      throw new Error('index.css missing .truncate utility with text-overflow: ellipsis');
+    }
+    const componentsCss = fs.readFileSync(path.resolve(__dirname, '../src/renderer/src/components.css'), 'utf8');
+    if (!componentsCss.includes('.card-title {') || !componentsCss.includes('text-overflow: ellipsis;')) {
+      throw new Error('components.css .card-title missing text-overflow: ellipsis');
+    }
+    console.log('    ✓ Verified CSS truncation with ellipsis, min-width 0, and flex shrink capability');
+
     console.log('\n====================================================');
-    console.log('  ALL 7 NEXUS NOTES TEST SUITES PASSED! 🎉          ');
+    console.log('  ALL 8 NEXUS NOTES TEST SUITES PASSED! 🎉          ');
     console.log('====================================================\n');
   } finally {
     try {

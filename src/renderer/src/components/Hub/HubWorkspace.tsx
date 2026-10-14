@@ -27,6 +27,8 @@ import {
   Sliders,
   ExternalLink,
   ChevronRight,
+  ChevronUp,
+  ChevronDown,
   Clock,
   Trash2,
   RotateCcw,
@@ -37,6 +39,7 @@ import {
   Check,
   MessageSquare,
 } from 'lucide-react';
+import { Button, IconButton, Badge } from '../ui';
 
 interface HubWorkspaceProps {
   onNavigate?: (url: string) => void;
@@ -243,143 +246,182 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
   const visibleCards = cardOrder.filter((id) => !hiddenCards.includes(id));
 
   return (
-    <div className="nexus-fullpage-container hub-workspace-container p-6 overflow-y-auto">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="nexus-fullpage-container hub-workspace-container">
+      <div className="hub-content-wrap">
         {/* Hub Header & Quick Action Launchpad */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-subtle pb-5">
-          <div>
-            <div className="flex items-center gap-2">
+        <div className="hub-header">
+          <div className="hub-header-title-group">
+            <div className="hub-header-title-row">
               <LayoutGrid size={22} className="text-accent" />
-              <h1 className="text-xl font-bold text-primary tracking-tight">NEXUS Hub</h1>
+              <h1 className="hub-header-title">NEXUS Hub</h1>
             </div>
-            <p className="text-xs text-secondary mt-1 max-w-xl">
+            <p className="hub-header-desc">
               Instant access to browser tools, notes, active tasks, downloads, and market watchlists.
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              className="nexus-btn nexus-btn-secondary text-xs px-3 py-1.5 flex items-center gap-1.5"
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<Sliders size={13} />}
               onClick={() => setIsCustomizeOpen(true)}
               title="Rearrange or hide Hub cards"
             >
-              <Sliders size={13} />
-              <span>Customize Cards</span>
-            </button>
+              Customize Cards
+            </Button>
           </div>
         </div>
 
         {/* Quick Utilities Action Bar */}
-        <div className="bg-surface/50 p-4 rounded-xl border border-subtle space-y-3">
-          <div className="text-xs font-semibold text-secondary uppercase tracking-wider flex items-center gap-1.5">
-            <Sparkles size={13} className="text-accent" />
-            <span>Frequently Used Utilities</span>
+        <div className="hub-section-box">
+          <div className="hub-section-header">
+            <h2 className="hub-section-title">
+              <Sparkles size={13} className="text-accent" />
+              <span>Frequently Used Utilities</span>
+            </h2>
           </div>
 
-          <div className="grid grid-cols-3 sm:grid-cols-5 lg:grid-cols-9 gap-3">
+          <div className="hub-utilities-grid">
             <button
-              className="nexus-btn nexus-btn-secondary text-xs p-3 rounded-lg flex flex-col items-center justify-center gap-2 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
+              type="button"
+              className="hub-utility-item"
               onClick={() => onNavigate && onNavigate('nexus://newtab')}
+              title="Open a new browser tab"
             >
-              <Plus size={18} className="text-accent" />
-              <span className="text-xs font-medium text-primary">New Tab</span>
+              <div className="hub-utility-icon">
+                <Plus size={18} />
+              </div>
+              <span className="hub-utility-label">New Tab</span>
             </button>
 
             <button
-              className="nexus-btn nexus-btn-secondary text-xs p-3 rounded-lg flex flex-col items-center justify-center gap-2 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
+              type="button"
+              className="hub-utility-item"
               onClick={() => onNavigate && onNavigate('nexus://connect')}
+              title="Open NEXUS Connect app launcher"
             >
-              <MessageSquare size={18} className="text-indigo-400" />
-              <span className="text-xs font-medium text-primary">Connect</span>
+              <div className="hub-utility-icon">
+                <MessageSquare size={18} />
+              </div>
+              <span className="hub-utility-label">Connect</span>
             </button>
 
             <button
-              className="nexus-btn nexus-btn-secondary text-xs p-3 rounded-lg flex flex-col items-center justify-center gap-2 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
+              type="button"
+              className="hub-utility-item"
               onClick={() => onNavigate && onNavigate('nexus://todo')}
+              title="Open NEXUS Todo workspace"
             >
-              <CheckSquare size={18} className="text-emerald-400" />
-              <span className="text-xs font-medium text-primary">Todo</span>
+              <div className="hub-utility-icon">
+                <CheckSquare size={18} />
+              </div>
+              <span className="hub-utility-label">Todo</span>
             </button>
 
             <button
-              className="nexus-btn nexus-btn-secondary text-xs p-3 rounded-lg flex flex-col items-center justify-center gap-2 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
+              type="button"
+              className="hub-utility-item"
               onClick={() => onNavigate && onNavigate('nexus://notes')}
+              title="Open NEXUS Notes"
             >
-              <FileText size={18} className="text-blue-400" />
-              <span className="text-xs font-medium text-primary">Notes</span>
+              <div className="hub-utility-icon">
+                <FileText size={18} />
+              </div>
+              <span className="hub-utility-label">Notes</span>
             </button>
 
             <button
-              className="nexus-btn nexus-btn-secondary text-xs p-3 rounded-lg flex flex-col items-center justify-center gap-2 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
+              type="button"
+              className="hub-utility-item"
               onClick={() => onNavigate && onNavigate('nexus://shield')}
+              title="Open NEXUS Shield security center"
             >
-              <Shield size={18} className="text-rose-400" />
-              <span className="text-xs font-medium text-primary">Shield</span>
+              <div className="hub-utility-icon">
+                <Shield size={18} />
+              </div>
+              <span className="hub-utility-label">Shield</span>
             </button>
 
             <button
-              className="nexus-btn nexus-btn-secondary text-xs p-3 rounded-lg flex flex-col items-center justify-center gap-2 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
+              type="button"
+              className="hub-utility-item"
               onClick={() => onNavigate && onNavigate('nexus://explore')}
+              title="Open NEXUS Explore dictionary and tools"
             >
-              <Compass size={18} className="text-purple-400" />
-              <span className="text-xs font-medium text-primary">Explore</span>
+              <div className="hub-utility-icon">
+                <Compass size={18} />
+              </div>
+              <span className="hub-utility-label">Explore</span>
             </button>
 
             <button
-              className="nexus-btn nexus-btn-secondary text-xs p-3 rounded-lg flex flex-col items-center justify-center gap-2 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
+              type="button"
+              className="hub-utility-item"
               onClick={() => onNavigate && onNavigate('nexus://markets')}
+              title="Open NEXUS Markets overview"
             >
-              <TrendingUp size={18} className="text-amber-400" />
-              <span className="text-xs font-medium text-primary">Markets</span>
+              <div className="hub-utility-icon">
+                <TrendingUp size={18} />
+              </div>
+              <span className="hub-utility-label">Markets</span>
             </button>
 
             <button
-              className="nexus-btn nexus-btn-secondary text-xs p-3 rounded-lg flex flex-col items-center justify-center gap-2 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
+              type="button"
+              className="hub-utility-item"
               onClick={() => onNavigate && onNavigate('nexus://dev')}
+              title="Open NEXUS Developer Tools"
             >
-              <Code2 size={18} className="text-cyan-400" />
-              <span className="text-xs font-medium text-primary">DevTools</span>
+              <div className="hub-utility-icon">
+                <Code2 size={18} />
+              </div>
+              <span className="hub-utility-label">DevTools</span>
             </button>
 
             <button
-              className="nexus-btn nexus-btn-secondary text-xs p-3 rounded-lg flex flex-col items-center justify-center gap-2 border border-subtle hover:border-accent/40 hover:bg-surface transition-all text-center"
+              type="button"
+              className="hub-utility-item"
               onClick={onOpenSettings}
+              title="Open Browser Settings"
             >
-              <Settings size={18} className="text-secondary" />
-              <span className="text-xs font-medium text-primary">Settings</span>
+              <div className="hub-utility-icon text-secondary">
+                <Settings size={18} />
+              </div>
+              <span className="hub-utility-label">Settings</span>
             </button>
           </div>
         </div>
 
         {/* Continue where you left off */}
-        <div className="bg-surface/30 p-4 rounded-xl border border-subtle space-y-2.5">
-          <div className="flex items-center justify-between">
-            <div className="text-2xs font-semibold text-secondary uppercase tracking-wider flex items-center gap-1.5">
+        <div className="hub-section-box">
+          <div className="hub-section-header">
+            <h2 className="hub-section-title">
               <Clock size={12} className="text-accent" />
               <span>Continue where you left off</span>
-            </div>
+            </h2>
             {recentHistory.length > 0 && (
               <span className="text-3xs text-secondary font-mono">{recentHistory.length} recent</span>
             )}
           </div>
 
           {recentHistory.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            <div className="hub-continue-grid">
               {recentHistory.map((item) => (
                 <div
                   key={item.id}
                   onClick={() => onNavigate && onNavigate(item.url)}
-                  className="flex items-center justify-between p-2.5 rounded-lg bg-surface/50 hover:bg-surface border border-subtle hover:border-accent/40 cursor-pointer transition-all group"
+                  className="hub-continue-item group"
+                  title={item.title || item.url}
                 >
-                  <div className="flex items-center gap-2 truncate flex-1 mr-2">
-                    <Globe size={13} className="text-secondary group-hover:text-accent shrink-0 transition-colors" />
-                    <div className="truncate">
-                      <div className="text-xs font-medium text-primary truncate">{item.title || item.url}</div>
-                      <div className="text-3xs text-secondary truncate font-mono">{item.url}</div>
+                  <div className="hub-continue-left">
+                    <Globe size={14} className="text-secondary group-hover:text-accent shrink-0 transition-colors" />
+                    <div className="hub-continue-text">
+                      <div className="hub-continue-title">{item.title || item.url}</div>
+                      <div className="hub-continue-url">{item.url}</div>
                     </div>
                   </div>
-                  <ChevronRight size={12} className="text-secondary/60 group-hover:text-primary shrink-0 transition-colors" />
+                  <ChevronRight size={13} className="text-secondary/60 group-hover:text-primary shrink-0 transition-colors" />
                 </div>
               ))}
             </div>
@@ -393,7 +435,7 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
         </div>
 
         {/* Dynamic Rearrangeable Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="hub-cards-grid">
           {visibleCards.map((cardId, index) => {
             const meta = DEFAULT_CARD_LABELS[cardId];
             if (!meta) return null;
@@ -413,9 +455,9 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
                     icon={meta.icon}
                     badge={
                       connectApps.length > 0 ? (
-                        <span className="text-3xs font-mono bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-1.5 py-0.2 rounded">
+                        <Badge variant="neutral" size="sm">
                           {connectApps.length} Apps
-                        </span>
+                        </Badge>
                       ) : null
                     }
                     actionText="Open Connect"
@@ -510,9 +552,9 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
                     icon={meta.icon}
                     badge={
                       todos.length > 0 ? (
-                        <span className="text-3xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.2 rounded">
+                        <Badge variant="neutral" size="sm">
                           {todos.length} Active
-                        </span>
+                        </Badge>
                       ) : null
                     }
                     actionText="Open Workspace"
@@ -591,14 +633,14 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
                             <div className="font-semibold text-xs text-primary truncate">{sc.title}</div>
                             <div className="text-3xs text-secondary font-mono truncate">{sc.category}</div>
                           </button>
-                          <button
-                            type="button"
-                            className="opacity-0 group-hover/sc:opacity-100 nexus-icon-btn p-1 text-secondary hover:text-red-400"
+                          <IconButton
+                            variant="ghost"
+                            size="xs"
+                            className="opacity-0 group-hover/sc:opacity-100 text-secondary hover:text-red-400"
                             onClick={() => handleDeleteShortcut(sc.id)}
-                            title="Delete shortcut"
-                          >
-                            <Trash2 size={11} />
-                          </button>
+                            icon={<Trash2 size={12} />}
+                            aria-label="Delete shortcut"
+                          />
                         </div>
                       ))}
                     </div>
@@ -795,13 +837,13 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
               <h3 className="font-bold text-sm text-primary flex items-center gap-2">
                 <Sliders size={16} className="text-accent" /> Customize Hub Cards
               </h3>
-              <button
-                type="button"
-                className="nexus-icon-btn p-1 text-secondary hover:text-primary"
+              <IconButton
+                variant="ghost"
+                size="sm"
+                icon={<X size={15} />}
                 onClick={() => setIsCustomizeOpen(false)}
-              >
-                <X size={15} />
-              </button>
+                aria-label="Close"
+              />
             </div>
 
             <p className="text-xs text-secondary">
@@ -832,25 +874,23 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
                       </span>
                     </label>
 
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
+                    <div className="flex items-center gap-1">
+                      <IconButton
+                        variant="ghost"
+                        size="xs"
                         disabled={index === 0}
-                        className="nexus-icon-btn p-1 text-secondary hover:text-primary disabled:opacity-20"
+                        icon={<ChevronUp size={13} />}
                         onClick={() => handleMoveCard(index, 'up')}
-                        title="Move Up"
-                      >
-                        ▲
-                      </button>
-                      <button
-                        type="button"
+                        aria-label="Move Up"
+                      />
+                      <IconButton
+                        variant="ghost"
+                        size="xs"
                         disabled={index === cardOrder.length - 1}
-                        className="nexus-icon-btn p-1 text-secondary hover:text-primary disabled:opacity-20"
+                        icon={<ChevronDown size={13} />}
                         onClick={() => handleMoveCard(index, 'down')}
-                        title="Move Down"
-                      >
-                        ▼
-                      </button>
+                        aria-label="Move Down"
+                      />
                     </div>
                   </div>
                 );
@@ -858,21 +898,21 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
             </div>
 
             <div className="flex items-center justify-between gap-3 pt-3 border-t border-subtle text-xs">
-              <button
-                type="button"
-                className="text-secondary hover:text-primary flex items-center gap-1 text-2xs"
+              <Button
+                variant="ghost"
+                size="xs"
                 onClick={handleResetLayout}
+                leftIcon={<RotateCcw size={12} />}
               >
-                <RotateCcw size={12} />
-                <span>Reset to Default Layout</span>
-              </button>
-              <button
-                type="button"
-                className="nexus-btn-primary text-xs px-4 py-1.5"
+                Reset to Default Layout
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
                 onClick={() => setIsCustomizeOpen(false)}
               >
                 Done
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -884,13 +924,13 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
           <div className="markets-card w-full max-w-sm p-5 space-y-4">
             <div className="flex items-center justify-between border-b border-subtle pb-3">
               <h3 className="font-bold text-sm text-primary">Add Saved Shortcut</h3>
-              <button
-                type="button"
-                className="nexus-icon-btn p-1 text-secondary hover:text-primary"
+              <IconButton
+                variant="ghost"
+                size="sm"
+                icon={<X size={15} />}
                 onClick={() => setIsAddShortcutOpen(false)}
-              >
-                <X size={15} />
-              </button>
+                aria-label="Close"
+              />
             </div>
 
             <form onSubmit={handleAddShortcut} className="space-y-3 text-xs">
@@ -937,19 +977,21 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
               </div>
 
               <div className="flex justify-end gap-2 pt-3 border-t border-subtle">
-                <button
+                <Button
                   type="button"
-                  className="nexus-btn-ghost text-xs px-3 py-1.5"
+                  variant="secondary"
+                  size="sm"
                   onClick={() => setIsAddShortcutOpen(false)}
                 >
                   Cancel
-                </button>
-                <button
+                </Button>
+                <Button
                   type="submit"
-                  className="nexus-btn-primary text-xs px-3.5 py-1.5 font-semibold"
+                  variant="primary"
+                  size="sm"
                 >
                   Add Shortcut
-                </button>
+                </Button>
               </div>
             </form>
           </div>
