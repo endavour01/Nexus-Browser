@@ -1,6 +1,7 @@
 import React, { useState, useEffect, memo } from 'react';
 import { TabState, TabGroup, Workspace, NexusBrowserMode } from '@shared/types';
 import { NexusLogo } from './NexusLogo';
+import { TabGroupContextMenu } from './TabGroupContextMenu';
 import {
   Plus,
   X,
@@ -18,7 +19,6 @@ import {
   Columns,
   ChevronRight,
   ChevronDown,
-  Moon,
 } from 'lucide-react';
 
 interface TitleBarProps {
@@ -40,8 +40,12 @@ interface TitleBarProps {
   onSetTabGroup: (tabId: string, groupId?: string) => void;
   onMoveTabToWorkspace: (tabId: string, workspaceId: string) => void;
   onReorderTabs: (orderedIds: string[]) => void;
-  onCreateGroup: () => void;
+  onCreateGroup: (tabId?: string) => void;
   onToggleGroupCollapse: (groupId: string) => void;
+  onEditGroup: (groupId: string) => void;
+  onDeleteGroup: (groupId: string) => void;
+  onUngroupGroup: (groupId?: string) => void;
+  onCloseGroup: (groupId: string) => void;
   onToggleTabLayout: () => void;
   onMinimize: () => void;
   onMaximize: () => void;
@@ -79,6 +83,10 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
   onReorderTabs,
   onCreateGroup,
   onToggleGroupCollapse,
+  onEditGroup,
+  onDeleteGroup,
+  onUngroupGroup,
+  onCloseGroup,
   onToggleTabLayout,
   onMinimize,
   onMaximize,
@@ -93,6 +101,7 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
     y: 0,
     tabId: '',
   });
+  const [groupContextMenu, setGroupContextMenu] = useState<{ x: number; y: number; groupId: string } | null>(null);
 
   // Close context menu on outside click
   useEffect(() => {
@@ -100,6 +109,7 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
       if (contextMenu.visible) {
         setContextMenu((prev) => ({ ...prev, visible: false }));
       }
+      setGroupContextMenu(null);
     };
     window.addEventListener('click', handleCloseMenu);
     window.addEventListener('contextmenu', handleCloseMenu);
@@ -156,11 +166,20 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
     });
   };
 
+  const handleGroupContextMenu = (event: React.MouseEvent, groupId: string) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setGroupContextMenu({ x: event.clientX, y: event.clientY, groupId });
+  };
+
   const targetTab = tabs.find((t) => t.id === contextMenu.tabId);
 
   // Group collapsed lookup map
   const collapsedGroups = new Set(
     tabGroups.filter((g) => g.collapsed).map((g) => g.id)
+  );
+  const visibleUnpinnedTabs = unpinnedTabs.filter(
+    (tab) => !tab.groupId || !collapsedGroups.has(tab.groupId) || tab.id === activeTabId
   );
 
   return (
@@ -193,7 +212,7 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
                   onDragStart={(e) => handleDragStart(e, tab.id)}
                   onDragOver={(e) => handleDragOver(e, tab.id)}
                   onDrop={(e) => handleDrop(e, tab.id)}
-                  className={`nexus-tab nexus-pinned-tab ${isActive ? 'active' : ''} ${
+                  className={`nexus-tab nexus-pinned-tab ${isActive ? 'active' : ''} ${tab.isSuspended ? 'is-suspended' : ''} ${
                     dragOverTabId === tab.id ? 'drag-over' : ''
                   }`}
                   onClick={() => onSelectTab(tab.id)}
@@ -213,10 +232,10 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
                       onCloseTab(tab.id);
                     }
                   }}
-                  title={`${tab.title}\n${tab.url}`}
+                  title={`${tab.title}\n${tab.url}${tab.isSuspended ? '\nSuspended to save memory. Click to restore.' : ''}`}
                 >
                   {isActive && <div className="tab-active-indicator" />}
-                  <div className="tab-icon">
+                  <div className={`tab-icon ${tab.isSuspended ? 'is-suspended' : ''}`}>
                     {tab.isLoading ? (
                       <Loader2 size={13} className="animate-spin text-accent" />
                     ) : tab.favicon ? (
@@ -224,6 +243,7 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
                     ) : (
                       <Globe size={13} />
                     )}
+                    {tab.isSuspended && <span className="tab-suspended-indicator" aria-hidden="true" />}
                   </div>
                   {tab.hasAudio && (
                     <span className="tab-audio-indicator">
@@ -237,31 +257,38 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
             {pinnedTabs.length > 0 && <div className="pinned-tabs-divider" />}
 
             {/* 2. Unpinned Tabs & Tab Groups */}
-            {unpinnedTabs.map((tab, idx) => {
+            {visibleUnpinnedTabs.map((tab, idx) => {
               const isActive = tab.id === activeTabId;
               const group = tabGroups.find((g) => g.id === tab.groupId);
               const isGroupCollapsed = group && collapsedGroups.has(group.id);
 
-              // If group is collapsed and this tab is not active, skip rendering
-              if (isGroupCollapsed && !isActive) return null;
-
               // Render Group header pill before the first tab of that group
-              const prevTab = unpinnedTabs[idx - 1];
+              const prevTab = visibleUnpinnedTabs[idx - 1];
               const isFirstOfGroup = group && (!prevTab || prevTab.groupId !== group.id);
 
               return (
                 <React.Fragment key={tab.id}>
                   {isFirstOfGroup && (
-                    <div
+                    <button
+                      type="button"
                       className="tab-group-pill"
-                      style={{ borderColor: group.color, color: group.color }}
+                      style={{ borderColor: group.color, '--group-color': group.color } as React.CSSProperties}
                       onClick={() => onToggleGroupCollapse(group.id)}
+                      onContextMenu={(event) => handleGroupContextMenu(event, group.id)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
+                          event.preventDefault();
+                          const bounds = event.currentTarget.getBoundingClientRect();
+                          setGroupContextMenu({ x: bounds.left, y: bounds.bottom, groupId: group.id });
+                        }
+                      }}
+                      aria-expanded={!isGroupCollapsed}
                       title={`Tab Group: ${group.name} (Click to toggle)`}
                     >
                       <span className="tab-group-dot" style={{ backgroundColor: group.color }} />
                       <span className="tab-group-title">{group.name}</span>
                       {isGroupCollapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />}
-                    </div>
+                    </button>
                   )}
 
                   <div
@@ -293,7 +320,7 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
                         onCloseTab(tab.id);
                       }
                     }}
-                    title={`${tab.title || tab.url}\n${tab.url}${tab.isSuspended ? '\n(Suspended to save memory — click to wake)' : ''}`}
+                    title={`${tab.title || tab.url}\n${tab.url}${tab.isSuspended ? '\nSuspended to save memory. Click to restore.' : ''}`}
                   >
                     {isActive && (
                       <div
@@ -302,7 +329,7 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
                       />
                     )}
 
-                    <div className="tab-icon">
+                    <div className={`tab-icon ${tab.isSuspended ? 'is-suspended' : ''}`}>
                       {tab.isLoading ? (
                         <Loader2 size={13} className="animate-spin text-accent" />
                       ) : tab.favicon ? (
@@ -310,15 +337,10 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
                       ) : (
                         <Globe size={13} />
                       )}
+                      {tab.isSuspended && <span className="tab-suspended-indicator" aria-hidden="true" />}
                     </div>
 
                     <span className="tab-title">{tab.title || 'New Tab'}</span>
-
-                    {tab.isSuspended && (
-                      <span className="tab-suspended-badge" title="Tab suspended to save memory. Click to wake.">
-                        <Moon size={10} />
-                      </span>
-                    )}
 
                     {tab.hasAudio && (
                       <button
@@ -347,6 +369,30 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
                 </React.Fragment>
               );
             })}
+
+            {tabGroups.filter((group) => !unpinnedTabs.some((tab) => tab.groupId === group.id)).map((group) => (
+              <button
+                key={`empty-${group.id}`}
+                type="button"
+                className="tab-group-pill tab-group-pill-empty"
+                style={{ borderColor: group.color, '--group-color': group.color } as React.CSSProperties}
+                onClick={() => onToggleGroupCollapse(group.id)}
+                onContextMenu={(event) => handleGroupContextMenu(event, group.id)}
+                onKeyDown={(event) => {
+                  if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
+                    event.preventDefault();
+                    const bounds = event.currentTarget.getBoundingClientRect();
+                    setGroupContextMenu({ x: bounds.left, y: bounds.bottom, groupId: group.id });
+                  }
+                }}
+                aria-expanded={!group.collapsed}
+                title={`Empty group: ${group.name}`}
+              >
+                <span className="tab-group-dot" style={{ backgroundColor: group.color }} />
+                <span className="tab-group-title">{group.name}</span>
+                {group.collapsed ? <ChevronRight size={10} /> : <ChevronDown size={10} />}
+              </button>
+            ))}
           </div>
 
           {/* New Tab Action */}
@@ -485,7 +531,7 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
           <button
             className="context-menu-item"
             onClick={() => {
-              onCreateGroup();
+              onCreateGroup(targetTab.id);
               setContextMenu((prev) => ({ ...prev, visible: false }));
             }}
           >
@@ -526,6 +572,25 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
           </button>
         </div>
       )}
+
+      {groupContextMenu && (() => {
+        const group = tabGroups.find((item) => item.id === groupContextMenu.groupId);
+        if (!group) return null;
+        return (
+          <TabGroupContextMenu
+            group={group}
+            tabCount={tabs.filter((tab) => tab.groupId === group.id).length}
+            x={groupContextMenu.x}
+            y={groupContextMenu.y}
+            onEdit={onEditGroup}
+            onToggleCollapse={onToggleGroupCollapse}
+            onUngroup={onUngroupGroup}
+            onDelete={onDeleteGroup}
+            onCloseGroup={onCloseGroup}
+            onDismiss={() => setGroupContextMenu(null)}
+          />
+        );
+      })()}
     </div>
   );
 });

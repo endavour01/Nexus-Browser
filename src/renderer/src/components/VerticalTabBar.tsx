@@ -14,8 +14,8 @@ import {
   Copy,
   RotateCw,
   FolderKanban,
-  Moon,
 } from 'lucide-react';
+import { TabGroupContextMenu } from './TabGroupContextMenu';
 
 interface VerticalTabBarProps {
   tabs: TabState[];
@@ -33,8 +33,12 @@ interface VerticalTabBarProps {
   onSetTabGroup: (tabId: string, groupId?: string) => void;
   onMoveTabToWorkspace: (tabId: string, workspaceId: string) => void;
   onReorderTabs: (orderedIds: string[]) => void;
-  onCreateGroup: () => void;
+  onCreateGroup: (tabId?: string) => void;
   onToggleGroupCollapse: (groupId: string) => void;
+  onEditGroup: (groupId: string) => void;
+  onDeleteGroup: (groupId: string) => void;
+  onUngroupGroup: (groupId?: string) => void;
+  onCloseGroup: (groupId: string) => void;
 }
 
 export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
@@ -55,6 +59,10 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
   onReorderTabs,
   onCreateGroup,
   onToggleGroupCollapse,
+  onEditGroup,
+  onDeleteGroup,
+  onUngroupGroup,
+  onCloseGroup,
 }) => {
   const [draggedTabId, setDraggedTabId] = useState<string | null>(null);
   const [dragOverTabId, setDragOverTabId] = useState<string | null>(null);
@@ -64,6 +72,7 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
     y: number;
     tabId: string;
   }>({ visible: false, x: 0, y: 0, tabId: '' });
+  const [groupContextMenu, setGroupContextMenu] = useState<{ x: number; y: number; groupId: string } | null>(null);
 
   // Filter tabs for active workspace
   const workspaceTabs = tabs.filter((t) => t.workspaceId === activeWorkspaceId);
@@ -120,10 +129,16 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
     });
   };
 
+  const handleGroupContextMenu = (event: React.MouseEvent, groupId: string) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setGroupContextMenu({ x: event.clientX, y: event.clientY, groupId });
+  };
+
   const targetTab = tabs.find((t) => t.id === contextMenu.tabId);
 
   return (
-    <aside className="nexus-vertical-tabs-bar">
+    <aside className="nexus-vertical-tabs-bar" onClick={() => setGroupContextMenu(null)}>
       {/* Top Header */}
       <div className="vtabs-header">
         <div className="vtabs-title-wrap">
@@ -154,21 +169,22 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
               return (
                 <button
                   key={tab.id}
-                  className={`vtab-pinned-item ${isActive ? 'active' : ''}`}
+                  className={`vtab-pinned-item ${isActive ? 'active' : ''} ${tab.isSuspended ? 'is-suspended' : ''}`}
                   onClick={() => onSelectTab(tab.id)}
                   onContextMenu={(e) => handleContextMenu(e, tab.id)}
-                  title={`${tab.title} (${tab.url})`}
+                  title={`${tab.title} (${tab.url})${tab.isSuspended ? ' - Suspended to save memory. Click to restore.' : ''}`}
                 >
                   {tab.isLoading ? (
                     <Loader2 size={13} className="animate-spin text-accent" />
                   ) : tab.favicon ? (
-                    <img src={tab.favicon} alt="" className="vtab-pinned-favicon" />
+                    <img src={tab.favicon} alt="" className={`vtab-pinned-favicon ${tab.isSuspended ? 'is-suspended' : ''}`} />
                   ) : (
                     <Globe size={13} className="text-secondary" />
                   )}
                   {tab.hasAudio && (
                     <span className="vtab-pinned-audio-dot" />
                   )}
+                  {tab.isSuspended && <span className="tab-suspended-indicator" aria-hidden="true" />}
                 </button>
               );
             })}
@@ -185,10 +201,20 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
 
           return (
             <div key={group.id} className="vtab-group-container">
-              <div
+              <button
+                type="button"
                 className="vtab-group-header"
                 onClick={() => onToggleGroupCollapse(group.id)}
-                style={{ borderLeftColor: group.color }}
+                onContextMenu={(event) => handleGroupContextMenu(event, group.id)}
+                onKeyDown={(event) => {
+                  if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) {
+                    event.preventDefault();
+                    const bounds = event.currentTarget.getBoundingClientRect();
+                    setGroupContextMenu({ x: bounds.left, y: bounds.bottom, groupId: group.id });
+                  }
+                }}
+                style={{ borderLeftColor: group.color, '--group-color': group.color } as React.CSSProperties}
+                aria-expanded={!isCollapsed}
               >
                 <span className="vtab-group-dot" style={{ backgroundColor: group.color }} />
                 <span className="vtab-group-name">{group.name}</span>
@@ -196,7 +222,7 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
                 <div className="vtab-group-chevron">
                   {isCollapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
                 </div>
-              </div>
+              </button>
 
               {!isCollapsed && (
                 <div className="vtab-group-items">
@@ -224,8 +250,9 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
                         }
                       }}
                       onContextMenu={(e) => handleContextMenu(e, tab.id)}
+                      title={tab.isSuspended ? 'Suspended to save memory. Click to restore.' : tab.title}
                     >
-                      <div className="vtab-favicon-slot">
+                      <div className={`vtab-favicon-slot ${tab.isSuspended ? 'is-suspended' : ''}`}>
                         {tab.isLoading ? (
                           <Loader2 size={13} className="animate-spin text-accent" />
                         ) : tab.favicon ? (
@@ -233,17 +260,12 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
                         ) : (
                           <Globe size={13} className="text-secondary" />
                         )}
+                        {tab.isSuspended && <span className="tab-suspended-indicator" aria-hidden="true" />}
                       </div>
 
                       <span className="vtab-title-text" title={tab.title}>
                         {tab.title || 'New Tab'}
                       </span>
-
-                      {tab.isSuspended && (
-                        <span className="tab-suspended-badge" title="Tab suspended to save memory. Click to wake.">
-                          <Moon size={10} />
-                        </span>
-                      )}
 
                       <div className="vtab-trailing-actions">
                         {tab.hasAudio && (
@@ -302,8 +324,9 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
               }
             }}
             onContextMenu={(e) => handleContextMenu(e, tab.id)}
+            title={tab.isSuspended ? 'Suspended to save memory. Click to restore.' : tab.title}
           >
-            <div className="vtab-favicon-slot">
+            <div className={`vtab-favicon-slot ${tab.isSuspended ? 'is-suspended' : ''}`}>
               {tab.isLoading ? (
                 <Loader2 size={13} className="animate-spin text-accent" />
               ) : tab.favicon ? (
@@ -311,17 +334,12 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
               ) : (
                 <Globe size={13} className="text-secondary" />
               )}
+              {tab.isSuspended && <span className="tab-suspended-indicator" aria-hidden="true" />}
             </div>
 
             <span className="vtab-title-text" title={tab.title}>
               {tab.title || 'New Tab'}
             </span>
-
-            {tab.isSuspended && (
-              <span className="tab-suspended-badge" title="Tab suspended to save memory. Click to wake.">
-                <Moon size={10} />
-              </span>
-            )}
 
             <div className="vtab-trailing-actions">
               {tab.hasAudio && (
@@ -422,7 +440,7 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
           <button
             className="context-menu-item"
             onClick={() => {
-              onCreateGroup();
+              onCreateGroup(targetTab.id);
               setContextMenu((prev) => ({ ...prev, visible: false }));
             }}
           >
@@ -463,6 +481,25 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
           </button>
         </div>
       )}
+
+      {groupContextMenu && (() => {
+        const group = tabGroups.find((item) => item.id === groupContextMenu.groupId);
+        if (!group) return null;
+        return (
+          <TabGroupContextMenu
+            group={group}
+            tabCount={tabs.filter((tab) => tab.groupId === group.id).length}
+            x={groupContextMenu.x}
+            y={groupContextMenu.y}
+            onEdit={onEditGroup}
+            onToggleCollapse={onToggleGroupCollapse}
+            onUngroup={onUngroupGroup}
+            onDelete={onDeleteGroup}
+            onCloseGroup={onCloseGroup}
+            onDismiss={() => setGroupContextMenu(null)}
+          />
+        );
+      })()}
     </aside>
   );
 };

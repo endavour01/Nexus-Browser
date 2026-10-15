@@ -145,6 +145,15 @@ async function runWorkspacesTestSuite() {
     }
     console.log('  ✓ Moved tab3 from default to research workspace');
 
+    tabManager.setTabGroup(tab2, 'group-restore');
+    tabManager.closeTab(tab2);
+    const restoredGroupTabId = tabManager.reopenClosedTab();
+    const restoredGroupTab = restoredGroupTabId ? tabManager.getTabState(restoredGroupTabId) : null;
+    if (restoredGroupTab?.groupId !== 'group-restore') {
+      throw new Error('Reopened tab should retain its tab group membership');
+    }
+    console.log('  ✓ Reopened tab restored its group membership');
+
     // Switch back to default
     tabManager.switchWorkspace('default');
     if (tabManager.getActiveTabId() === researchTab || tabManager.getActiveTabId() === tab3) {

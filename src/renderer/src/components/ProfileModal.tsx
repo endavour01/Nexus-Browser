@@ -14,7 +14,9 @@ import {
   X,
   Edit2,
 } from 'lucide-react';
-import { UserProfile } from '@shared/types';
+import { UserProfile, AccountSession } from '@shared/types';
+import { Tabs } from './ui/Tabs/Tabs';
+import { AccountProfileView, AccountModal } from './Account';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -54,6 +56,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   const [isCreating, setIsCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  // Tab & Account states
+  const [activeModalTab, setActiveModalTab] = useState<'local' | 'account'>('local');
+  const [accountSession, setAccountSession] = useState<AccountSession | null>(null);
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [accountModalView, setAccountModalView] = useState<'sign-in' | 'sign-up'>('sign-in');
+
   // Form states
   const [formName, setFormName] = useState('');
   const [formIcon, setFormIcon] = useState('User');
@@ -75,7 +83,18 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
       loadProfiles();
       setIsCreating(false);
       setEditingId(null);
+      window.nexusAPI?.getAccountSession?.().then(setAccountSession).catch(() => {});
     }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const unsub = window.nexusAPI?.onAccountUpdated?.((sess) => {
+      setAccountSession(sess);
+    });
+    return () => {
+      unsub?.();
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -160,9 +179,9 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
       <div className="profile-modal" onClick={(e) => e.stopPropagation()}>
         <div className="profile-modal-header">
           <div>
-            <h2 className="profile-modal-title">Browser Profiles</h2>
+            <h2 className="profile-modal-title">Identity & Profiles</h2>
             <p className="profile-modal-subtitle">
-              Manage isolated sessions, cookies, and browsing data for distinct workflows.
+              Manage local browser profiles and your authenticated online NEXUS Account.
             </p>
           </div>
           <button className="nexus-icon-btn" onClick={onClose}>
@@ -170,15 +189,95 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
           </button>
         </div>
 
-        <div className="profile-modal-content">
-          {/* List of profiles */}
-          {!isCreating && !editingId && (
-            <>
-              <div className="profiles-grid">
-                {profiles.map((p) => {
-                  const isActive = activeProfile?.id === p.id;
-                  return (
-                    <div
+        {/* Mode Selector Tabs: Local Profiles vs Online NEXUS Account */}
+        <div className="px-5 pt-3 pb-2 border-b border-subtle bg-surface">
+          <Tabs
+            tabs={[
+              { id: 'local', label: 'Local Profiles', icon: <User size={13} /> },
+              {
+                id: 'account',
+                label: 'NEXUS Account',
+                icon: <Shield size={13} />,
+                badge: accountSession?.account ? 'Active' : undefined,
+              },
+            ]}
+            activeTab={activeModalTab}
+            onChange={(id) => {
+              setIsCreating(false);
+              setEditingId(null);
+              setActiveModalTab(id as 'local' | 'account');
+            }}
+            variant="segmented"
+            size="sm"
+          />
+        </div>
+
+        {activeModalTab === 'account' ? (
+          <div className="profile-modal-content">
+            {accountSession?.account ? (
+              <AccountProfileView
+                session={accountSession}
+                onSignOut={() => setAccountSession(null)}
+                onAccountUpdated={(acc) =>
+                  setAccountSession((prev) => (prev ? { ...prev, account: acc } : null))
+                }
+                onOpenSignIn={() => {
+                  setAccountModalView('sign-in');
+                  setIsAccountModalOpen(true);
+                }}
+              />
+            ) : (
+              <div className="py-6 px-4 text-center space-y-4">
+                <div className="w-12 h-12 rounded-2xl bg-surface border border-subtle flex items-center justify-center mx-auto text-accent shadow-sm">
+                  <Shield size={24} />
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-sm font-bold text-primary">NEXUS Online Account</h3>
+                  <p className="text-2xs text-secondary leading-relaxed max-w-sm mx-auto">
+                    Connect an authenticated online identity for cloud settings and future workspace synchronization.
+                  </p>
+                </div>
+                <div className="flex items-center justify-center gap-3 pt-1">
+                  <button
+                    type="button"
+                    className="nexus-btn-primary px-4 py-1.5 text-xs font-semibold"
+                    onClick={() => {
+                      setAccountModalView('sign-in');
+                      setIsAccountModalOpen(true);
+                    }}
+                  >
+                    Sign In
+                  </button>
+                  <button
+                    type="button"
+                    className="nexus-btn-secondary px-4 py-1.5 text-xs font-semibold"
+                    onClick={() => {
+                      setAccountModalView('sign-up');
+                      setIsAccountModalOpen(true);
+                    }}
+                  >
+                    Create Account
+                  </button>
+                </div>
+                <div className="text-3xs text-secondary/80 bg-surface/80 p-3 rounded-lg border border-subtle max-w-md mx-auto text-left leading-relaxed space-y-1">
+                  <div className="font-semibold text-primary">Local Profiles vs. NEXUS Account</div>
+                  <div>
+                    Local browser profiles keep your cookies, history, and tabs separate on this computer. Signing into or out of a NEXUS Account never modifies or erases your local browser profile data.
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="profile-modal-content">
+            {/* List of profiles */}
+            {!isCreating && !editingId && (
+              <>
+                <div className="profiles-grid">
+                  {profiles.map((p) => {
+                    const isActive = activeProfile?.id === p.id;
+                    return (
+                      <div
                       key={p.id}
                       className={`profile-card ${isActive ? 'active' : ''}`}
                       style={{ borderLeftColor: p.color }}
@@ -321,7 +420,15 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
             </form>
           )}
         </div>
+      )}
       </div>
+
+      <AccountModal
+        isOpen={isAccountModalOpen}
+        onClose={() => setIsAccountModalOpen(false)}
+        initialView={accountModalView}
+        onSessionChange={(sess) => setAccountSession(sess)}
+      />
     </div>
   );
 };

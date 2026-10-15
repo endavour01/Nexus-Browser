@@ -3,12 +3,14 @@ import {
   BookmarkItem,
   BrowserSettings,
   ClearDataOptions,
+  DEFAULT_HIDDEN_SIDE_PANELS,
   DownloadRecord,
   ExtensionItem,
   HistoryEntry,
   RecentPage,
   RecentlyClosedTab,
   SavedSessionData,
+  SidePanelId,
   SystemInfo,
   TabGroup,
   TabState,
@@ -29,6 +31,7 @@ import { StatusBar } from './components/StatusBar';
 import { NewTabWorkspace } from './components/NewTabWorkspace';
 import { CommandPalette } from './components/CommandPalette';
 import { WorkspaceModal } from './components/WorkspaceModal';
+import { TabGroupModal } from './components/TabGroupModal';
 import { TabSearchModal } from './components/TabSearchModal';
 import { ExtensionsPage } from './components/ExtensionsPage';
 import { ExtensionPermissionModal } from './components/ExtensionPermissionModal';
@@ -49,6 +52,7 @@ import { DeveloperDashboard } from './components/DeveloperDashboard';
 import { ShieldDashboard } from './components/ShieldDashboard';
 import { MaliciousWarningPage } from './components/MaliciousWarningPage';
 import { ModeSelectorModal } from './components/ModeSelectorModal';
+import { ModeOnboardingModal } from './components/ModeOnboardingModal';
 import { NotesPage } from './components/Notes/NotesPage';
 import { IntelligenceModal, IntelligencePage, IntelligenceTab } from './components/Intelligence';
 import { MarketsDashboard } from './components/Markets';
@@ -78,6 +82,7 @@ export const App: React.FC = () => {
   // Modals & Overlays
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false);
+  const [groupEditor, setGroupEditor] = useState<{ group: TabGroup | null; tabId?: string } | null>(null);
   const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null);
   const [isTabSearchOpen, setIsTabSearchOpen] = useState(false);
   const [focusOmniboxTrigger, setFocusOmniboxTrigger] = useState(0);
@@ -107,12 +112,21 @@ export const App: React.FC = () => {
   const [tabGroups, setTabGroups] = useState<TabGroup[]>(() => {
     try {
       const saved = localStorage.getItem('nexus_tab_groups');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed: unknown = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(
+            (group): group is TabGroup =>
+              !!group &&
+              typeof group.id === 'string' &&
+              typeof group.name === 'string' &&
+              typeof group.color === 'string' &&
+              /^#[\da-f]{6}$/i.test(group.color)
+          ).map((group) => ({ ...group, collapsed: !!group.collapsed }));
+        }
+      }
     } catch (e) {}
-    return [
-      { id: 'core', name: 'Dev Core', color: '#A78BFA', collapsed: false },
-      { id: 'docs', name: 'Reference', color: '#38BDF8', collapsed: false },
-    ];
+    return [];
   });
 
   const [recentlyClosed, setRecentlyClosed] = useState<RecentlyClosedTab[]>(() => {
@@ -160,11 +174,14 @@ export const App: React.FC = () => {
       restoreSessionOnStartup: true,
       tabLayout: 'horizontal',
       showBookmarksBar: true,
+      onboardingCompleted: false,
+      hiddenSidePanels: [...DEFAULT_HIDDEN_SIDE_PANELS],
       theme: 'dark',
       reducedMotion: false,
       mode: 'default',
     };
   });
+  const [browserSettingsReady, setBrowserSettingsReady] = useState(false);
 
   const [isModeSelectorOpen, setIsModeSelectorOpen] = useState(false);
   const [isModePopoverOpen, setIsModePopoverOpen] = useState(false);
@@ -183,22 +200,33 @@ export const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
     if (window.nexusAPI?.getBrowserSettings) {
       window.nexusAPI.getBrowserSettings().then((loaded) => {
         if (loaded) {
           setSettings((prev) => ({ ...prev, ...loaded }));
         }
-      }).catch(console.error);
+      }).catch(console.error).finally(() => {
+        if (isMounted) setBrowserSettingsReady(true);
+      });
+    } else {
+      setBrowserSettingsReady(true);
     }
 
-    if (window.nexusAPI?.onSettingsUpdated) {
-      const unsub = window.nexusAPI.onSettingsUpdated((updated) => {
+    const unsubscribe = window.nexusAPI?.onSettingsUpdated?.((updated) => {
+      if (isMounted) {
         setSettings((prev) => ({ ...prev, ...updated }));
-      });
-      return unsub;
-    }
-    return undefined;
+      }
+    });
+    return () => {
+      isMounted = false;
+      unsubscribe?.();
+    };
   }, []);
+
+  const handleCompleteOnboarding = useCallback(() => {
+    handleUpdateSettings({ onboardingCompleted: true });
+  }, [handleUpdateSettings]);
 
   const {
     mode: browserMode,
@@ -225,6 +253,12 @@ export const App: React.FC = () => {
       setSidebarCollapsed(true);
     }
   }, [browserMode, settings.balancedDistractionReduction]);
+
+  useEffect(() => {
+    if (activeSidePanel && settings.hiddenSidePanels?.includes(activeSidePanel as SidePanelId)) {
+      setActiveSidePanel(null);
+    }
+  }, [activeSidePanel, settings.hiddenSidePanels]);
 
   const handleEnterFocusWorkspace = useCallback(() => {
     const existingFocus = workspaces.find((w) => w.id === 'focus');
@@ -264,6 +298,18 @@ export const App: React.FC = () => {
   }, [settings]);
 
   const api = window.nexusAPI;
+
+  useEffect(() => {
+    const validGroupIds = new Set(tabGroups.map((group) => group.id));
+    const invalidTabs = tabs.filter((tab) => tab.groupId && !validGroupIds.has(tab.groupId));
+    if (invalidTabs.length === 0) return;
+
+    const invalidTabIds = new Set(invalidTabs.map((tab) => tab.id));
+    setTabs((current) => current.map((tab) =>
+      invalidTabIds.has(tab.id) ? { ...tab, groupId: undefined } : tab
+    ));
+    invalidTabs.forEach((tab) => api?.setTabGroup(tab.id, undefined));
+  }, [api, tabGroups, tabs]);
 
   const activeTab = useMemo(
     () => tabs.find((t) => t.id === activeTabId) || null,
@@ -399,7 +445,6 @@ export const App: React.FC = () => {
       version: 1,
       workspaces,
       activeWorkspaceId,
-      groups: tabGroups,
       tabs: tabs.map((t) => ({
         id: t.id,
         url: t.url,
@@ -444,6 +489,7 @@ export const App: React.FC = () => {
     isBookmarkEditModalOpen ||
     isClearDataModalOpen ||
     isProfileModalOpen ||
+    (browserSettingsReady && settings.onboardingCompleted !== true) ||
     permissionPrompt !== null ||
     isSecurityPopoverOpen ||
     isModePopoverOpen;
@@ -572,16 +618,58 @@ export const App: React.FC = () => {
   );
 
   // Tab Groups
-  const handleCreateGroup = useCallback(() => {
-    const colors = ['#A78BFA', '#38BDF8', '#34D399', '#FBBF24', '#F43F5E', '#E879F9'];
-    const newGroup: TabGroup = {
-      id: `group-${Date.now()}`,
-      name: `Group ${tabGroups.length + 1}`,
-      color: colors[tabGroups.length % colors.length],
-      collapsed: false,
-    };
-    setTabGroups((prev) => [...prev, newGroup]);
+  const handleCreateGroup = useCallback((tabId?: string) => {
+    setGroupEditor({ group: null, tabId });
+  }, []);
+
+  const handleEditGroup = useCallback((groupId: string) => {
+    const group = tabGroups.find((item) => item.id === groupId);
+    if (group) setGroupEditor({ group });
   }, [tabGroups]);
+
+  const handleSaveGroup = useCallback((name: string, color: string) => {
+    if (!groupEditor) return;
+
+    let groupId = groupEditor.group?.id;
+    if (groupEditor.group) {
+      setTabGroups((prev) => prev.map((group) =>
+        group.id === groupEditor.group?.id ? { ...group, name, color } : group
+      ));
+    } else {
+      groupId = `group-${crypto.randomUUID()}`;
+      setTabGroups((prev) => [...prev, { id: groupId!, name, color, collapsed: false }]);
+    }
+
+    const targetTabId = groupEditor.tabId || activeTabId;
+    const targetTab = tabs.find((tab) => tab.id === targetTabId);
+    if (!groupEditor.group && groupId && targetTab && !targetTab.isPinned) {
+      api?.setTabGroup(targetTab.id, groupId);
+    }
+    setGroupEditor(null);
+  }, [activeTabId, api, groupEditor, tabs]);
+
+  const handleUngroupTabs = useCallback((groupId?: string) => {
+    const matchingTabs = tabs.filter((tab) => tab.groupId && (!groupId || tab.groupId === groupId));
+    matchingTabs.forEach((tab) => api?.setTabGroup(tab.id, undefined));
+    const matchingIds = new Set(matchingTabs.map((tab) => tab.id));
+    setTabs((prev) => prev.map((tab) => matchingIds.has(tab.id) ? { ...tab, groupId: undefined } : tab));
+    setRecentlyClosed((prev) => prev.map((tab) =>
+      tab.groupId && (!groupId || tab.groupId === groupId) ? { ...tab, groupId: undefined } : tab
+    ));
+  }, [api, tabs]);
+
+  const handleDeleteGroup = useCallback((groupId: string) => {
+    handleUngroupTabs(groupId);
+    setTabGroups((prev) => prev.filter((group) => group.id !== groupId));
+  }, [handleUngroupTabs]);
+
+  const handleCloseGroup = useCallback((groupId: string) => {
+    const group = tabGroups.find((item) => item.id === groupId);
+    const groupTabs = tabs.filter((tab) => tab.groupId === groupId);
+    if (!group || groupTabs.length === 0) return;
+    if (!window.confirm(`Close ${groupTabs.length} tab${groupTabs.length === 1 ? '' : 's'} in "${group.name}"?`)) return;
+    groupTabs.forEach((tab) => handleCloseTab(tab.id));
+  }, [handleCloseTab, tabGroups, tabs]);
 
   const handleToggleGroupCollapse = useCallback((groupId: string) => {
     setTabGroups((prev) =>
@@ -1253,6 +1341,10 @@ export const App: React.FC = () => {
         onReorderTabs={handleReorderTabs}
         onCreateGroup={handleCreateGroup}
         onToggleGroupCollapse={handleToggleGroupCollapse}
+        onEditGroup={handleEditGroup}
+        onDeleteGroup={handleDeleteGroup}
+        onUngroupGroup={handleUngroupTabs}
+        onCloseGroup={handleCloseGroup}
         onToggleTabLayout={() => {
           handleUpdateSettings({
             tabLayout: settings.tabLayout === 'vertical' ? 'horizontal' : 'vertical',
@@ -1349,6 +1441,10 @@ export const App: React.FC = () => {
             onReorderTabs={handleReorderTabs}
             onCreateGroup={handleCreateGroup}
             onToggleGroupCollapse={handleToggleGroupCollapse}
+            onEditGroup={handleEditGroup}
+            onDeleteGroup={handleDeleteGroup}
+            onUngroupGroup={handleUngroupTabs}
+            onCloseGroup={handleCloseGroup}
           />
         )}
 
@@ -1641,6 +1737,13 @@ export const App: React.FC = () => {
         <RightToolbar
           activePanel={activeSidePanel}
           onTogglePanel={setActiveSidePanel}
+          hiddenPanels={settings.hiddenSidePanels ?? []}
+          onTogglePanelVisibility={(panel, visible) => {
+            const hiddenPanels = new Set(settings.hiddenSidePanels ?? []);
+            if (visible) hiddenPanels.delete(panel);
+            else hiddenPanels.add(panel);
+            handleUpdateSettings({ hiddenSidePanels: Array.from(hiddenPanels) });
+          }}
           downloadCount={downloads.filter((d) => d.status === 'progressing').length}
           bookmarkCount={bookmarks.length}
           extensions={extensions}
@@ -1712,6 +1815,14 @@ export const App: React.FC = () => {
         onDeleteWorkspace={handleDeleteWorkspace}
       />
 
+      <TabGroupModal
+        isOpen={!!groupEditor}
+        group={groupEditor?.group || null}
+        nextColorIndex={tabGroups.length}
+        onClose={() => setGroupEditor(null)}
+        onSave={handleSaveGroup}
+      />
+
       {/* 9. Tab Search & Recently Closed Modal */}
       <TabSearchModal
         isOpen={isTabSearchOpen}
@@ -1724,8 +1835,13 @@ export const App: React.FC = () => {
         onSelectTab={handleSelectTab}
         onCloseTab={handleCloseTab}
         onRestoreClosedTab={(closedTab) => {
-          api?.createTab(closedTab.url, closedTab.workspaceId);
-          setRecentlyClosed((prev) => prev.filter((c) => c !== closedTab));
+          if (!api) return;
+          void api.createTab(closedTab.url, closedTab.workspaceId).then(async (restoredTabId) => {
+            if (closedTab.groupId && tabGroups.some((group) => group.id === closedTab.groupId)) {
+              await api.setTabGroup(restoredTabId, closedTab.groupId);
+            }
+            setRecentlyClosed((prev) => prev.filter((item) => item !== closedTab));
+          }).catch(console.error);
         }}
         onClearRecentlyClosed={() => setRecentlyClosed([])}
       />
@@ -1801,6 +1917,13 @@ export const App: React.FC = () => {
         onRestoreDefaults={restoreModeDefaults}
         onEnterFocusWorkspace={handleEnterFocusWorkspace}
         onOptimizeMemory={optimizeMemory}
+      />
+
+      <ModeOnboardingModal
+        isOpen={browserSettingsReady && settings.onboardingCompleted !== true}
+        currentMode={browserMode}
+        onSelectMode={setBrowserMode}
+        onComplete={handleCompleteOnboarding}
       />
 
       {/* 17. NEXUS Intelligence Modal */}

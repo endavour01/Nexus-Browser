@@ -25,26 +25,27 @@ async function runModeControlPanelTests() {
   const popoverPath = path.join(__dirname, '../src/renderer/src/components/ModePopover.tsx');
   assert(fs.existsSync(popoverPath), 'ModePopover.tsx component exists');
   const popoverCode = fs.readFileSync(popoverPath, 'utf8');
+  const modeOptionsCode = fs.readFileSync(path.join(__dirname, '../src/renderer/src/components/mode-options.tsx'), 'utf8');
 
   // Verify Distinctive Icons
-  assert(popoverCode.includes('Compass'), 'Default mode uses Compass icon');
-  assert(popoverCode.includes('Sun'), 'Balanced mode uses Sun icon');
-  assert(popoverCode.includes('Zap'), 'Performance mode uses Zap icon');
+  assert(modeOptionsCode.includes('Compass'), 'Default mode uses Compass icon');
+  assert(modeOptionsCode.includes('Sun'), 'Balanced mode uses Sun icon');
+  assert(modeOptionsCode.includes('Zap'), 'Performance mode uses Zap icon');
   passed++;
 
   // Verify 3 Mode Cards & Descriptions
-  assert(popoverCode.includes("'Default Mode'"), 'Popover includes Default Mode card');
-  assert(popoverCode.includes("'Balanced Mode'"), 'Popover includes Balanced Mode card');
-  assert(popoverCode.includes("'Performance Mode'"), 'Popover includes Performance Mode card');
-  assert(popoverCode.includes('Balanced contrast, fluid animations, and standard multitasking'), 'Default card shows concise feature description');
-  assert(popoverCode.includes('Warm ambient contrast, reduced eye strain, and focus enhancements'), 'Balanced card shows concise feature description');
-  assert(popoverCode.includes('Low-latency UI, background tab throttling, and memory optimization'), 'Performance card shows concise feature description');
+  assert(modeOptionsCode.includes("name: 'Default Mode'"), 'Popover includes Default Mode card');
+  assert(modeOptionsCode.includes("name: 'Balanced Mode'"), 'Popover includes Balanced Mode card');
+  assert(modeOptionsCode.includes("name: 'Performance Mode'"), 'Popover includes Performance Mode card');
+  assert(modeOptionsCode.includes('Balanced contrast, fluid animations, and standard multitasking'), 'Default card shows concise feature description');
+  assert(modeOptionsCode.includes('Warm ambient contrast, reduced eye strain, and focus enhancements'), 'Balanced card shows concise feature description');
+  assert(modeOptionsCode.includes('Low-latency UI, background tab throttling, and memory optimization'), 'Performance card shows concise feature description');
   passed++;
 
   // Verify Miniature Palette Swatches
-  assert(popoverCode.includes('#0B0D12') && popoverCode.includes('#A78BFA'), 'Default card includes exact obsidian and violet swatches');
-  assert(popoverCode.includes('#090909') && popoverCode.includes('#F5C542'), 'Balanced card includes exact metallic-gold swatches');
-  assert(popoverCode.includes('#080809') && popoverCode.includes('#F02D43'), 'Performance card includes exact crimson/carbon swatches');
+  assert(modeOptionsCode.includes('#0B0D12') && modeOptionsCode.includes('#A78BFA'), 'Default card includes exact obsidian and violet swatches');
+  assert(modeOptionsCode.includes('#090909') && modeOptionsCode.includes('#F5C542'), 'Balanced card includes exact metallic-gold swatches');
+  assert(modeOptionsCode.includes('#080809') && modeOptionsCode.includes('#F02D43'), 'Performance card includes exact crimson/carbon swatches');
   passed++;
 
   // Verify 1-Click Mode Switching & Active State
@@ -165,6 +166,46 @@ async function runModeControlPanelTests() {
   // Verify One-Click Restore Standard Behavior Button
   assert(controlsCode.includes('Restore Standard Behavior'), 'Provides button to restore standard behavior at any time');
   assert(controlsCode.includes('onRestoreDefaults'), 'Wires onRestoreDefaults callback');
+  passed++;
+
+  // -----------------------------------------------------------------
+  // 6. FIRST-RUN MODE ONBOARDING
+  // -----------------------------------------------------------------
+  console.log('\n[SUITE 6: FIRST-RUN MODE ONBOARDING]');
+
+  const onboardingPath = path.join(__dirname, '../src/renderer/src/components/ModeOnboardingModal.tsx');
+  const onboardingCode = fs.readFileSync(onboardingPath, 'utf8');
+  const onboardingCss = fs.readFileSync(path.join(__dirname, '../src/renderer/src/components/mode-onboarding.css'), 'utf8');
+  const appCode = fs.readFileSync(path.join(__dirname, '../src/renderer/src/App.tsx'), 'utf8');
+  const settingsCode = fs.readFileSync(path.join(__dirname, '../src/main/settings-manager.ts'), 'utf8');
+  const sharedTypesCode = fs.readFileSync(path.join(__dirname, '../src/shared/types.ts'), 'utf8');
+
+  assert(onboardingCode.includes("from './mode-options'") && onboardingCode.includes('MODE_OPTIONS'), 'Onboarding uses the shared mode descriptions and palettes');
+  assert(onboardingCode.includes('onSelectMode(mode)'), 'Mode choice uses the existing mode callback');
+  assert(onboardingCode.includes('ArrowDown') && onboardingCode.includes('ArrowUp'), 'Onboarding supports arrow-key mode selection');
+  assert(onboardingCode.includes("event.key === 'Escape'") && onboardingCode.includes('onComplete()'), 'Escape skips and completes onboarding');
+  assert(onboardingCode.includes("'Tab'") && onboardingCode.includes('last.focus()') && onboardingCode.includes('first.focus()'), 'Onboarding traps keyboard focus');
+  assert(onboardingCss.includes('prefers-reduced-motion'), 'Onboarding respects reduced-motion preference');
+  assert(appCode.includes('settings.onboardingCompleted !== true') && appCode.includes('onboardingCompleted: true'), 'Onboarding is gated and completion is persisted in settings');
+  assert(settingsCode.includes('onboardingCompleted: false'), 'New settings default to first-run onboarding');
+  passed++;
+
+  // -----------------------------------------------------------------
+  // 7. SEARCHABLE SIDE PANEL RAIL
+  // -----------------------------------------------------------------
+  console.log('\n[SUITE 7: SEARCHABLE SIDE PANEL RAIL]');
+
+  const panelOptionsCode = fs.readFileSync(path.join(__dirname, '../src/renderer/src/components/side-panel-options.tsx'), 'utf8');
+  const toolbarCode = fs.readFileSync(path.join(__dirname, '../src/renderer/src/components/RightToolbar.tsx'), 'utf8');
+  const settingsWorkspaceCode = fs.readFileSync(path.join(__dirname, '../src/renderer/src/components/Settings/SettingsWorkspace.tsx'), 'utf8');
+  const sidePanelStyles = fs.readFileSync(path.join(__dirname, '../src/renderer/src/components.css'), 'utf8');
+
+  assert((panelOptionsCode.match(/\{ id: '/g) || []).length === 12, 'Rail includes all 12 side panel types');
+  assert(toolbarCode.includes('<SearchInput') && toolbarCode.includes('panel.label.toLowerCase().includes'), 'Rail searches panel names');
+  assert(toolbarCode.includes('Manage visible panels') && toolbarCode.includes('hiddenPanels.includes'), 'Rail supports hiding and restoring panels');
+  assert(settingsWorkspaceCode.includes('hiddenSidePanels') && settingsWorkspaceCode.includes('SIDE_PANEL_OPTIONS'), 'Panel visibility is persisted through Settings');
+  assert(settingsCode.includes('hiddenSidePanels: [...DEFAULT_HIDDEN_SIDE_PANELS]') && sharedTypesCode.includes("DEFAULT_HIDDEN_SIDE_PANELS: SidePanelId[] = ['markets', 'hub', 'todo']"), 'Panel rail preserves the existing default visible set');
+  assert(sidePanelStyles.includes('.side-panel-rail-popover'), 'Panel rail overlays without changing toolbar width');
   passed++;
 
   console.log('====================================================');

@@ -46,6 +46,8 @@ async function runSettingsPrivacyTestSuite() {
     assert(initialSettings.marketsEnabled === false, 'Markets tool is strictly opt-in (disabled by default)');
     assert(initialSettings.notesEnabled === true, 'Notes tool is enabled by default');
     assert(initialSettings.todoEnabled === true, 'Todo workspace is enabled by default');
+    assert(initialSettings.onboardingCompleted === false, 'First-run onboarding is incomplete on a new install');
+    assert(initialSettings.hiddenSidePanels?.join(',') === 'markets,hub,todo', 'Panel rail defaults to the prior visible panel set');
     assert(initialSettings.hubEnabled === true, 'Hub workspace is enabled by default');
     assert(initialSettings.exploreEnabled === true, 'Explore dictionary is enabled by default');
     assert(initialSettings.notificationsEnabled === false, 'Master notifications toggle is strictly opt-in (false by default)');
@@ -299,6 +301,7 @@ async function runSettingsPrivacyTestSuite() {
       mode: 'performance',
       marketsEnabled: true,
       notificationsEnabled: true,
+      onboardingCompleted: true,
     });
     assert(manager.getSettings().searchEngine === 'google', 'Settings modified prior to reset');
 
@@ -309,10 +312,12 @@ async function runSettingsPrivacyTestSuite() {
     assert(resetResult.mode === DEFAULT_BROWSER_SETTINGS.mode, 'Mode reset to default');
     assert(resetResult.marketsEnabled === false, 'Markets opt-in status reset to false');
     assert(resetResult.notificationsEnabled === false, 'Notifications reset to false');
+    assert(resetResult.onboardingCompleted === true, 'Settings reset preserves completed onboarding');
 
     // Verify disk matches defaults
     const diskReset: BrowserSettings = JSON.parse(fs.readFileSync(settingsFilePath, 'utf8'));
     assert(diskReset.searchEngine === DEFAULT_BROWSER_SETTINGS.searchEngine, 'Disk settings file matches defaults');
+    assert(diskReset.onboardingCompleted === true, 'Disk settings preserve onboarding completion after reset');
 
     // ----------------------------------------------------
     // SUITE 8: Internal Route Resolution Verification

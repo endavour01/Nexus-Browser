@@ -1,21 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  Bookmark,
-  Download,
-  History,
+  LayoutGrid,
   Puzzle,
-  Settings,
-  User,
-  Terminal,
-  FileText,
-  Compass,
-  BookOpen,
-  Sparkles,
   ShieldCheck,
   MapPin,
   Loader2,
+  X,
 } from 'lucide-react';
-import { InstalledExtension, SidePanelType, VpnFreeLocation, VpnStatus } from '@shared/types';
+import { InstalledExtension, SidePanelId, SidePanelType, VpnFreeLocation, VpnStatus } from '@shared/types';
+import { IconButton, SearchInput } from './ui';
+import { SIDE_PANEL_OPTIONS } from './side-panel-options';
 
 export { type SidePanelType };
 
@@ -28,6 +22,8 @@ interface RightToolbarProps {
   onOpenExtensionPopup?: (id: string) => void;
   onOpenVpnService?: (url: string) => void;
   minimal?: boolean;
+  hiddenPanels?: SidePanelId[];
+  onTogglePanelVisibility?: (panel: SidePanelId, visible: boolean) => void;
 }
 
 export const RightToolbar: React.FC<RightToolbarProps> = ({
@@ -39,6 +35,8 @@ export const RightToolbar: React.FC<RightToolbarProps> = ({
   onOpenExtensionPopup,
   onOpenVpnService,
   minimal = false,
+  hiddenPanels = [],
+  onTogglePanelVisibility,
 }) => {
   const [isVpnMenuOpen, setIsVpnMenuOpen] = useState(false);
   const [vpnStatus, setVpnStatus] = useState<VpnStatus | null>(null);
@@ -46,6 +44,18 @@ export const RightToolbar: React.FC<RightToolbarProps> = ({
   const [vpnBusy, setVpnBusy] = useState(false);
   const [vpnError, setVpnError] = useState('');
   const vpnControlRef = useRef<HTMLDivElement>(null);
+  const panelRailRef = useRef<HTMLDivElement>(null);
+  const [isPanelRailOpen, setIsPanelRailOpen] = useState(false);
+  const [isManagingPanels, setIsManagingPanels] = useState(false);
+  const [panelQuery, setPanelQuery] = useState('');
+
+  const matchingPanels = SIDE_PANEL_OPTIONS.filter((panel) =>
+    panel.label.toLowerCase().includes(panelQuery.trim().toLowerCase())
+  );
+  const visiblePanels = matchingPanels.filter((panel) => !hiddenPanels.includes(panel.id));
+  const railPanels = minimal
+    ? visiblePanels.filter((panel) => !['extensions', 'devtools', 'profiles'].includes(panel.id))
+    : visiblePanels;
 
   useEffect(() => {
     if (!isVpnMenuOpen) return;
@@ -66,6 +76,28 @@ export const RightToolbar: React.FC<RightToolbarProps> = ({
       document.removeEventListener('keydown', closeOnEscape);
     };
   }, [isVpnMenuOpen]);
+
+  useEffect(() => {
+    if (!isPanelRailOpen) return;
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (!panelRailRef.current?.contains(event.target as Node)) {
+        setIsPanelRailOpen(false);
+        setIsManagingPanels(false);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsPanelRailOpen(false);
+        setIsManagingPanels(false);
+      }
+    };
+    document.addEventListener('mousedown', closeOnOutsideClick);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('mousedown', closeOnOutsideClick);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [isPanelRailOpen]);
 
   useEffect(() => {
     if (!isVpnMenuOpen || !window.nexusAPI) return;
@@ -114,46 +146,97 @@ export const RightToolbar: React.FC<RightToolbarProps> = ({
     }
   };
 
+  const selectPanel = (panel: SidePanelId) => {
+    toggle(panel);
+    setIsPanelRailOpen(false);
+  };
+
   return (
     <aside className="nexus-right-toolbar">
-      {/* Bookmarks Button */}
-      <button
-        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'bookmarks' ? 'active' : ''}`}
-        onClick={() => toggle('bookmarks')}
-        title="Bookmarks Library (Ctrl+B)"
-      >
-        <Bookmark size={17} />
-        {bookmarkCount > 0 && <span className="toolbar-dot-badge" />}
-      </button>
+      <div className="side-panel-rail-control" ref={panelRailRef}>
+        <button
+          type="button"
+          className={`nexus-icon-btn toolbar-action-btn ${isPanelRailOpen || !!activePanel ? 'active' : ''}`}
+          onClick={() => setIsPanelRailOpen((open) => !open)}
+          title="Side panels"
+          aria-label="Search side panels"
+          aria-haspopup="dialog"
+          aria-expanded={isPanelRailOpen}
+        >
+          <LayoutGrid size={17} />
+          {(bookmarkCount > 0 || downloadCount > 0) && <span className="toolbar-dot-badge" />}
+        </button>
+        {isPanelRailOpen && (
+          <div className="side-panel-rail-popover" role="dialog" aria-label="Side panels">
+            <div className="side-panel-rail-search">
+              <SearchInput
+                size="sm"
+                value={panelQuery}
+                onChange={(event) => setPanelQuery(event.target.value)}
+                onClear={() => setPanelQuery('')}
+                placeholder="Search panels"
+                aria-label="Search side panels by name"
+                autoFocus
+              />
+              <IconButton
+                icon={<X size={14} />}
+                aria-label="Close side panel rail"
+                tooltip="Close"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setIsPanelRailOpen(false);
+                  setIsManagingPanels(false);
+                }}
+              />
+            </div>
 
-      {/* History Button */}
-      <button
-        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'history' ? 'active' : ''}`}
-        onClick={() => toggle('history')}
-        title="Browsing History (Ctrl+H)"
-      >
-        <History size={17} />
-      </button>
+            {isManagingPanels ? (
+              <div className="side-panel-rail-list side-panel-rail-manage" aria-label="Visible side panels">
+                {matchingPanels.map((panel) => (
+                  <label className="side-panel-rail-visibility" key={panel.id}>
+                    <span className="side-panel-rail-icon">{panel.icon}</span>
+                    <span className="side-panel-rail-label">{panel.label}</span>
+                    <input
+                      type="checkbox"
+                      checked={!hiddenPanels.includes(panel.id)}
+                      onChange={(event) => onTogglePanelVisibility?.(panel.id, event.target.checked)}
+                      aria-label={`Show ${panel.label}`}
+                    />
+                  </label>
+                ))}
+                {matchingPanels.length === 0 && <p className="side-panel-rail-empty">No panels match "{panelQuery}".</p>}
+              </div>
+            ) : (
+              <div className="side-panel-rail-list" aria-label="Available side panels">
+                {railPanels.map((panel) => (
+                  <button
+                    key={panel.id}
+                    type="button"
+                    aria-pressed={activePanel === panel.id}
+                    className={`side-panel-rail-item ${activePanel === panel.id ? 'active' : ''}`}
+                    onClick={() => selectPanel(panel.id)}
+                  >
+                    <span className="side-panel-rail-icon">{panel.icon}</span>
+                    <span className="side-panel-rail-label">{panel.label}</span>
+                    {panel.id === 'bookmarks' && bookmarkCount > 0 && <span className="side-panel-rail-dot" aria-label={`${bookmarkCount} bookmarks`} />}
+                    {panel.id === 'downloads' && downloadCount > 0 && <span className="side-panel-rail-count">{downloadCount}</span>}
+                  </button>
+                ))}
+                {railPanels.length === 0 && <p className="side-panel-rail-empty">No visible panels match "{panelQuery}".</p>}
+              </div>
+            )}
 
-      {/* Downloads Button */}
-      <button
-        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'downloads' ? 'active' : ''}`}
-        onClick={() => toggle('downloads')}
-        title="Downloads (Ctrl+J)"
-      >
-        <Download size={17} />
-        {downloadCount > 0 && <span className="toolbar-badge">{downloadCount}</span>}
-      </button>
-
-      {/* Notes Button */}
-      <button
-        type="button"
-        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'notes' ? 'active' : ''}`}
-        onClick={() => toggle('notes')}
-        title="Nexus Notes (Ctrl+Shift+N)"
-      >
-        <FileText size={17} />
-      </button>
+            <button
+              type="button"
+              className="side-panel-rail-manage-toggle"
+              onClick={() => setIsManagingPanels((managing) => !managing)}
+            >
+              {isManagingPanels ? 'Done' : 'Manage visible panels'}
+            </button>
+          </div>
+        )}
+      </div>
 
       <div className="vpn-toolbar-control" ref={vpnControlRef}>
         <button
@@ -220,15 +303,6 @@ export const RightToolbar: React.FC<RightToolbarProps> = ({
         )}
       </div>
 
-      {/* Explore Tools Button */}
-      <button
-        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'intelligence' ? 'active' : ''}`}
-        onClick={() => toggle('intelligence')}
-        title="NEXUS Explore"
-      >
-        <Compass size={17} />
-      </button>
-
       {/* Extension Action Buttons */}
       {extensions
         .filter((ext) => ext.enabled && ext.action?.popup)
@@ -251,43 +325,7 @@ export const RightToolbar: React.FC<RightToolbarProps> = ({
           </button>
         ))}
 
-      {/* Extensions Button */}
-      <button
-        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'extensions' ? 'active' : ''} ${minimal ? 'minimal-hidden' : ''}`}
-        onClick={() => toggle('extensions')}
-        title="Extensions & Tools"
-      >
-        <Puzzle size={17} />
-      </button>
-
-      {/* Developer Toolkit Button */}
-      <button
-        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'devtools' ? 'active' : ''} ${minimal ? 'minimal-hidden' : ''}`}
-        onClick={() => toggle('devtools')}
-        title="Developer Toolkit"
-      >
-        <Terminal size={17} />
-      </button>
-
       <div className="toolbar-spacer" />
-
-      {/* Profiles Button */}
-      <button
-        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'profiles' ? 'active' : ''} ${minimal ? 'minimal-hidden' : ''}`}
-        onClick={() => toggle('profiles')}
-        title="User Profiles"
-      >
-        <User size={17} />
-      </button>
-
-      {/* Settings Button */}
-      <button
-        className={`nexus-icon-btn toolbar-action-btn ${activePanel === 'settings' ? 'active' : ''}`}
-        onClick={() => toggle('settings')}
-        title="Browser Settings"
-      >
-        <Settings size={17} />
-      </button>
     </aside>
   );
 };

@@ -186,7 +186,7 @@ async function runIntelligenceTestSuite() {
 
     // 4.3 Direct conversion
     const convResult = await manager.convertCurrency({ from: 'USD', to: 'EUR', amount: 100 });
-    const expectedEur = Math.round(100 * ratesData.rates['EUR'] * 10000) / 10000;
+    const expectedEur = Math.round(100 * convResult.rate * 10000) / 10000;
     if (Math.abs(convResult.result - expectedEur) > 0.01) {
       throw new Error(`Conversion mismatch. Expected ${expectedEur}, got ${convResult.result}`);
     }

@@ -33,7 +33,6 @@ export class SessionStore {
         version: 1,
         tabs: sanitizedTabs,
         workspaces: Array.isArray(data.workspaces) ? data.workspaces : [],
-        groups: Array.isArray(data.groups) ? data.groups : [],
         recentlyClosed: Array.isArray(data.recentlyClosed) ? data.recentlyClosed : [],
       };
 

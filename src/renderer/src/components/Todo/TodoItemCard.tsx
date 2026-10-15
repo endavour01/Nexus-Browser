@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { NexusTodo, TodoPriority } from '@shared/types';
 import {
   Check,
@@ -6,7 +6,6 @@ import {
   ExternalLink,
   Trash2,
   Edit2,
-  Tag,
   AlertCircle,
   Clock,
   MessageSquare,
@@ -30,8 +29,6 @@ export const TodoItemCard: React.FC<TodoItemCardProps> = ({
   onDelete,
   onNavigate,
 }) => {
-  const [isHovered, setIsHovered] = useState(false);
-
   const getPriorityBadge = (priority: TodoPriority) => {
     switch (priority) {
       case 'urgent':
@@ -81,65 +78,46 @@ export const TodoItemCard: React.FC<TodoItemCardProps> = ({
   };
 
   return (
-    <div
-      className={`todo-item-card ${todo.completed ? 'completed' : ''}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      role="listitem"
-    >
-      <div className="flex items-start gap-3 w-full">
-        {/* Checkbox */}
-        <button
-          type="button"
-          role="checkbox"
-          aria-checked={todo.completed}
-          aria-label={todo.completed ? `Mark "${todo.title}" incomplete` : `Mark "${todo.title}" complete`}
-          onClick={() => onToggle(todo.id)}
-          className={`todo-checkbox ${todo.completed ? 'checked' : ''}`}
-          onKeyDown={(e) => {
-            if (e.key === ' ' || e.key === 'Enter') {
-              e.preventDefault();
-              onToggle(todo.id);
-            }
-          }}
-        >
-          {todo.completed && <Check size={12} strokeWidth={3} />}
-        </button>
+    <article className={`todo-item-card ${todo.completed ? 'completed' : ''}`} role="listitem">
+      <button
+        type="button"
+        role="checkbox"
+        aria-checked={todo.completed}
+        aria-label={todo.completed ? `Mark "${todo.title}" incomplete` : `Mark "${todo.title}" complete`}
+        onClick={() => onToggle(todo.id)}
+        className={`todo-checkbox ${todo.completed ? 'checked' : ''}`}
+      >
+        {todo.completed && <Check size={12} strokeWidth={3} aria-hidden="true" />}
+      </button>
 
-        {/* Task Content */}
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2 mb-1">
-            <h4 className={`todo-title text-sm font-medium ${todo.completed ? 'line-through text-muted' : 'text-primary'}`}>
-              {todo.title}
-            </h4>
-            {getPriorityBadge(todo.priority)}
-            {todo.category && (
-              <Badge variant="neutral" size="sm">
-                <Tag size={10} className="inline mr-1 opacity-70" />
-                {todo.category}
-              </Badge>
-            )}
-          </div>
+      <div className="todo-card-content">
+        <div className="todo-card-heading">
+          <h3 className={`todo-title ${todo.completed ? 'todo-title--completed' : ''}`}>
+            {todo.title}
+          </h3>
+          {getPriorityBadge(todo.priority)}
+          {todo.category && <Badge variant="neutral" size="sm">{todo.category}</Badge>}
+          {todo.completed && <Badge variant="success" size="sm">Completed</Badge>}
+        </div>
 
-          {todo.description && (
-            <p className={`text-xs mt-0.5 leading-relaxed ${todo.completed ? 'text-muted/60' : 'text-secondary'}`}>
-              {todo.description}
-            </p>
-          )}
+        {todo.description && (
+          <p className={`todo-description ${todo.completed ? 'todo-description--completed' : ''}`}>
+            {todo.description}
+          </p>
+        )}
 
-          {/* Meta Line: Due Date & Linkages */}
-          <div className="flex flex-wrap items-center gap-2.5 mt-2 text-2xs">
+        <div className="todo-task-metadata">
             {renderDueDateBadge(todo.dueDate)}
 
             {/* Linked Connect Workspace */}
             {todo.associatedWorkspaceName && (
               <button
                 type="button"
-                className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface border border-subtle text-secondary hover:text-accent hover:border-accent/40 transition-colors text-3xs font-mono"
+                className="todo-linked-item"
                 onClick={() => onNavigate && onNavigate('nexus://connect')}
                 title={`Linked Workspace: ${todo.associatedWorkspaceName}`}
               >
-                <Layers size={10} className="text-accent" />
+                <Layers size={10} aria-hidden="true" />
                 <span>{todo.associatedWorkspaceName}</span>
               </button>
             )}
@@ -148,11 +126,11 @@ export const TodoItemCard: React.FC<TodoItemCardProps> = ({
             {todo.associatedConnectAppName && (
               <button
                 type="button"
-                className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface border border-subtle text-secondary hover:text-accent hover:border-accent/40 transition-colors text-3xs font-mono"
+                className="todo-linked-item"
                 onClick={() => onNavigate && onNavigate('nexus://connect')}
                 title={`Linked App: ${todo.associatedConnectAppName}`}
               >
-                <MessageSquare size={10} className="text-accent" />
+                <MessageSquare size={10} aria-hidden="true" />
                 <span>{todo.associatedConnectAppName}</span>
               </button>
             )}
@@ -161,11 +139,11 @@ export const TodoItemCard: React.FC<TodoItemCardProps> = ({
             {todo.associatedNoteTitle && (
               <button
                 type="button"
-                className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-surface border border-subtle text-secondary hover:text-accent hover:border-accent/40 transition-colors text-3xs font-mono"
+                className="todo-linked-item"
                 onClick={() => onNavigate && onNavigate('nexus://notes')}
                 title={`Linked Note: ${todo.associatedNoteTitle}`}
               >
-                <FileText size={10} className="text-accent" />
+                <FileText size={10} aria-hidden="true" />
                 <span>{todo.associatedNoteTitle}</span>
               </button>
             )}
@@ -174,7 +152,7 @@ export const TodoItemCard: React.FC<TodoItemCardProps> = ({
             {todo.associatedUrl && (
               <button
                 type="button"
-                className="todo-url-link flex items-center gap-1 text-accent hover:underline text-2xs font-mono max-w-xs truncate"
+                className="todo-url-link"
                 onClick={() => {
                   if (onNavigate) {
                     onNavigate(todo.associatedUrl!);
@@ -184,21 +162,20 @@ export const TodoItemCard: React.FC<TodoItemCardProps> = ({
                 }}
                 title={todo.associatedUrl}
               >
-                <ExternalLink size={11} />
+                <ExternalLink size={11} aria-hidden="true" />
                 <span>{todo.associatedTitle || todo.associatedUrl}</span>
               </button>
             )}
 
             {todo.completed && todo.completedAt && (
-              <span className="text-muted text-3xs flex items-center gap-1">
-                <Clock size={10} /> Completed {new Date(todo.completedAt).toLocaleDateString()}
+              <span className="todo-completed-date">
+                <Clock size={10} aria-hidden="true" /> Completed {new Date(todo.completedAt).toLocaleDateString()}
               </span>
             )}
-          </div>
         </div>
+      </div>
 
-        {/* Hover / Focus Actions */}
-        <div className={`todo-actions flex items-center gap-1 ${isHovered ? 'opacity-100' : 'opacity-0 sm:opacity-40'} transition-opacity`}>
+      <div className="todo-actions">
           <IconButton
             icon={<Edit2 size={13} />}
             aria-label="Edit task"
@@ -215,8 +192,7 @@ export const TodoItemCard: React.FC<TodoItemCardProps> = ({
             size="xs"
             onClick={() => onDelete(todo.id)}
           />
-        </div>
       </div>
-    </div>
+    </article>
   );
 };

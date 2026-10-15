@@ -457,6 +457,24 @@ const api: NexusAPI = {
   },
   submitFeedback: (feedback: any) => ipcRenderer.invoke('feedback:submit', feedback),
   getFeedbackList: () => ipcRenderer.invoke('feedback:getAll'),
+
+  // NEXUS Account & Authentication
+  getAccountSession: () => ipcRenderer.invoke('account:getSession'),
+  signInAccount: (credentials: any) => ipcRenderer.invoke('account:signIn', credentials),
+  signUpAccount: (credentials: any) => ipcRenderer.invoke('account:signUp', credentials),
+  signOutAccount: () => ipcRenderer.invoke('account:signOut'),
+  requestPasswordReset: (req: any) => ipcRenderer.invoke('account:resetPassword', req),
+  resendVerificationEmail: () => ipcRenderer.invoke('account:resendVerification'),
+  updateAccountProfile: (payload: any) => ipcRenderer.invoke('account:updateProfile', payload),
+  onAccountUpdated: (callback: (session: any) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, session: any) => {
+      callback(session);
+    };
+    ipcRenderer.on('account:updated', handler);
+    return () => {
+      ipcRenderer.removeListener('account:updated', handler);
+    };
+  },
 };
 
 contextBridge.exposeInMainWorld('nexusAPI', api);

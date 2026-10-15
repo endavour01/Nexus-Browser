@@ -1,7 +1,7 @@
 import type { BrowserWindow } from 'electron';
 import fs from 'fs';
 import path from 'path';
-import { BrowserSettings, NexusFeedback } from '../shared/types';
+import { BrowserSettings, DEFAULT_HIDDEN_SIDE_PANELS, NexusFeedback } from '../shared/types';
 
 export const DEFAULT_BROWSER_SETTINGS: BrowserSettings = {
   // General
@@ -21,6 +21,8 @@ export const DEFAULT_BROWSER_SETTINGS: BrowserSettings = {
   defaultZoom: 1,
   tabLayout: 'horizontal',
   showBookmarksBar: true,
+  onboardingCompleted: false,
+  hiddenSidePanels: [...DEFAULT_HIDDEN_SIDE_PANELS],
 
   // System & Performance
   hardwareAcceleration: false,
@@ -201,7 +203,8 @@ export class SettingsManager {
   }
 
   public resetSettings(): BrowserSettings {
-    this.settings = { ...DEFAULT_BROWSER_SETTINGS };
+    const onboardingCompleted = this.settings.onboardingCompleted === true;
+    this.settings = { ...DEFAULT_BROWSER_SETTINGS, onboardingCompleted };
     this.saveSettings();
     this.notifyUpdate();
     return { ...this.settings };

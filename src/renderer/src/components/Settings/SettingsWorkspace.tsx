@@ -34,14 +34,21 @@ import {
   Puzzle,
   ExternalLink,
   Lock,
+  User,
+  ShieldCheck,
 } from 'lucide-react';
+import { Button } from '../ui';
+import { AccountProfileView, AccountModal } from '../Account';
 import { PrivacyCenterView } from './PrivacyCenterView';
 import { DataTransparencyView } from './DataTransparencyView';
 import { AboutNexusView } from './AboutNexusView';
 import { FeedbackView } from './FeedbackView';
+import { AccountSession, SidePanelId } from '@shared/types';
+import { SIDE_PANEL_OPTIONS } from '../side-panel-options';
 
 export type SettingsSectionId =
   | 'general'
+  | 'account'
   | 'appearance'
   | 'privacy'
   | 'privacy-center'
@@ -98,8 +105,34 @@ export const SettingsWorkspace: React.FC<SettingsWorkspaceProps> = ({
     }
   };
 
+  const [accountSession, setAccountSession] = useState<AccountSession | null>(null);
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [accountModalView, setAccountModalView] = useState<'sign-in' | 'sign-up'>('sign-in');
+
+  useEffect(() => {
+    let isMounted = true;
+    window.nexusAPI?.getAccountSession?.().then((sess) => {
+      if (isMounted) setAccountSession(sess);
+    }).catch(() => {});
+
+    const unsub = window.nexusAPI?.onAccountUpdated?.((sess) => {
+      if (isMounted) setAccountSession(sess);
+    });
+
+    return () => {
+      isMounted = false;
+      unsub?.();
+    };
+  }, []);
+
   const navItems: { id: SettingsSectionId; label: string; icon: React.ReactNode; badge?: string }[] = [
     { id: 'general', label: 'General', icon: <Sliders size={15} /> },
+    {
+      id: 'account',
+      label: 'NEXUS Account',
+      icon: <User size={15} />,
+      badge: accountSession?.account ? 'Active' : undefined,
+    },
     { id: 'appearance', label: 'Appearance & Modes', icon: <Eye size={15} /> },
     { id: 'privacy', label: 'Privacy & Security', icon: <Shield size={15} /> },
     { id: 'privacy-center', label: 'Privacy Center', icon: <Lock size={15} />, badge: 'Audit' },
@@ -302,6 +335,79 @@ export const SettingsWorkspace: React.FC<SettingsWorkspaceProps> = ({
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* 1.5. NEXUS ACCOUNT & IDENTITY SECTION */}
+            {activeSection === 'account' && (
+              <div className="space-y-6">
+                <div className="border-b border-subtle pb-3">
+                  <h3 className="text-sm font-semibold text-primary">NEXUS Account & User Identity</h3>
+                  <p className="text-2xs text-secondary mt-0.5">
+                    Manage online identity credentials, security sessions, and workspace synchronization boundaries.
+                  </p>
+                </div>
+
+                {accountSession?.account ? (
+                  <AccountProfileView
+                    session={accountSession}
+                    onSignOut={() => setAccountSession(null)}
+                    onAccountUpdated={(acc) =>
+                      setAccountSession((prev) => (prev ? { ...prev, account: acc } : null))
+                    }
+                    onOpenSignIn={() => {
+                      setAccountModalView('sign-in');
+                      setIsAccountModalOpen(true);
+                    }}
+                  />
+                ) : (
+                  <div className="p-6 rounded-xl border border-subtle bg-surface space-y-5">
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-accent/15 border border-accent/25 flex items-center justify-center text-accent shrink-0">
+                        <User size={24} />
+                      </div>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-bold text-primary">Connect Your NEXUS Account</h4>
+                        <p className="text-2xs text-secondary leading-relaxed max-w-xl">
+                          Sign in or register an account to secure your user identity. Future releases will support end-to-end encrypted workspace, history, and bookmark synchronization across your authorized devices.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3 pt-1">
+                      <Button
+                        variant="primary"
+                        size="md"
+                        onClick={() => {
+                          setAccountModalView('sign-in');
+                          setIsAccountModalOpen(true);
+                        }}
+                      >
+                        Sign In
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="md"
+                        onClick={() => {
+                          setAccountModalView('sign-up');
+                          setIsAccountModalOpen(true);
+                        }}
+                      >
+                        Create an Account
+                      </Button>
+                    </div>
+
+                    <div className="p-3.5 rounded-lg border border-subtle bg-surface-hover/40 text-2xs text-secondary leading-relaxed space-y-1">
+                      <div className="font-semibold text-primary flex items-center gap-1.5">
+                        <ShieldCheck size={13} className="text-accent" />
+                        Local Data Isolation
+                      </div>
+                      <div>
+                        NEXUS is designed with strict local privacy. Even without an account, all browser tabs, cookies, bookmarks, and extensions remain 100% operational on this machine.
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -729,6 +835,36 @@ export const SettingsWorkspace: React.FC<SettingsWorkspaceProps> = ({
                     />
                   </label>
                 </div>
+
+                <div className="p-5 rounded-xl border border-subtle bg-surface space-y-4">
+                  <div>
+                    <h4 className="text-xs font-semibold text-primary">Side Panel Rail</h4>
+                    <p className="text-3xs text-secondary mt-1">
+                      Choose which panels appear in the searchable toolbar rail. Hidden panels remain available elsewhere in NEXUS.
+                    </p>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {SIDE_PANEL_OPTIONS.map((panel) => {
+                      const isVisible = !(settings.hiddenSidePanels ?? []).includes(panel.id);
+                      return (
+                        <label key={panel.id} className="side-panel-setting-option">
+                          <span className="side-panel-setting-icon">{panel.icon}</span>
+                          <span className="side-panel-setting-label">{panel.label}</span>
+                          <input
+                            type="checkbox"
+                            checked={isVisible}
+                            onChange={(event) => {
+                              const hiddenPanels = new Set<SidePanelId>(settings.hiddenSidePanels ?? []);
+                              if (event.target.checked) hiddenPanels.delete(panel.id);
+                              else hiddenPanels.add(panel.id);
+                              handleSettingChange({ hiddenSidePanels: Array.from(hiddenPanels) }, `${panel.label} visibility`);
+                            }}
+                          />
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -822,6 +958,15 @@ export const SettingsWorkspace: React.FC<SettingsWorkspaceProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Account Modal */}
+      <AccountModal
+        isOpen={isAccountModalOpen}
+        onClose={() => setIsAccountModalOpen(false)}
+        initialView={accountModalView}
+        mode={settings.mode}
+        onSessionChange={(newSession) => setAccountSession(newSession)}
+      />
     </div>
   );
 };

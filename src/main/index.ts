@@ -22,7 +22,20 @@ import { TodoManager } from './todo-manager';
 import { ConnectManager } from './connect-manager';
 import { SettingsManager, DEFAULT_BROWSER_SETTINGS } from './settings-manager';
 import { VpnManager } from './vpn-manager';
-import { ClearDataOptions, PermissionType, PermissionDecision, TrackingProtectionMode, NexusBrowserMode, ModeBehaviorConfig, BrowserSettings } from '../shared/types';
+import { AccountManager } from './account-manager';
+import {
+  ClearDataOptions,
+  PermissionType,
+  PermissionDecision,
+  TrackingProtectionMode,
+  NexusBrowserMode,
+  ModeBehaviorConfig,
+  BrowserSettings,
+  SignInCredentials,
+  SignUpCredentials,
+  PasswordResetRequest,
+  AccountUpdatePayload,
+} from '../shared/types';
 
 // Ensure smooth launch on Linux systems without hardware GPU or SUID sandbox helper
 if (process.platform === 'linux') {
@@ -53,6 +66,7 @@ let marketsManager: MarketsManager | null = null;
 let todoManager: TodoManager | null = null;
 let connectManager: ConnectManager | null = null;
 let settingsManager: SettingsManager | null = null;
+let accountManager: AccountManager | null = null;
 const vpnManager = new VpnManager();
 
 const isDev = process.env.ELECTRON_IS_DEV === '1';
@@ -112,6 +126,7 @@ function createWindow() {
   todoManager = new TodoManager(storageDir, mainWindow);
   connectManager = new ConnectManager(storageDir, mainWindow);
   settingsManager = new SettingsManager(storageDir, mainWindow);
+  accountManager = new AccountManager(storageDir, mainWindow);
   downloadManager = new DownloadManager(mainWindow, profilePaths.downloads);
   tabManager.setDownloadManager(downloadManager);
   modeOptimizer = new ModeOptimizer(mainWindow, tabManager);
@@ -1103,6 +1118,48 @@ function registerIpcHandlers() {
 
   ipcMain.handle('feedback:getAll', async () => {
     return settingsManager?.getFeedbackList() ?? [];
+  });
+
+  // ==========================================
+  // NEXUS Account & Authentication IPC
+  // ==========================================
+  ipcMain.handle('account:getSession', async () => {
+    return accountManager?.getSession() ?? {
+      account: null,
+      isAuthenticated: false,
+      isConfigured: false,
+      status: 'unconfigured',
+    };
+  });
+
+  ipcMain.handle('account:signIn', async (_event, credentials: SignInCredentials) => {
+    if (!accountManager) throw new Error('AccountManager not initialized');
+    return accountManager.signIn(credentials);
+  });
+
+  ipcMain.handle('account:signUp', async (_event, credentials: SignUpCredentials) => {
+    if (!accountManager) throw new Error('AccountManager not initialized');
+    return accountManager.signUp(credentials);
+  });
+
+  ipcMain.handle('account:signOut', async () => {
+    if (!accountManager) return { success: true };
+    return accountManager.signOut();
+  });
+
+  ipcMain.handle('account:resetPassword', async (_event, req: PasswordResetRequest) => {
+    if (!accountManager) throw new Error('AccountManager not initialized');
+    return accountManager.requestPasswordReset(req);
+  });
+
+  ipcMain.handle('account:resendVerification', async () => {
+    if (!accountManager) throw new Error('AccountManager not initialized');
+    return accountManager.resendVerificationEmail();
+  });
+
+  ipcMain.handle('account:updateProfile', async (_event, payload: AccountUpdatePayload) => {
+    if (!accountManager) throw new Error('AccountManager not initialized');
+    return accountManager.updateProfile(payload);
   });
 }
 

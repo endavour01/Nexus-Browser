@@ -26,6 +26,17 @@ export interface TabGroup {
   collapsed?: boolean;
 }
 
+export const TAB_GROUP_COLORS = [
+  { name: 'Violet', value: '#A78BFA' },
+  { name: 'Sky', value: '#38BDF8' },
+  { name: 'Emerald', value: '#34D399' },
+  { name: 'Amber', value: '#FBBF24' },
+  { name: 'Rose', value: '#F43F5E' },
+  { name: 'Fuchsia', value: '#E879F9' },
+  { name: 'Indigo', value: '#818CF8' },
+  { name: 'Slate', value: '#94A3B8' },
+] as const;
+
 export interface PinnedSiteItem {
   id: string;
   title: string;
@@ -62,7 +73,7 @@ export interface SavedSessionData {
   version: number;
   workspaces: Workspace[];
   activeWorkspaceId: string;
-  groups: TabGroup[];
+  groups?: TabGroup[];
   tabs: Array<{
     id: string;
     url: string;
@@ -251,6 +262,8 @@ export interface BrowserSettings {
   defaultZoom: number;
   tabLayout: 'horizontal' | 'vertical';
   showBookmarksBar?: boolean;
+  onboardingCompleted?: boolean;
+  hiddenSidePanels?: SidePanelId[];
 
   // System & Performance
   hardwareAcceleration: boolean;
@@ -480,7 +493,9 @@ export interface RecentPage {
   timestamp: number;
 }
 
-export type SidePanelType = 'bookmarks' | 'downloads' | 'extensions' | 'profiles' | 'settings' | 'history' | 'devtools' | 'notes' | 'intelligence' | 'markets' | 'hub' | 'todo' | null;
+export type SidePanelType = 'bookmarks' | 'downloads' | 'extensions' | 'profiles' | 'settings' | 'history' | 'devtools' | 'notes' | 'intelligence' | 'markets' | 'hub' | 'todo' | 'assistant' | null;
+export type SidePanelId = Exclude<SidePanelType, null>;
+export const DEFAULT_HIDDEN_SIDE_PANELS: SidePanelId[] = ['markets', 'hub', 'todo'];
 
 // Developer Tools Types
 export interface NetworkLogEntry {
@@ -1340,6 +1355,91 @@ export interface NexusAPI {
   onSettingsUpdated: (callback: (settings: BrowserSettings) => void) => () => void;
   submitFeedback: (feedback: Omit<NexusFeedback, 'id' | 'createdAt'>) => Promise<{ success: boolean; id: string }>;
   getFeedbackList: () => Promise<NexusFeedback[]>;
+
+  // NEXUS Account & Authentication
+  getAccountSession: () => Promise<AccountSession>;
+  signInAccount: (credentials: SignInCredentials) => Promise<AuthResponse>;
+  signUpAccount: (credentials: SignUpCredentials) => Promise<AuthResponse>;
+  signOutAccount: () => Promise<{ success: boolean }>;
+  requestPasswordReset: (req: PasswordResetRequest) => Promise<AuthResponse>;
+  resendVerificationEmail: () => Promise<AuthResponse>;
+  updateAccountProfile: (payload: AccountUpdatePayload) => Promise<AuthResponse>;
+  onAccountUpdated: (callback: (session: AccountSession) => void) => () => void;
+
+  // Phase-1 AI Assistant
+  agentStartTask: (payload: { task: string; initialUrl?: string; modelConfig?: any }) => Promise<{ success: boolean; error?: string }>;
+  agentStopTask: () => Promise<{ success: boolean }>;
+  agentConfirmAction: (payload: { approved: boolean }) => Promise<{ success: boolean }>;
+  agentReplyToUser: (payload: { response: string }) => Promise<{ success: boolean }>;
+  agentGetStatus: () => Promise<AgentStatusResponse>;
+  agentListCredentials: () => Promise<StoredCredentialMetadata[]>;
+  agentSaveCredential: (payload: { site: string; name: string; username: string; secret: string }) => Promise<{ success: boolean; error?: string }>;
+  agentDeleteCredential: (payload: { id: string }) => Promise<{ success: boolean }>;
+  agentGetAllowlist: () => Promise<string[]>;
+  agentApproveSite: (payload: { site: string }) => Promise<{ success: boolean }>;
+  onAgentStepLogged: (callback: (step: AgentStepLog) => void) => () => void;
+  onAgentConfirmationRequested: (callback: (req: ConfirmationRequest) => void) => () => void;
+  onAgentAskUser: (callback: (data: { question: string }) => void) => () => void;
+  onAgentStatusChanged: (callback: (status: AgentStatusResponse) => void) => () => void;
+}
+
+// ============================================================================
+// NEXUS Account, Authentication & User Identity Types
+// ============================================================================
+
+export interface NexusAccount {
+  id: string;
+  email: string;
+  displayName: string;
+  avatarUrl?: string;
+  isEmailVerified: boolean;
+  createdAt: number;
+  lastLoginAt?: number;
+}
+
+export type AccountAuthStatus =
+  | 'unauthenticated'
+  | 'authenticated'
+  | 'unconfigured'
+  | 'verification-pending';
+
+export interface AccountSession {
+  account: NexusAccount | null;
+  isAuthenticated: boolean;
+  isConfigured: boolean;
+  providerName?: string;
+  status: AccountAuthStatus;
+  message?: string;
+}
+
+export interface SignInCredentials {
+  email: string;
+  password: string;
+}
+
+export interface SignUpCredentials {
+  email: string;
+  password: string;
+  displayName: string;
+  agreedToTerms?: boolean;
+}
+
+export interface PasswordResetRequest {
+  email: string;
+}
+
+export interface AccountUpdatePayload {
+  displayName?: string;
+  avatarUrl?: string;
+}
+
+export interface AuthResponse<T = any> {
+  success: boolean;
+  session?: AccountSession;
+  account?: NexusAccount;
+  requiresVerification?: boolean;
+  message?: string;
+  error?: string;
 }
 
 export interface VpnStatus {
@@ -1356,9 +1456,85 @@ export interface VpnFreeLocation {
   region: string;
 }
 
+// ============================================================================
+// Phase-1 AI Assistant Types
+// ============================================================================
+
+export type AgentActionType =
+  | 'navigate'
+  | 'click'
+  | 'type'
+  | 'press_key'
+  | 'scroll'
+  | 'wait'
+  | 'ask_user'
+  | 'finish';
+
+export interface AgentAction {
+  action: AgentActionType;
+  url?: string;
+  elementId?: number;
+  text?: string;
+  key?: string;
+  direction?: 'up' | 'down';
+  amount?: number;
+  durationMs?: number;
+  question?: string;
+  result?: string;
+  thought?: string;
+}
+
+export interface AgentStepLog {
+  step: number;
+  timestamp: number;
+  action: AgentAction;
+  targetDescription?: string;
+  status: 'pending' | 'success' | 'failed' | 'confirmed' | 'cancelled';
+  error?: string;
+}
+
+export interface StoredCredentialMetadata {
+  id: string;
+  site: string;
+  name: string;
+  username: string;
+  createdAt: number;
+}
+
+export interface ConfirmationRequest {
+  step: number;
+  action: AgentAction;
+  reason: string;
+  dangerLevel: 'low' | 'high';
+  targetSummary: string;
+}
+
+export type AgentTaskState =
+  | 'idle'
+  | 'observing'
+  | 'thinking'
+  | 'waiting_confirmation'
+  | 'waiting_user_input'
+  | 'waiting_allowlist'
+  | 'executing'
+  | 'completed'
+  | 'stopped'
+  | 'error';
+
+export interface AgentStatusResponse {
+  state: AgentTaskState;
+  currentTask?: string;
+  stepCount: number;
+  maxSteps: number;
+  activeTabId?: string;
+  currentUrl?: string;
+  lastError?: string;
+}
+
 declare global {
   interface Window {
     nexusAPI: NexusAPI;
   }
 }
+
 
