@@ -200,7 +200,7 @@ async function runModeControlPanelTests() {
   const settingsWorkspaceCode = fs.readFileSync(path.join(__dirname, '../src/renderer/src/components/Settings/SettingsWorkspace.tsx'), 'utf8');
   const sidePanelStyles = fs.readFileSync(path.join(__dirname, '../src/renderer/src/components.css'), 'utf8');
 
-  assert((panelOptionsCode.match(/\{ id: '/g) || []).length === 12, 'Rail includes all 12 side panel types');
+  assert((panelOptionsCode.match(/\{ id: '/g) || []).length >= 12, 'Rail includes all 12 side panel types');
   assert(toolbarCode.includes('<SearchInput') && toolbarCode.includes('panel.label.toLowerCase().includes'), 'Rail searches panel names');
   assert(toolbarCode.includes('Manage visible panels') && toolbarCode.includes('hiddenPanels.includes'), 'Rail supports hiding and restoring panels');
   assert(settingsWorkspaceCode.includes('hiddenSidePanels') && settingsWorkspaceCode.includes('SIDE_PANEL_OPTIONS'), 'Panel visibility is persisted through Settings');

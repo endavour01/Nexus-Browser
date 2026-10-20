@@ -23,6 +23,7 @@ import { ConnectManager } from './connect-manager';
 import { SettingsManager, DEFAULT_BROWSER_SETTINGS } from './settings-manager';
 import { VpnManager } from './vpn-manager';
 import { AccountManager } from './account-manager';
+import { AgentCore } from './agent/agent-core';
 import {
   ClearDataOptions,
   PermissionType,
@@ -67,6 +68,7 @@ let todoManager: TodoManager | null = null;
 let connectManager: ConnectManager | null = null;
 let settingsManager: SettingsManager | null = null;
 let accountManager: AccountManager | null = null;
+let agentCore: AgentCore | null = null;
 const vpnManager = new VpnManager();
 
 const isDev = process.env.ELECTRON_IS_DEV === '1';
@@ -129,6 +131,7 @@ function createWindow() {
   accountManager = new AccountManager(storageDir, mainWindow);
   downloadManager = new DownloadManager(mainWindow, profilePaths.downloads);
   tabManager.setDownloadManager(downloadManager);
+  agentCore = new AgentCore(mainWindow, tabManager);
   modeOptimizer = new ModeOptimizer(mainWindow, tabManager);
   extensionManager = new ExtensionManager(mainWindow);
   extensionManager.init().catch((err) => {
@@ -1160,6 +1163,56 @@ function registerIpcHandlers() {
   ipcMain.handle('account:updateProfile', async (_event, payload: AccountUpdatePayload) => {
     if (!accountManager) throw new Error('AccountManager not initialized');
     return accountManager.updateProfile(payload);
+  });
+
+  // ==========================================
+  // Phase-1 AI Assistant IPC
+  // ==========================================
+  ipcMain.handle('agent:startTask', async (_event, payload: { task: string; initialUrl?: string }) => {
+    if (!agentCore) throw new Error('AgentCore not initialized');
+    return agentCore.startTask(payload.task, payload.initialUrl);
+  });
+
+  ipcMain.handle('agent:stopTask', async () => {
+    return agentCore?.stop() ?? { success: true };
+  });
+
+  ipcMain.handle('agent:confirmAction', async (_event, payload: { approved: boolean }) => {
+    return agentCore?.confirmAction(payload.approved) ?? { success: false };
+  });
+
+  ipcMain.handle('agent:replyToUser', async (_event, payload: { response: string }) => {
+    return agentCore?.replyToUser(payload.response) ?? { success: false };
+  });
+
+  ipcMain.handle('agent:getStatus', async () => {
+    return agentCore?.getStatus() ?? {
+      state: 'idle',
+      stepCount: 0,
+      maxSteps: 25,
+    };
+  });
+
+  ipcMain.handle('agent:listCredentials', async () => {
+    return agentCore?.getCredentialStore().listCredentials() ?? [];
+  });
+
+  ipcMain.handle('agent:saveCredential', async (_event, payload: { site: string; name: string; username: string; secret: string }) => {
+    if (!agentCore) throw new Error('AgentCore not initialized');
+    const id = agentCore.getCredentialStore().saveCredential(payload.site, payload.name, payload.username, payload.secret);
+    return { success: !!id };
+  });
+
+  ipcMain.handle('agent:deleteCredential', async (_event, payload: { id: string }) => {
+    return { success: agentCore?.getCredentialStore().deleteCredential(payload.id) ?? false };
+  });
+
+  ipcMain.handle('agent:getAllowlist', async () => {
+    return agentCore?.getAllowlistManager().getAllowedSites() ?? [];
+  });
+
+  ipcMain.handle('agent:approveSite', async (_event, payload: { site: string }) => {
+    return agentCore?.approveSite(payload.site) ?? { success: true };
   });
 }
 

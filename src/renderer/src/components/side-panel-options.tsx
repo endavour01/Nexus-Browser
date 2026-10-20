@@ -12,6 +12,7 @@ import {
   Terminal,
   TrendingUp,
   User,
+  Bot,
 } from 'lucide-react';
 import { SidePanelId } from '@shared/types';
 
@@ -34,4 +35,5 @@ export const SIDE_PANEL_OPTIONS: SidePanelOption[] = [
   { id: 'markets', label: 'NEXUS Markets', icon: <TrendingUp size={15} /> },
   { id: 'hub', label: 'NEXUS Hub', icon: <LayoutDashboard size={15} /> },
   { id: 'todo', label: 'NEXUS Todo', icon: <CheckSquare size={15} /> },
+  { id: 'assistant', label: 'AI Assistant', icon: <Bot size={15} /> },
 ];

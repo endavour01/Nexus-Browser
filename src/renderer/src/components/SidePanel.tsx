@@ -17,6 +17,7 @@ import { NotesSidePanel } from './Notes/NotesSidePanel';
 import { DictionaryView } from './Intelligence/DictionaryView';
 import { HubWorkspace } from './Hub';
 import { TodoWorkspace } from './Todo';
+import { AssistantPanel } from './AssistantPanel';
 import { NexusState } from './NexusState';
 import { ModeBehaviorControls } from './ModeBehaviorControls';
 import {
@@ -1269,6 +1270,10 @@ export const SidePanel: React.FC<SidePanelProps> = ({
               currentPageTitle={activeTabTitle}
             />
           </div>
+        )}
+
+        {type === 'assistant' && (
+          <AssistantPanel onClose={onClose} onNavigate={onNavigate} />
         )}
       </div>
     </div>

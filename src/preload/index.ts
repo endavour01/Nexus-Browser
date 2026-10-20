@@ -475,6 +475,52 @@ const api: NexusAPI = {
       ipcRenderer.removeListener('account:updated', handler);
     };
   },
+
+  // Phase-1 AI Assistant
+  agentStartTask: (payload: { task: string; initialUrl?: string; modelConfig?: any }) =>
+    ipcRenderer.invoke('agent:startTask', payload),
+  agentStopTask: () => ipcRenderer.invoke('agent:stopTask'),
+  agentConfirmAction: (payload: { approved: boolean }) =>
+    ipcRenderer.invoke('agent:confirmAction', payload),
+  agentReplyToUser: (payload: { response: string }) =>
+    ipcRenderer.invoke('agent:replyToUser', payload),
+  agentGetStatus: () => ipcRenderer.invoke('agent:getStatus'),
+  agentListCredentials: () => ipcRenderer.invoke('agent:listCredentials'),
+  agentSaveCredential: (payload: { site: string; name: string; username: string; secret: string }) =>
+    ipcRenderer.invoke('agent:saveCredential', payload),
+  agentDeleteCredential: (payload: { id: string }) =>
+    ipcRenderer.invoke('agent:deleteCredential', payload),
+  agentGetAllowlist: () => ipcRenderer.invoke('agent:getAllowlist'),
+  agentApproveSite: (payload: { site: string }) =>
+    ipcRenderer.invoke('agent:approveSite', payload),
+  onAgentStepLogged: (callback: (step: any) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, step: any) => callback(step);
+    ipcRenderer.on('agent:stepLogged', handler);
+    return () => {
+      ipcRenderer.removeListener('agent:stepLogged', handler);
+    };
+  },
+  onAgentConfirmationRequested: (callback: (req: any) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, req: any) => callback(req);
+    ipcRenderer.on('agent:confirmationRequested', handler);
+    return () => {
+      ipcRenderer.removeListener('agent:confirmationRequested', handler);
+    };
+  },
+  onAgentAskUser: (callback: (data: any) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: any) => callback(data);
+    ipcRenderer.on('agent:askUser', handler);
+    return () => {
+      ipcRenderer.removeListener('agent:askUser', handler);
+    };
+  },
+  onAgentStatusChanged: (callback: (status: any) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, status: any) => callback(status);
+    ipcRenderer.on('agent:statusChanged', handler);
+    return () => {
+      ipcRenderer.removeListener('agent:statusChanged', handler);
+    };
+  },
 };
 
 contextBridge.exposeInMainWorld('nexusAPI', api);
