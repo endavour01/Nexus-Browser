@@ -12,6 +12,7 @@ import {
   StockWatchlistItem,
 } from '@shared/types';
 import { HubCard } from './HubCard';
+import * as Icons from 'lucide-react';
 import {
   LayoutGrid,
   CheckSquare,
@@ -40,6 +41,15 @@ import {
   MessageSquare,
 } from 'lucide-react';
 import { Button, IconButton, Badge } from '../ui';
+
+const renderConnectIcon = (iconName?: string, size = 13) => {
+  if (!iconName) return null;
+  const IconComponent = (Icons as unknown as Record<string, React.ComponentType<{ size?: number; className?: string }>>)[iconName];
+  if (IconComponent) {
+    return <IconComponent size={size} className="w-3.5 h-3.5 text-[var(--accent-primary)] shrink-0" />;
+  }
+  return null;
+};
 
 interface HubWorkspaceProps {
   onNavigate?: (url: string) => void;
@@ -477,7 +487,7 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
                             className="flex items-center gap-2 p-2 rounded bg-surface/50 border border-subtle hover:border-accent/40 hover:bg-surface cursor-pointer transition-all group"
                           >
                             <div className="w-6 h-6 rounded bg-accent/10 border border-accent/20 flex items-center justify-center text-xs font-bold text-accent shrink-0">
-                              {app.icon || app.name.charAt(0)}
+                              {renderConnectIcon(app.icon, 13) || app.name.charAt(0)}
                             </div>
                             <div className="truncate flex-1">
                               <div className="font-semibold text-xs text-primary truncate flex items-center gap-1">

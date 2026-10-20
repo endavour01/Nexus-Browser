@@ -35,9 +35,9 @@ export const HubCard: React.FC<HubCardProps> = ({
     <div className="hub-card relative group" role="region" aria-label={title}>
       {/* Card Header */}
       <div className="hub-card-header">
-        <div className="hub-card-title-group">
+        <div className="hub-card-title-group min-w-0">
           <div className="text-accent shrink-0 flex items-center">{icon}</div>
-          <h3 className="hub-card-title" title={title}>{title}</h3>
+          <h3 className="hub-card-title shrink-0 whitespace-nowrap" title={title}>{title}</h3>
           {badge}
         </div>
 

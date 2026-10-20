@@ -65,6 +65,15 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose, onNavig
   const logEndRef = useRef<HTMLDivElement>(null);
   const api = typeof window !== 'undefined' ? window.nexusAPI : null;
 
+  const isError = status.state === 'error' || Boolean(status.lastError);
+  const isConnectionError = Boolean(
+    status.lastError &&
+      (status.lastError.toLowerCase().includes('ollama') ||
+        status.lastError.toLowerCase().includes('reach') ||
+        status.lastError.toLowerCase().includes('connect') ||
+        status.lastError.toLowerCase().includes('offline'))
+  );
+
   const isRunning =
     status.state === 'observing' ||
     status.state === 'thinking' ||
@@ -205,6 +214,12 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose, onNavig
   };
 
   const getStatusBadge = () => {
+    if (isConnectionError) {
+      return <Badge variant="danger">Connection Error</Badge>;
+    }
+    if (isError) {
+      return <Badge variant="danger">Error</Badge>;
+    }
     switch (status.state) {
       case 'idle':
         return <Badge variant="neutral">Idle</Badge>;
@@ -266,13 +281,29 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose, onNavig
                 padding: '8px 10px',
                 background: 'var(--bg-surface)',
                 borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--border-subtle)',
+                border: isError ? '1px solid rgba(248, 113, 113, 0.3)' : '1px solid var(--border-subtle)',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                {isRunning && <Loader2 size={13} className="animate-spin text-accent" />}
-                <span style={{ fontSize: '12px', fontWeight: 500, color: 'var(--text-primary)' }}>
-                  {isRunning ? 'Agent is working' : 'Agent Ready'}
+                {isRunning ? (
+                  <Loader2 size={13} className="animate-spin text-accent" />
+                ) : isError ? (
+                  <XCircle size={13} style={{ color: 'var(--status-red)' }} />
+                ) : null}
+                <span
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    color: isError ? 'var(--status-red)' : 'var(--text-primary)',
+                  }}
+                >
+                  {isRunning
+                    ? 'Agent is working'
+                    : isConnectionError
+                    ? 'Connection Error'
+                    : isError
+                    ? 'Agent Offline'
+                    : 'Agent Ready'}
                 </span>
                 {getStatusBadge()}
                 <span
@@ -292,7 +323,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose, onNavig
                 </span>
               </div>
               <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
-                Step {status.stepCount} / {status.maxSteps}
+                Step {isError ? '--' : status.stepCount} / {status.maxSteps}
               </span>
             </div>
 
@@ -455,9 +486,10 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose, onNavig
                     fullWidth
                     leftIcon={<Play size={13} fill="currentColor" />}
                     onClick={() => handleStartTask()}
-                    disabled={!taskInput.trim()}
+                    disabled={!taskInput.trim() || isConnectionError}
+                    title={isConnectionError ? 'Ollama is unreachable. Please start Ollama or retry connection.' : undefined}
                   >
-                    Run Task in New Tab
+                    {isConnectionError ? 'Ollama Offline — Cannot Run Task' : 'Run Task in New Tab'}
                   </Button>
                 </div>
 
@@ -521,20 +553,47 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose, onNavig
               </div>
             )}
 
-            {/* Error Banner */}
+            {/* Error Banner with 1-click retry */}
             {status.lastError && (
               <div
                 style={{
-                  padding: '8px 10px',
+                  padding: '10px 12px',
                   background: 'rgba(248, 113, 113, 0.08)',
                   border: '1px solid var(--status-red)',
-                  borderRadius: 'var(--radius-xs)',
+                  borderRadius: 'var(--radius-sm)',
                   fontSize: '11.5px',
                   color: 'var(--status-red)',
                   lineHeight: 1.4,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
                 }}
               >
-                {status.lastError}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+                  <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                  <span style={{ flex: 1 }}>{status.lastError}</span>
+                </div>
+                {isConnectionError && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '2px' }}>
+                    <Button
+                      variant="secondary"
+                      size="xs"
+                      leftIcon={<RefreshCw size={11} />}
+                      onClick={async () => {
+                        if (api) {
+                          try {
+                            const newStatus = await api.agentGetStatus();
+                            setStatus(newStatus);
+                          } catch (e) {
+                            console.error(e);
+                          }
+                        }
+                      }}
+                    >
+                      Retry Connection
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
 

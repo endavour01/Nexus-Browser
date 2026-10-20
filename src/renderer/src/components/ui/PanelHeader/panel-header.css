@@ -7,8 +7,7 @@
   align-items: center;
   justify-content: space-between;
   min-height: 44px;
-  max-height: 52px;
-  padding: 0 var(--nexus-space-md, 12px);
+  padding: 6px var(--nexus-space-md, 12px);
   background: var(--nexus-bg-canvas, #0B0D12);
   border-bottom: 1px solid var(--nexus-border-subtle, #1C202C);
   box-sizing: border-box;
@@ -54,10 +53,11 @@
   font-size: var(--nexus-font-metadata, 11px);
   color: var(--nexus-text-secondary, #9298A8);
   margin: 0;
-  line-height: 1.25;
-  white-space: nowrap;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .nexus-panel-header-core__actions {

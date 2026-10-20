@@ -26,17 +26,13 @@ export const IpoTableView: React.FC<IpoTableViewProps> = ({ ipos, onOpenLink }) 
   const getStatusBadge = (status: IpoStatus) => {
     switch (status) {
       case 'open':
-        return <span className="markets-badge badge-realtime font-bold uppercase">Open Now</span>;
+        return <span className="markets-badge badge-open font-bold uppercase">Open Now</span>;
       case 'upcoming':
-        return <span className="markets-badge badge-delayed font-semibold uppercase">Upcoming</span>;
+        return <span className="markets-badge badge-upcoming font-semibold uppercase">Upcoming</span>;
       case 'closed':
-        return <span className="markets-badge badge-historical font-medium uppercase">Closed</span>;
+        return <span className="markets-badge badge-closed font-medium uppercase">Closed</span>;
       case 'listed':
-        return (
-          <span className="markets-badge bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold uppercase">
-            Listed
-          </span>
-        );
+        return <span className="markets-badge badge-listed font-semibold uppercase">Listed</span>;
       default:
         return null;
     }
@@ -61,7 +57,7 @@ export const IpoTableView: React.FC<IpoTableViewProps> = ({ ipos, onOpenLink }) 
               onClick={() => setFilterStatus(status)}
               className={`px-3 py-1 text-xs font-semibold rounded capitalize transition-colors ${
                 filterStatus === status
-                  ? 'bg-primary text-background'
+                  ? 'bg-[var(--accent-primary)] text-[var(--accent-contrast)] font-semibold shadow-sm'
                   : 'text-secondary hover:text-primary hover:bg-surface/80'
               }`}
             >

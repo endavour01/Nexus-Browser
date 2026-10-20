@@ -1359,6 +1359,12 @@ button.nexus-btn-primary:active:not(:disabled) {
   outline: none;
   color: var(--text-primary);
   font-size: 11.5px;
+  font-family: inherit;
+}
+
+.panel-search-input::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
 }
 
 .panel-action-btn-primary {
@@ -5304,10 +5310,12 @@ button.nexus-btn-primary:active:not(:disabled) {
   color: var(--text-muted);
 }
 
-.manager-body {
+.manager-body,
+.nexus-manager-body {
   display: flex;
   flex: 1;
   overflow: hidden;
+  min-height: 0;
 }
 
 .manager-body.single-column {
@@ -5316,8 +5324,9 @@ button.nexus-btn-primary:active:not(:disabled) {
   padding: 20px 24px;
 }
 
-.manager-sidebar {
-  width: 230px;
+.manager-sidebar,
+.nexus-manager-sidebar {
+  width: 240px;
   background: var(--bg-surface);
   border-right: 1px solid var(--border-subtle);
   padding: 14px 10px;
@@ -5326,33 +5335,67 @@ button.nexus-btn-primary:active:not(:disabled) {
   flex-direction: column;
   gap: 4px;
   flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.manager-main,
+.nexus-manager-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-app);
+  min-width: 0;
 }
 
 .folder-tree-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 7px 10px;
-  border-radius: var(--radius-xs);
-  color: var(--text-secondary);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   width: 100%;
+  min-height: 36px;
   font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
   text-align: left;
-  transition: all 100ms ease;
+  transition: all 120ms ease;
+  box-sizing: border-box;
 }
 
 .folder-tree-item:hover {
   background: var(--bg-elevated);
   color: var(--text-primary);
+  border-color: var(--border-subtle);
 }
 
 .folder-tree-item.active {
   background: var(--accent-dim);
   color: var(--accent-primary);
-  font-weight: 500;
+  border-color: var(--border-accent);
+  font-weight: 600;
+}
+
+.folder-count {
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  padding: 1px 7px;
+  border-radius: 10px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.folder-tree-item.active .folder-count {
+  background: var(--accent-dim);
+  color: var(--accent-primary);
+  border-color: var(--border-accent);
 }
 
 .manager-content {
@@ -8752,11 +8795,12 @@ button.responsive-close-btn:hover {
    SHIELD DASHBOARD (nexus://shield)
    ========================================================================== */
 .shield-dashboard-page {
-  flex: 1;
+  box-sizing: border-box;
+  width: 100%;
   height: 100%;
   overflow-y: auto;
   background: var(--bg-base);
-  padding: 36px 24px;
+  padding: 24px 24px 48px;
 }
 
 .shield-dashboard-content {
@@ -8769,10 +8813,13 @@ button.responsive-close-btn:hover {
 
 .shield-dashboard-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   padding-bottom: 20px;
   border-bottom: 1px solid var(--border-subtle);
+  min-width: 0;
 }
 
 .shield-dashboard-header-left {
@@ -8900,8 +8947,9 @@ button.responsive-close-btn:hover {
 
 .metric-caption {
   font-size: 10px;
-  color: var(--text-muted);
+  color: var(--nexus-text-secondary, var(--text-secondary));
   margin-top: 3px;
+  line-height: 1.35;
 }
 
 /* Dashboard Section Cards */
@@ -8972,7 +9020,8 @@ button.responsive-close-btn:hover {
 .control-info p {
   margin: 0;
   font-size: 11.5px;
-  color: var(--text-secondary);
+  color: var(--nexus-text-secondary, var(--text-secondary));
+  line-height: 1.45;
 }
 
 .shield-status-tag {
@@ -9582,7 +9631,7 @@ button.responsive-close-btn:hover {
   gap: 2px;
 }
 
-.folder-tree-item {
+.folders-sub-tree .folder-tree-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -9593,8 +9642,8 @@ button.responsive-close-btn:hover {
   cursor: pointer;
 }
 
-.folder-tree-item:hover,
-.folder-tree-item.active {
+.folders-sub-tree .folder-tree-item:hover,
+.folders-sub-tree .folder-tree-item.active {
   background: var(--bg-elevated);
   color: var(--text-primary);
 }
@@ -13150,9 +13199,8 @@ button.responsive-close-btn:hover {
   font-weight: 600;
   color: var(--nexus-text-primary, #F4F4F5);
   margin: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .hub-card-controls {
@@ -13160,6 +13208,7 @@ button.responsive-close-btn:hover {
   align-items: center;
   gap: var(--nexus-space-xs, 4px);
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .hub-card-body {

@@ -254,16 +254,17 @@ export const SidePanel: React.FC<SidePanelProps> = ({
               </button>
             </div>
 
-            <div className="flex items-center justify-between px-1 my-3">
-              <span className="text-[10px] text-[#9298A8] font-mono tracking-tight">{filteredBookmarks.length} items</span>
+            <div className="flex items-center justify-between px-3 py-1.5 text-xs text-secondary border-b border-subtle mb-2">
+              <span className="font-mono text-2xs">{filteredBookmarks.length} items</span>
               {onOpenBookmarksPage && (
                 <button
                   type="button"
-                  className="px-3 py-1.5 text-xs rounded-md bg-[#191D28] hover:bg-[#222838] text-[#F4F4F5] border border-[#272C3D] transition-colors flex items-center gap-1.5 font-medium ml-auto shadow-sm"
+                  className="text-xs text-accent hover:text-primary transition-colors flex items-center gap-1 font-medium cursor-pointer"
                   onClick={onOpenBookmarksPage}
                   title="Open full Bookmarks Manager"
                 >
                   <span>Open Full Manager</span>
+                  <ExternalLink size={11} />
                 </button>
               )}
             </div>

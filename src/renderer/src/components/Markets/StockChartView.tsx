@@ -99,7 +99,7 @@ export const StockChartView: React.FC<StockChartViewProps> = ({
               key={r}
               className={`px-2.5 py-1 text-2xs font-semibold rounded transition-colors ${
                 activeRange.toUpperCase() === r
-                  ? 'bg-primary text-background font-bold shadow-sm'
+                  ? 'bg-[var(--accent-primary)] text-[var(--accent-contrast)] font-bold shadow-sm'
                   : 'text-secondary hover:text-primary hover:bg-surface/80'
               }`}
               onClick={() => onRangeChange(r)}

@@ -91,7 +91,7 @@ export const FinancialNewsView: React.FC<FinancialNewsViewProps> = ({
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-2.5 py-1 text-2xs font-semibold rounded capitalize transition-colors ${
                   selectedCategory === cat
-                    ? 'bg-primary text-background'
+                    ? 'bg-[var(--accent-primary)] text-[var(--accent-contrast)] font-semibold shadow-sm'
                     : 'text-secondary hover:text-primary hover:bg-surface/80'
                 }`}
               >

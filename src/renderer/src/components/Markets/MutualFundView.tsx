@@ -117,7 +117,7 @@ export const MutualFundView: React.FC<MutualFundViewProps> = ({ funds }) => {
           <button
             className={`px-3 py-1.5 text-xs font-semibold rounded-md flex items-center gap-1.5 transition-colors ${
               activeTab === 'schemes'
-                ? 'bg-primary text-background'
+                ? 'bg-[var(--accent-primary)] text-[var(--accent-contrast)] font-semibold shadow-sm'
                 : 'text-secondary hover:text-primary hover:bg-surface'
             }`}
             onClick={() => setActiveTab('schemes')}
@@ -128,7 +128,7 @@ export const MutualFundView: React.FC<MutualFundViewProps> = ({ funds }) => {
           <button
             className={`px-3 py-1.5 text-xs font-semibold rounded-md flex items-center gap-1.5 transition-colors ${
               activeTab === 'calculator'
-                ? 'bg-primary text-background'
+                ? 'bg-[var(--accent-primary)] text-[var(--accent-contrast)] font-semibold shadow-sm'
                 : 'text-secondary hover:text-primary hover:bg-surface'
             }`}
             onClick={() => setActiveTab('calculator')}
@@ -197,7 +197,7 @@ export const MutualFundView: React.FC<MutualFundViewProps> = ({ funds }) => {
                         }}
                         className={`text-3xs px-1.5 py-0.5 rounded border transition-colors ${
                           isComparing
-                            ? 'bg-primary text-background border-primary'
+                            ? 'bg-[var(--accent-primary)] text-[var(--accent-contrast)] border-[var(--accent-primary)] font-semibold'
                             : 'text-secondary border-subtle hover:text-primary'
                         }`}
                         title="Compare with another fund"
@@ -371,7 +371,7 @@ export const MutualFundView: React.FC<MutualFundViewProps> = ({ funds }) => {
               onClick={() => setCalcMode('sip')}
               className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-colors ${
                 calcMode === 'sip'
-                  ? 'bg-primary text-background'
+                  ? 'bg-[var(--accent-primary)] text-[var(--accent-contrast)] font-semibold shadow-sm'
                   : 'text-secondary hover:text-primary bg-surface'
               }`}
             >
@@ -381,7 +381,7 @@ export const MutualFundView: React.FC<MutualFundViewProps> = ({ funds }) => {
               onClick={() => setCalcMode('lumpsum')}
               className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-colors ${
                 calcMode === 'lumpsum'
-                  ? 'bg-primary text-background'
+                  ? 'bg-[var(--accent-primary)] text-[var(--accent-contrast)] font-semibold shadow-sm'
                   : 'text-secondary hover:text-primary bg-surface'
               }`}
             >
