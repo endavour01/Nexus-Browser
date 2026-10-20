@@ -233,6 +233,10 @@ function registerIpcHandlers() {
     tabManager?.closeTab(id);
   });
 
+  ipcMain.handle('tabs:closeAllPrivate', async () => {
+    await tabManager?.closeAllPrivateTabs();
+  });
+
   ipcMain.handle('tabs:switch', (_event, id: string) => {
     tabManager?.switchTab(id);
   });

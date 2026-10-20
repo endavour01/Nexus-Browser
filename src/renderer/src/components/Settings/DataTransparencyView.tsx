@@ -58,7 +58,7 @@ const TRANSPARENCY_AUDIT: TransparencyEntry[] = [
     provider: 'Local Storage Engine (No External Service)',
     isExternal: false,
     dataSent: 'Zero data sent externally.',
-    purpose: 'Private offline research notes and document authoring.',
+    purpose: 'Create and organize rich text notes, code snippets, and research tables.',
     worksWithoutProvider: true,
     storesLocally: true,
     localFiles: ['nexus-notes.json'],
@@ -68,100 +68,99 @@ const TRANSPARENCY_AUDIT: TransparencyEntry[] = [
     provider: 'Local Storage Engine (No External Service)',
     isExternal: false,
     dataSent: 'Zero data sent externally.',
-    purpose: 'Task organization and explicit webpage linking.',
+    purpose: 'Track browser tasks, prioritize todo items, and link to active tabs.',
     worksWithoutProvider: true,
     storesLocally: true,
-    localFiles: ['nexus-todos.json'],
+    localFiles: ['nexus-todo.json'],
   },
   {
-    feature: 'NEXUS Hub',
-    provider: 'Local Storage Engine (No External Service)',
-    isExternal: false,
-    dataSent: 'Zero data sent externally.',
-    purpose: 'Central dashboard aggregating local browser tools and shortcuts.',
-    worksWithoutProvider: true,
+    feature: 'NEXUS Connect (Launcher)',
+    provider: 'Direct Origin Connection to Target Apps',
+    isExternal: true,
+    dataSent: 'Standard web session cookies directly to Slack, Zoom, GitHub, etc.',
+    purpose: 'Load web application sessions inside isolated browser views.',
+    worksWithoutProvider: false,
     storesLocally: true,
-    localFiles: ['nexus-hub-preferences.json'],
+    localFiles: ['nexus-connect-apps.json', 'nexus-connect-workspaces.json'],
   },
   {
-    feature: 'Site Permissions Memory',
-    provider: 'Local Storage Engine (No External Service)',
+    feature: 'Browser Crash Reports',
+    provider: 'Local Disk Only (No Telemetry Service)',
     isExternal: false,
-    dataSent: 'Zero data sent externally.',
-    purpose: 'Remembers user camera/mic/notification decisions across sessions.',
+    dataSent: 'Zero telemetry or diagnostic bundles sent externally.',
+    purpose: 'Save error logs locally to allow troubleshooting via DevTools.',
     worksWithoutProvider: true,
     storesLocally: true,
-    localFiles: ['nexus-site-permissions.json'],
+    localFiles: ['nexus-crash-reports.json'],
   },
 ];
 
 export const DataTransparencyView: React.FC = () => {
   return (
-    <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="p-5 rounded-xl border border-subtle bg-surface/50 backdrop-blur-sm">
-        <div className="flex items-center gap-2">
-          <Database size={20} className="text-accent" />
-          <h2 className="text-lg font-bold text-primary tracking-tight">Data Transparency & Boundary Audit</h2>
+    <div className="settings-section-block">
+      {/* Header */}
+      <div className="settings-section-header">
+        <div>
+          <h3 className="settings-section-title">Data Transparency Audit</h3>
+          <p className="settings-section-desc">
+            Complete architectural disclosure of external network connections, data transmission, and local storage files.
+          </p>
         </div>
-        <p className="text-xs text-secondary mt-1 max-w-2xl leading-relaxed">
-          NEXUS operates on an audited <strong>local-by-default</strong> architecture. We never claim "zero collection" without implementation evidence. The table below details every feature, external provider, network payload, and local storage artifact.
-        </p>
       </div>
 
-      {/* Transparency Table */}
-      <div className="overflow-x-auto border border-subtle rounded-xl bg-surface">
-        <table className="w-full text-left text-2xs">
-          <thead className="bg-elevated text-secondary font-medium uppercase tracking-wider text-3xs border-b border-subtle">
+      {/* Main Table */}
+      <div className="settings-table-container">
+        <table className="settings-table">
+          <thead>
             <tr>
-              <th className="p-3">Feature Area</th>
-              <th className="p-3">Provider & Architecture</th>
-              <th className="p-3">Data Transmitted</th>
-              <th className="p-3">Purpose</th>
-              <th className="p-3 text-center">Works Offline</th>
-              <th className="p-3">Local Storage Files</th>
+              <th>Feature Area</th>
+              <th>Provider / Service</th>
+              <th>Data Sent Outbound</th>
+              <th>Purpose</th>
+              <th style={{ textAlign: 'center' }}>Works Offline</th>
+              <th>Local Storage Files</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-subtle">
+          <tbody>
             {TRANSPARENCY_AUDIT.map((item) => (
-              <tr key={item.feature} className="hover:bg-surface-hover/50 transition-colors">
-                <td className="p-3 font-semibold text-primary">
-                  <div className="flex items-center gap-1.5">
+              <tr key={item.feature}>
+                <td style={{ fontWeight: 600, color: 'var(--nexus-text-primary, #F4F4F5)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     {item.isExternal ? (
-                      <Globe size={13} className="text-amber-400 shrink-0" />
+                      <Globe size={13} style={{ color: '#FBBF24', flexShrink: 0 }} />
                     ) : (
-                      <ShieldCheck size={13} className="text-emerald-400 shrink-0" />
+                      <ShieldCheck size={13} style={{ color: '#34D399', flexShrink: 0 }} />
                     )}
                     <span>{item.feature}</span>
                   </div>
                 </td>
-                <td className="p-3 text-secondary">
-                  <div className="font-medium text-primary/90">{item.provider}</div>
-                  <span className="text-3xs text-muted font-mono">
+                <td>
+                  <div style={{ fontWeight: 500, color: 'var(--nexus-text-primary, #F4F4F5)' }}>{item.provider}</div>
+                  <span style={{ fontSize: '10px', color: 'var(--nexus-text-secondary, #9298A8)', fontFamily: 'var(--font-mono, monospace)' }}>
                     {item.isExternal ? 'External Network Call' : '100% Local In-Memory'}
                   </span>
                 </td>
-                <td className="p-3 font-mono text-secondary text-3xs leading-relaxed max-w-xs">
+                <td style={{ fontFamily: 'var(--font-mono, monospace)', fontSize: '11px', maxWidth: '240px', lineHeight: 1.4 }}>
                   {item.dataSent}
                 </td>
-                <td className="p-3 text-secondary text-2xs leading-relaxed max-w-xs">
+                <td style={{ maxWidth: '240px', lineHeight: 1.4 }}>
                   {item.purpose}
                 </td>
-                <td className="p-3 text-center">
+                <td style={{ textAlign: 'center' }}>
                   {item.worksWithoutProvider ? (
-                    <span className="inline-flex items-center gap-1 text-emerald-400 text-3xs font-semibold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#34D399', fontSize: '10px', fontWeight: 600, padding: '2px 6px', borderRadius: '4px', background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
                       <Check size={10} /> Yes
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-rose-400 text-3xs font-semibold px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20">
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', color: '#FB7185', fontSize: '10px', fontWeight: 600, padding: '2px 6px', borderRadius: '4px', background: 'rgba(244, 63, 94, 0.12)', border: '1px solid rgba(244, 63, 94, 0.25)' }}>
                       <X size={10} /> Requires Net
                     </span>
                   )}
                 </td>
-                <td className="p-3">
-                  <div className="flex flex-col gap-1 font-mono text-3xs text-accent">
+                <td>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontFamily: 'var(--font-mono, monospace)', fontSize: '10px', color: 'var(--nexus-accent-primary, #A78BFA)' }}>
                     {item.localFiles.map((f) => (
-                      <code key={f} className="bg-input/60 px-1.5 py-0.5 rounded border border-subtle">
+                      <code key={f} style={{ background: 'rgba(255, 255, 255, 0.04)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--nexus-border-subtle, #1C202C)' }}>
                         {f}
                       </code>
                     ))}
@@ -174,10 +173,10 @@ export const DataTransparencyView: React.FC = () => {
       </div>
 
       {/* Summary Note */}
-      <div className="p-4 rounded-lg border border-subtle/80 bg-base/50 text-2xs text-secondary leading-relaxed flex items-start gap-2.5">
-        <AlertCircle size={15} className="text-accent shrink-0 mt-0.5" />
-        <div>
-          <span className="font-semibold text-primary">Privacy Principles:</span> Optional features with external network connections (such as NEXUS Markets) are explicitly disabled by default and require voluntary opt-in. Data files are stored strictly on your local disk in your user data directory and are never synchronized to any proprietary cloud.
+      <div className="settings-group-card" style={{ padding: '14px 16px', flexDirection: 'row', alignItems: 'flex-start', gap: '12px' }}>
+        <AlertCircle size={16} className="text-accent" style={{ flexShrink: 0, marginTop: '2px' }} />
+        <div style={{ fontSize: '12px', color: 'var(--nexus-text-secondary, #9298A8)', lineHeight: 1.5 }}>
+          <strong style={{ color: 'var(--nexus-text-primary, #F4F4F5)' }}>Privacy Principles:</strong> Optional features with external network connections (such as NEXUS Markets) are explicitly disabled by default and require voluntary opt-in. Data files are stored strictly on your local disk in your user data directory and are never synchronized to any proprietary cloud.
         </div>
       </div>
     </div>

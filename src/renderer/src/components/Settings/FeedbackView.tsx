@@ -11,6 +11,7 @@ import {
   FileText,
   AlertCircle,
 } from 'lucide-react';
+import { Button, Input } from '../ui';
 
 export const FeedbackView: React.FC = () => {
   const [category, setCategory] = useState<FeedbackCategory>('bug');
@@ -92,27 +93,27 @@ ${JSON.stringify(diag, null, 2)}
   };
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="settings-section-block" style={{ maxWidth: '680px' }}>
       {/* Header */}
-      <div className="p-5 rounded-xl border border-subtle bg-surface/50 backdrop-blur-sm">
-        <div className="flex items-center gap-2">
+      <div className="settings-group-card">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <MessageSquare size={20} className="text-accent" />
-          <h2 className="text-lg font-bold text-primary tracking-tight">Feedback & Diagnostics</h2>
+          <h2 className="settings-header-title" style={{ fontSize: '18px' }}>Feedback & Diagnostics</h2>
         </div>
-        <p className="text-xs text-secondary mt-1 leading-relaxed">
-          Report issues, propose workflow enhancements, or share feedback. Submissions are saved strictly to your local logs (<code className="text-accent font-mono">nexus-feedback.json</code>) or copied directly to your clipboard.
+        <p className="settings-header-desc" style={{ marginTop: '2px' }}>
+          Report issues, propose workflow enhancements, or share feedback. Submissions are saved strictly to your local logs (<code className="text-accent" style={{ fontFamily: 'var(--font-mono, monospace)' }}>nexus-feedback.json</code>) or copied directly to your clipboard.
         </p>
       </div>
 
       {submittedId && (
-        <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 text-xs flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 size={16} className="text-emerald-400" />
+        <div style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.1)', color: '#34d399', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <CheckCircle2 size={16} style={{ color: '#34d399' }} />
             <span>Thank you! Your feedback has been saved locally ({submittedId}).</span>
           </div>
           <button
             type="button"
-            className="text-2xs text-secondary hover:text-primary underline ml-2"
+            style={{ fontSize: '11px', color: 'var(--nexus-text-secondary, #9298A8)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
             onClick={() => setSubmittedId(null)}
           >
             Dismiss
@@ -121,27 +122,32 @@ ${JSON.stringify(diag, null, 2)}
       )}
 
       {errorMessage && (
-        <div className="p-3 rounded-lg border border-rose-500/30 bg-rose-500/10 text-rose-300 text-xs flex items-center gap-2">
-          <AlertCircle size={15} className="text-rose-400 shrink-0" />
+        <div style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid rgba(244, 63, 94, 0.3)', background: 'rgba(244, 63, 94, 0.1)', color: '#fb7185', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <AlertCircle size={15} style={{ color: '#fb7185', flexShrink: 0 }} />
           <span>{errorMessage}</span>
         </div>
       )}
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="p-5 rounded-xl border border-subtle bg-surface space-y-4">
+      <form onSubmit={handleSubmit} className="settings-group-card">
         {/* Category Tabs */}
-        <div>
-          <label className="block text-2xs font-semibold uppercase tracking-wider text-secondary mb-2">
-            Category
-          </label>
-          <div className="grid grid-cols-3 gap-2">
+        <div className="settings-row-stacked">
+          <label className="settings-row-label">Category</label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', paddingTop: '4px' }}>
             <button
               type="button"
-              className={`p-2.5 rounded-lg border text-xs font-medium flex items-center justify-center gap-1.5 transition-all ${
-                category === 'bug'
-                  ? 'border-accent bg-accent/15 text-primary font-semibold'
-                  : 'border-subtle bg-base text-secondary hover:border-subtle/80 hover:text-primary'
-              }`}
+              className={`settings-nav-btn ${category === 'bug' ? 'active' : ''}`}
+              style={{
+                padding: '10px 12px',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                fontWeight: 600,
+                border: category === 'bug' ? '1px solid var(--nexus-accent-primary, #A78BFA)' : '1px solid var(--nexus-border-subtle, #1C202C)',
+                background: category === 'bug' ? 'rgba(167, 139, 250, 0.12)' : 'transparent',
+              }}
               onClick={() => setCategory('bug')}
             >
               <Bug size={14} className={category === 'bug' ? 'text-accent' : ''} />
@@ -150,11 +156,18 @@ ${JSON.stringify(diag, null, 2)}
 
             <button
               type="button"
-              className={`p-2.5 rounded-lg border text-xs font-medium flex items-center justify-center gap-1.5 transition-all ${
-                category === 'feature'
-                  ? 'border-accent bg-accent/15 text-primary font-semibold'
-                  : 'border-subtle bg-base text-secondary hover:border-subtle/80 hover:text-primary'
-              }`}
+              className={`settings-nav-btn ${category === 'feature' ? 'active' : ''}`}
+              style={{
+                padding: '10px 12px',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                fontWeight: 600,
+                border: category === 'feature' ? '1px solid var(--nexus-accent-primary, #A78BFA)' : '1px solid var(--nexus-border-subtle, #1C202C)',
+                background: category === 'feature' ? 'rgba(167, 139, 250, 0.12)' : 'transparent',
+              }}
               onClick={() => setCategory('feature')}
             >
               <Lightbulb size={14} className={category === 'feature' ? 'text-accent' : ''} />
@@ -163,11 +176,18 @@ ${JSON.stringify(diag, null, 2)}
 
             <button
               type="button"
-              className={`p-2.5 rounded-lg border text-xs font-medium flex items-center justify-center gap-1.5 transition-all ${
-                category === 'general'
-                  ? 'border-accent bg-accent/15 text-primary font-semibold'
-                  : 'border-subtle bg-base text-secondary hover:border-subtle/80 hover:text-primary'
-              }`}
+              className={`settings-nav-btn ${category === 'general' ? 'active' : ''}`}
+              style={{
+                padding: '10px 12px',
+                borderRadius: '8px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                fontWeight: 600,
+                border: category === 'general' ? '1px solid var(--nexus-accent-primary, #A78BFA)' : '1px solid var(--nexus-border-subtle, #1C202C)',
+                background: category === 'general' ? 'rgba(167, 139, 250, 0.12)' : 'transparent',
+              }}
               onClick={() => setCategory('general')}
             >
               <FileText size={14} className={category === 'general' ? 'text-accent' : ''} />
@@ -177,13 +197,10 @@ ${JSON.stringify(diag, null, 2)}
         </div>
 
         {/* Title */}
-        <div>
-          <label className="block text-2xs font-semibold uppercase tracking-wider text-secondary mb-1.5">
-            Summary / Title
-          </label>
-          <input
-            type="text"
-            className="w-full px-3 py-2 text-xs rounded-lg border border-subtle bg-base text-primary focus:border-accent outline-none"
+        <div className="settings-row-stacked">
+          <label className="settings-row-label">Summary / Title</label>
+          <Input
+            size="sm"
             placeholder={
               category === 'bug'
                 ? 'e.g. Tab strip overflow when opening 20 tabs'
@@ -197,13 +214,24 @@ ${JSON.stringify(diag, null, 2)}
         </div>
 
         {/* Details */}
-        <div>
-          <label className="block text-2xs font-semibold uppercase tracking-wider text-secondary mb-1.5">
-            Details & Steps to Reproduce
-          </label>
+        <div className="settings-row-stacked">
+          <label className="settings-row-label">Details & Steps to Reproduce</label>
           <textarea
             rows={5}
-            className="w-full p-3 text-xs rounded-lg border border-subtle bg-base text-primary focus:border-accent outline-none leading-relaxed resize-y"
+            style={{
+              width: '100%',
+              padding: '10px 12px',
+              fontSize: '12px',
+              borderRadius: '6px',
+              border: '1px solid var(--nexus-border-subtle, #1C202C)',
+              background: 'var(--nexus-bg-surface, var(--bg-surface, #12151D))',
+              color: 'var(--nexus-text-primary, #F4F4F5)',
+              outline: 'none',
+              lineHeight: 1.5,
+              resize: 'vertical',
+              boxSizing: 'border-box',
+              fontFamily: 'inherit',
+            }}
             placeholder="Provide context, what you expected, and what actually occurred..."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -211,40 +239,45 @@ ${JSON.stringify(diag, null, 2)}
         </div>
 
         {/* Diagnostic Attachment Checkbox */}
-        <div className="pt-1">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={includeDiagnostics}
-              onChange={(e) => setIncludeDiagnostics(e.target.checked)}
-              className="rounded border-subtle"
-            />
-            <span className="text-2xs text-secondary">
-              Attach basic environment telemetry (OS platform, resolution, browser build version)
-            </span>
-          </label>
+        <div className="settings-row" style={{ padding: '4px 0' }}>
+          <div className="settings-row-label-group">
+            <div className="settings-row-label" style={{ fontSize: '12px' }}>Attach diagnostic environment bundle</div>
+            <div className="settings-row-desc">OS platform, screen resolution, and browser build version</div>
+          </div>
+          <div className="settings-row-control">
+            <label className="toggle-switch">
+              <input
+                type="checkbox"
+                checked={includeDiagnostics}
+                onChange={(e) => setIncludeDiagnostics(e.target.checked)}
+              />
+              <span className="toggle-slider" />
+            </label>
+          </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="pt-3 border-t border-subtle flex flex-wrap items-center justify-between gap-3">
-          <button
+        <div style={{ paddingTop: '12px', borderTop: '1px solid var(--nexus-border-subtle, #1C202C)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+          <Button
             type="button"
-            className="nexus-btn-ghost text-xs px-3 py-1.5 flex items-center gap-1.5"
+            variant="ghost"
+            size="sm"
+            leftIcon={copied ? <Check size={12} style={{ color: '#34D399' }} /> : <Copy size={12} />}
             onClick={handleCopyDiagnostics}
             title="Copy formatted feedback bundle with diagnostics to clipboard"
           >
-            {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-            <span>{copied ? 'Copied Bundle!' : 'Copy to Clipboard'}</span>
-          </button>
+            {copied ? 'Copied Bundle!' : 'Copy to Clipboard'}
+          </Button>
 
-          <button
+          <Button
             type="submit"
+            variant="primary"
+            size="sm"
             disabled={submitting}
-            className="nexus-btn-primary text-xs px-4 py-1.5 flex items-center gap-1.5"
+            leftIcon={<Save size={12} />}
           >
-            <Save size={12} />
-            <span>{submitting ? 'Saving...' : 'Save Feedback Locally'}</span>
-          </button>
+            {submitting ? 'Saving...' : 'Save Feedback Locally'}
+          </Button>
         </div>
       </form>
     </div>

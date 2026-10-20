@@ -60,6 +60,7 @@ import { HubWorkspace } from './components/Hub';
 import { TodoWorkspace, TodoPrefill } from './components/Todo';
 import { ConnectWorkspace } from './components/Connect';
 import { SettingsWorkspace } from './components/Settings';
+import { PrivateStartPage } from './components/PrivateStartPage';
 import { useTheme } from './hooks/useTheme';
 import { useBrowserMode, applyDistractionReduction } from './hooks/useBrowserMode';
 
@@ -531,6 +532,13 @@ export const App: React.FC = () => {
   const handleNewTab = useCallback(
     (url?: string, isPrivate: boolean = false) => {
       api?.createTab(url || 'nexus://newtab', activeWorkspaceId, isPrivate);
+    },
+    [api, activeWorkspaceId]
+  );
+
+  const handleNewPrivateTab = useCallback(
+    (url?: string) => {
+      api?.createTab(url || 'nexus://private', activeWorkspaceId, true);
     },
     [api, activeWorkspaceId]
   );
@@ -1148,6 +1156,11 @@ export const App: React.FC = () => {
         e.preventDefault();
         handleReopenClosedTab();
       }
+      // Ctrl+Shift+N: New Incognito / Private Tab
+      else if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        handleNewPrivateTab();
+      }
       // Ctrl+T: New Tab
       else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 't') {
         e.preventDefault();
@@ -1315,6 +1328,8 @@ export const App: React.FC = () => {
     activeTab?.url === 'nexus://privacy' || activeTab?.url?.startsWith('nexus://privacy');
   const isWarningPage =
     activeTab?.url === 'nexus://warning' || activeTab?.url?.startsWith('nexus://warning');
+  const isPrivatePage =
+    activeTab?.url === 'nexus://private' || activeTab?.url?.startsWith('nexus://private');
 
   return (
     <div className="nexus-app">
@@ -1450,7 +1465,14 @@ export const App: React.FC = () => {
 
         {/* 5. Central Browser Content Area */}
         <main className="browser-content-host">
-          {isNewTab && (
+          {isPrivatePage || (activeTab?.isPrivate && isNewTab) ? (
+            <PrivateStartPage
+              onNavigate={handleNavigate}
+              onClosePrivateSession={async () => {
+                await api?.closeAllPrivateTabs();
+              }}
+            />
+          ) : isNewTab ? (
             <NewTabWorkspace
               onNavigate={handleNavigate}
               recentPages={historyEntries.slice(0, 10).map((h) => ({
@@ -1460,7 +1482,7 @@ export const App: React.FC = () => {
               }))}
               onClearRecentPages={handleClearAllHistory}
             />
-          )}
+          ) : null}
 
           {(isExtensionsPage || isCompatibilityPage) && (
             <ExtensionsPage
@@ -1773,6 +1795,7 @@ export const App: React.FC = () => {
         activeWorkspaceId={activeWorkspaceId}
         onSelectTab={handleSelectTab}
         onNewTab={handleNewTab}
+        onNewPrivateTab={handleNewPrivateTab}
         onDuplicateTab={handleDuplicateTab}
         onReopenClosedTab={handleReopenClosedTab}
         onCloseTab={handleCloseTab}

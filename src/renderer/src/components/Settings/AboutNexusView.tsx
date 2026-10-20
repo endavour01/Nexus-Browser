@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Sparkles, Terminal, Code2, ShieldCheck, Heart, ExternalLink, Check, Copy } from 'lucide-react';
 import { NexusLogo } from '../NexusLogo';
+import { Button, Badge } from '../ui';
 
 export const AboutNexusView: React.FC = () => {
   const [copied, setCopied] = useState<boolean>(false);
@@ -26,100 +27,100 @@ Platform: ${navigator.userAgent}`;
   };
 
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="settings-section-block" style={{ maxWidth: '780px' }}>
       {/* Brand & Creator Header Card */}
-      <div className="p-6 rounded-xl border border-subtle bg-surface/60 backdrop-blur-sm space-y-4">
-        <div className="flex items-center gap-4">
+      <div className="settings-group-card">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <NexusLogo size={48} />
           <div>
-            <h2 className="text-xl font-bold text-primary tracking-tight flex items-center gap-2">
+            <h2 className="settings-header-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span>{buildDetails.name}</span>
-              <span className="text-3xs uppercase font-mono bg-accent/15 text-accent px-2 py-0.5 rounded border border-accent/30 font-semibold">
+              <Badge variant="neutral" size="sm">
                 v{buildDetails.version}
-              </span>
+              </Badge>
             </h2>
-            <p className="text-xs text-secondary mt-0.5">
+            <p className="settings-header-desc" style={{ marginTop: '4px' }}>
               Minimal, premium, nerd-friendly desktop web browser built for power users, researchers, and developers.
             </p>
           </div>
         </div>
 
-        <div className="pt-3 border-t border-subtle flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2 text-secondary">
+        <div style={{ paddingTop: '12px', borderTop: '1px solid var(--nexus-border-subtle, #1C202C)', display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px', fontSize: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--nexus-text-secondary, #9298A8)' }}>
             <span>Architected & Developed by:</span>
-            <span className="font-semibold text-primary px-2 py-0.5 rounded bg-surface border border-subtle">
+            <span style={{ fontWeight: 600, color: 'var(--nexus-text-primary, #F4F4F5)', padding: '2px 8px', borderRadius: '4px', background: 'rgba(255, 255, 255, 0.04)', border: '1px solid var(--nexus-border-subtle, #1C202C)' }}>
               {buildDetails.creator}
             </span>
           </div>
 
-          <button
-            type="button"
-            className="nexus-btn-ghost text-2xs px-2.5 py-1 flex items-center gap-1.5"
+          <Button
+            variant="ghost"
+            size="sm"
+            leftIcon={copied ? <Check size={12} style={{ color: '#34D399' }} /> : <Copy size={12} />}
             onClick={handleCopyBuildInfo}
             title="Copy build and diagnostic details to clipboard"
           >
-            {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
-            <span>{copied ? 'Copied' : 'Copy Version Info'}</span>
-          </button>
+            {copied ? 'Copied' : 'Copy Version Info'}
+          </Button>
         </div>
       </div>
 
       {/* Specifications & License Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="p-4 rounded-xl border border-subtle bg-surface space-y-2">
-          <div className="text-2xs font-semibold text-secondary uppercase tracking-wider flex items-center gap-1.5">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+        <div className="settings-group-card" style={{ gap: '10px' }}>
+          <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--nexus-text-secondary, #9298A8)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Terminal size={12} className="text-accent" />
             <span>Runtime Specifications</span>
           </div>
-          <div className="space-y-1.5 text-2xs font-mono">
-            <div className="flex justify-between py-1 border-b border-subtle/40">
-              <span className="text-muted">Application</span>
-              <span className="text-primary font-medium">{buildDetails.name}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px', fontFamily: 'var(--font-mono, monospace)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--nexus-border-subtle, #1C202C)' }}>
+              <span style={{ color: 'var(--nexus-text-secondary, #9298A8)' }}>Application</span>
+              <span style={{ color: 'var(--nexus-text-primary, #F4F4F5)', fontWeight: 500 }}>{buildDetails.name}</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-subtle/40">
-              <span className="text-muted">Release</span>
-              <span className="text-primary font-medium">1.0.0</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--nexus-border-subtle, #1C202C)' }}>
+              <span style={{ color: 'var(--nexus-text-secondary, #9298A8)' }}>Release</span>
+              <span style={{ color: 'var(--nexus-text-primary, #F4F4F5)', fontWeight: 500 }}>1.0.0</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-subtle/40">
-              <span className="text-muted">Status</span>
-              <span className="text-emerald-400 font-medium">{buildDetails.status}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--nexus-border-subtle, #1C202C)' }}>
+              <span style={{ color: 'var(--nexus-text-secondary, #9298A8)' }}>Status</span>
+              <span style={{ color: '#34D399', fontWeight: 500 }}>{buildDetails.status}</span>
             </div>
-            <div className="flex justify-between py-1">
-              <span className="text-muted">Architecture</span>
-              <span className="text-secondary font-mono">WebContentsView Multi-Engine</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
+              <span style={{ color: 'var(--nexus-text-secondary, #9298A8)' }}>Architecture</span>
+              <span style={{ color: 'var(--nexus-text-secondary, #9298A8)' }}>WebContentsView Multi-Engine</span>
             </div>
           </div>
         </div>
 
-        <div className="p-4 rounded-xl border border-subtle bg-surface space-y-2">
-          <div className="text-2xs font-semibold text-secondary uppercase tracking-wider flex items-center gap-1.5">
+        <div className="settings-group-card" style={{ gap: '10px' }}>
+          <div style={{ fontSize: '11px', fontWeight: 600, color: 'var(--nexus-text-secondary, #9298A8)', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <Code2 size={12} className="text-accent" />
             <span>Open-Source & Licensing</span>
           </div>
-          <div className="space-y-1.5 text-2xs">
-            <div className="flex justify-between py-1 border-b border-subtle/40">
-              <span className="text-muted">License</span>
-              <span className="text-primary font-mono font-medium">{buildDetails.license}</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--nexus-border-subtle, #1C202C)' }}>
+              <span style={{ color: 'var(--nexus-text-secondary, #9298A8)' }}>License</span>
+              <span style={{ color: 'var(--nexus-text-primary, #F4F4F5)', fontFamily: 'var(--font-mono, monospace)', fontWeight: 500 }}>{buildDetails.license}</span>
             </div>
-            <div className="flex justify-between py-1 border-b border-subtle/40">
-              <span className="text-muted">Data Governance</span>
-              <span className="text-primary font-medium">Local-by-Default</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid var(--nexus-border-subtle, #1C202C)' }}>
+              <span style={{ color: 'var(--nexus-text-secondary, #9298A8)' }}>Data Governance</span>
+              <span style={{ color: 'var(--nexus-text-primary, #F4F4F5)', fontWeight: 500 }}>Local-by-Default</span>
             </div>
-            <div className="flex justify-between py-1">
-              <span className="text-muted">Telemetry</span>
-              <span className="text-emerald-400 font-medium">Zero Remote Analytics</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0' }}>
+              <span style={{ color: 'var(--nexus-text-secondary, #9298A8)' }}>Telemetry</span>
+              <span style={{ color: '#34D399', fontWeight: 500 }}>Zero Remote Analytics</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* Philosophy Statement */}
-      <div className="p-4 rounded-xl border border-subtle bg-surface/40 text-2xs text-secondary leading-relaxed space-y-1.5">
-        <div className="font-semibold text-primary flex items-center gap-1.5">
+      <div className="settings-group-card" style={{ padding: '14px 16px', gap: '8px' }}>
+        <div style={{ fontWeight: 600, color: 'var(--nexus-text-primary, #F4F4F5)', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px' }}>
           <ShieldCheck size={14} className="text-accent" />
           <span>Core Engineering Tenets</span>
         </div>
-        <p>
+        <p style={{ margin: 0, fontSize: '12px', color: 'var(--nexus-text-secondary, #9298A8)', lineHeight: 1.5 }}>
           NEXUS is designed with an uncompromising commitment to local storage, user agency, zero fabricated telemetry, and three distinct operating modes: Default (Obsidian & Violet), Balanced (Metallic Gold), and Performance (Redline High-FPS).
         </p>
       </div>

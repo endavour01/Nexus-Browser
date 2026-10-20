@@ -16,6 +16,7 @@ import {
   Sun,
   Zap,
   Shield,
+  EyeOff,
 } from 'lucide-react';
 import { NexusLogo } from './NexusLogo';
 import { ModePopover } from './ModePopover';
@@ -40,6 +41,37 @@ interface NavigationBarProps {
   onModePopoverOpenChange?: (open: boolean) => void;
   onOpenSettings?: () => void;
 }
+
+interface NexusLoadingBarProps {
+  isLoading: boolean;
+}
+
+const NexusLoadingBar: React.FC<NexusLoadingBarProps> = ({ isLoading }) => {
+  const [phase, setPhase] = useState<'idle' | 'loading' | 'completing'>('idle');
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isLoading) {
+      setPhase('loading');
+    } else if (phase === 'loading') {
+      setPhase('completing');
+      timer = setTimeout(() => {
+        setPhase('idle');
+      }, 220);
+    }
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [isLoading, phase]);
+
+  if (phase === 'idle') return null;
+
+  return (
+    <div className="navbar-loading-track" aria-hidden="true">
+      <div className={`navbar-loading-bar ${phase === 'completing' ? 'is-completing' : ''}`} />
+    </div>
+  );
+};
 
 export const NavigationBar: React.FC<NavigationBarProps> = memo(({
   activeTab,
@@ -184,7 +216,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = memo(({
       </div>
 
       {/* Combined Omnibox (Address & Search Bar) */}
-      <form className={`omnibox ${isFocused ? 'focused' : ''}`} onSubmit={handleSubmit}>
+      <form className={`omnibox ${isFocused ? 'focused' : ''} ${activeTab?.isPrivate ? 'nexus-omnibox-private' : ''}`} onSubmit={handleSubmit}>
         {/* Security / Protocol Badge */}
         <button
           type="button"
@@ -212,6 +244,13 @@ export const NavigationBar: React.FC<NavigationBarProps> = memo(({
             <Globe size={13} className="scheme-insecure" />
           )}
         </button>
+
+        {activeTab?.isPrivate && (
+          <span className="omnibox-incognito-pill" title="Private Browsing Session">
+            <EyeOff size={11} />
+            <span>Incognito</span>
+          </span>
+        )}
 
         {/* URL / Query Input */}
         <input
@@ -389,7 +428,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = memo(({
       </div>
 
       {/* Loading Progress Bar */}
-      {activeTab?.isLoading && <div className="navbar-loading-bar" />}
+      <NexusLoadingBar isLoading={Boolean(activeTab?.isLoading)} />
     </div>
   );
 });

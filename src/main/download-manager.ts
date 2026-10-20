@@ -11,6 +11,7 @@ export class DownloadManager {
   private activeItems: Map<string, Electron.DownloadItem> = new Map();
   private speedTrackers: Map<string, { lastBytes: number; lastTime: number }> = new Map();
   private activeWebContents: Map<string, number> = new Map();
+  private registeredSessions: WeakSet<Electron.Session> = new WeakSet();
   private defaultDownloadDir: string;
 
   constructor(mainWindow?: BrowserWindow | null, customStorageDir?: string) {
@@ -120,7 +121,7 @@ export class DownloadManager {
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
       }
-      const list = Array.from(this.records.values());
+      const list = Array.from(this.records.values()).filter((r) => !r.isPrivate);
       const tempPath = `${this.filePath}.tmp.${Date.now()}`;
       fs.writeFileSync(tempPath, JSON.stringify(list, null, 2), 'utf8');
       fs.renameSync(tempPath, this.filePath);
@@ -131,8 +132,25 @@ export class DownloadManager {
     }
   }
 
+  public clearPrivateDownloads() {
+    let changed = false;
+    for (const [id, record] of this.records.entries()) {
+      if (record.isPrivate) {
+        this.records.delete(id);
+        this.activeItems.delete(id);
+        this.speedTrackers.delete(id);
+        this.activeWebContents.delete(id);
+        changed = true;
+      }
+    }
+    if (changed) {
+      this.notifyUpdated();
+    }
+  }
+
   public setupDownloadHandler(sess: Electron.Session) {
-    if (!sess) return;
+    if (!sess || this.registeredSessions.has(sess)) return;
+    this.registeredSessions.add(sess);
 
     sess.on('will-download', (event, item, webContents) => {
       const id = `dl-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
@@ -141,6 +159,7 @@ export class DownloadManager {
 
       item.setSavePath(savePath);
 
+      const isPrivateSession = typeof sess.isPersistent === 'function' ? !sess.isPersistent() : false;
       const totalBytes = item.getTotalBytes() || 0;
       const initialRecord: DownloadRecord = {
         id,
@@ -156,6 +175,7 @@ export class DownloadManager {
         status: 'progressing',
         startTime: Date.now(),
         canResume: item.canResume(),
+        isPrivate: isPrivateSession,
       };
 
       this.records.set(id, initialRecord);

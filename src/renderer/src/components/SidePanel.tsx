@@ -220,6 +220,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
           {type === 'intelligence' && 'NEXUS Explore'}
           {type === 'hub' && 'NEXUS Hub'}
           {type === 'todo' && 'NEXUS Todo'}
+          {type === 'assistant' && 'Nexus Bot'}
         </h3>
         <button className="nexus-icon-btn panel-close-btn" onClick={onClose} title="Close panel">
           <X size={15} />
@@ -719,14 +720,15 @@ export const SidePanel: React.FC<SidePanelProps> = ({
         {type === 'settings' && (
           <div className="panel-section settings-section">
             {/* Full Settings & Privacy Center Workspace Links */}
-            <div className="settings-full-workspace-card mb-4 p-3 rounded-lg border border-border/40 bg-surface/50">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[12px] font-semibold text-primary">NEXUS Control System</span>
-                <span className="text-[10px] text-muted">Dedicated Workspaces</span>
+            <div className="settings-full-workspace-card settings-panel-workspace-card">
+              <div className="settings-panel-workspace-header">
+                <span className="settings-panel-workspace-title">NEXUS Control System</span>
+                <span className="settings-panel-workspace-sub">Dedicated Workspaces</span>
               </div>
-              <div className="flex gap-2.5">
+              <div className="settings-panel-workspace-actions">
                 <button
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-semibold bg-accent/15 hover:bg-accent/25 text-accent border border-accent/30 transition-all shadow-xs"
+                  type="button"
+                  className="settings-panel-action-btn settings-panel-btn-primary"
                   onClick={() => {
                     if (onNavigate) onNavigate('nexus://settings');
                     onClose();
@@ -737,7 +739,8 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                   <span>All Settings</span>
                 </button>
                 <button
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-lg text-xs font-semibold bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/25 transition-all shadow-xs"
+                  type="button"
+                  className="settings-panel-action-btn settings-panel-btn-privacy"
                   onClick={() => {
                     if (onNavigate) onNavigate('nexus://privacy');
                     onClose();
@@ -752,9 +755,9 @@ export const SidePanel: React.FC<SidePanelProps> = ({
 
             {/* Browser Mode */}
             <div className="setting-group modes-settings-group">
-              <div className="flex items-center justify-between mb-2">
-                <label className="setting-label text-[13px] font-semibold text-primary">Browser Modes</label>
-                <span className="text-[11px] text-muted">1-Click Visual & Behavioral Profiles</span>
+              <div className="settings-panel-header-row">
+                <label className="setting-label settings-panel-label">Browser Modes</label>
+                <span className="settings-panel-sublabel">1-Click Visual & Behavioral Profiles</span>
               </div>
               <div className="mode-cards-container" role="radiogroup" aria-label="Browser Modes">
                 {/* Default Mode Card */}
@@ -1007,14 +1010,17 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                 <option value="light">Light</option>
                 <option value="system">Match system</option>
               </select>
-              <label className="flex items-center gap-2 cursor-pointer mt-2">
-                <input
-                  type="checkbox"
-                  checked={settings.reducedMotion ?? false}
-                  onChange={(e) => onUpdateSettings({ reducedMotion: e.target.checked })}
-                />
-                <span className="text-xs text-primary">Reduce motion (overrides OS preference)</span>
-              </label>
+              <div className="settings-panel-toggle-row">
+                <span className="settings-panel-toggle-label">Reduce motion (overrides OS preference)</span>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={settings.reducedMotion ?? false}
+                    onChange={(e) => onUpdateSettings({ reducedMotion: e.target.checked })}
+                  />
+                  <span className="toggle-slider" />
+                </label>
+              </div>
             </div>
 
             {/* Search Engine */}
@@ -1039,29 +1045,33 @@ export const SidePanel: React.FC<SidePanelProps> = ({
             {/* Bookmarks Bar Visibility */}
             <div className="setting-group">
               <label className="setting-label">Bookmarks Bar</label>
-              <label className="flex items-center gap-2 cursor-pointer mt-1">
-                <input
-                  type="checkbox"
-                  checked={settings.showBookmarksBar ?? true}
-                  onChange={(e) => onUpdateSettings({ showBookmarksBar: e.target.checked })}
-                />
-                <span className="text-xs text-primary">Always show bookmarks bar</span>
-              </label>
+              <div className="settings-panel-toggle-row">
+                <span className="settings-panel-toggle-label">Always show bookmarks bar</span>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={settings.showBookmarksBar ?? true}
+                    onChange={(e) => onUpdateSettings({ showBookmarksBar: e.target.checked })}
+                  />
+                  <span className="toggle-slider" />
+                </label>
+              </div>
             </div>
 
             {/* Download Location */}
             <div className="setting-group">
               <label className="setting-label">Downloads Folder</label>
-              <div className="flex items-center gap-2 mt-1">
+              <div className="settings-panel-input-row">
                 <input
                   type="text"
                   readOnly
                   value={downloadDirectory || 'Default Downloads folder'}
-                    className="nexus-input settings-download-path text-xs font-mono flex-1 truncate"
+                  className="nexus-input settings-download-path"
                 />
                 {onChangeDownloadDirectory && (
                   <button
-                    className="nexus-btn-sm nexus-btn-secondary text-xs px-2 py-1 flex-shrink-0"
+                    type="button"
+                    className="nexus-btn-sm nexus-btn-secondary"
                     onClick={onChangeDownloadDirectory}
                   >
                     Change
@@ -1107,8 +1117,9 @@ export const SidePanel: React.FC<SidePanelProps> = ({
             {/* Extensions & Tools Management */}
             <div className="setting-group">
               <label className="setting-label">Extensions & Plugins</label>
-              <div className="flex gap-2">
+              <div className="settings-panel-actions-row">
                 <button
+                  type="button"
                   className="setting-action-btn flex-1"
                   onClick={onOpenExtensionsPage}
                   title="Open Extensions Manager (nexus://extensions)"
@@ -1117,6 +1128,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                   <span>Manage</span>
                 </button>
                 <button
+                  type="button"
                   className="setting-action-btn flex-1"
                   onClick={onOpenCompatibility}
                   title="View Extension Support Guide"
@@ -1129,11 +1141,11 @@ export const SidePanel: React.FC<SidePanelProps> = ({
 
             {/* NEXUS Shield & Protection */}
             <div className="setting-group">
-              <div className="flex-row items-center justify-between mb-1">
+              <div className="settings-panel-header-row">
                 <label className="setting-label">NEXUS Shield</label>
                 <button
                   type="button"
-                  className="nexus-btn-sm nexus-btn-secondary text-xs py-0 px-2"
+                  className="nexus-btn-sm nexus-btn-secondary"
                   onClick={() => onNavigate('nexus://shield')}
                   title="Open full Shield dashboard"
                 >
@@ -1142,7 +1154,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
               </div>
               <button
                 type="button"
-                className="setting-action-btn mb-2"
+                className="setting-action-btn"
                 onClick={() => onNavigate('nexus://shield')}
                 title="View blocked ads, trackers, and filter lists"
               >
@@ -1150,7 +1162,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                 <span>Shield Dashboard (nexus://shield)</span>
               </button>
 
-              <label className="setting-label text-xs text-muted">Tracking Protection Mode</label>
+              <label className="setting-label settings-panel-sub-label">Tracking Protection Mode</label>
               <select
                 className="setting-select"
                 value={settings.trackingProtectionMode || 'standard'}
@@ -1170,6 +1182,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
             <div className="setting-group">
               <label className="setting-label">Site Permissions</label>
               <button
+                type="button"
                 className="setting-action-btn"
                 onClick={onOpenPermissionsPage || (() => onNavigate('nexus://permissions'))}
                 title="Manage camera, microphone, geolocation, and notification permissions"
@@ -1182,32 +1195,39 @@ export const SidePanel: React.FC<SidePanelProps> = ({
             {/* Workspaces & Tools (Hub & Todo) */}
             <div className="setting-group">
               <label className="setting-label">Workspaces & Tools</label>
-              <label className="flex items-center gap-2 cursor-pointer mt-1">
-                <input
-                  type="checkbox"
-                  checked={settings.hubEnabled ?? true}
-                  onChange={(e) => onUpdateSettings({ hubEnabled: e.target.checked })}
-                />
-                <span className="text-xs text-primary">Enable NEXUS Hub (nexus://hub)</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer mt-2">
-                <input
-                  type="checkbox"
-                  checked={settings.todoEnabled ?? true}
-                  onChange={(e) => onUpdateSettings({ todoEnabled: e.target.checked })}
-                />
-                <span className="text-xs text-primary">Enable NEXUS Todo Workspace (nexus://todo)</span>
-              </label>
+              <div className="settings-panel-toggle-row">
+                <span className="settings-panel-toggle-label">Enable NEXUS Hub (nexus://hub)</span>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={settings.hubEnabled ?? true}
+                    onChange={(e) => onUpdateSettings({ hubEnabled: e.target.checked })}
+                  />
+                  <span className="toggle-slider" />
+                </label>
+              </div>
+              <div className="settings-panel-toggle-row">
+                <span className="settings-panel-toggle-label">Enable NEXUS Todo Workspace (nexus://todo)</span>
+                <label className="toggle-switch">
+                  <input
+                    type="checkbox"
+                    checked={settings.todoEnabled ?? true}
+                    onChange={(e) => onUpdateSettings({ todoEnabled: e.target.checked })}
+                  />
+                  <span className="toggle-slider" />
+                </label>
+              </div>
             </div>
 
             {/* Clear Browsing Data Dialog Button */}
             <div className="setting-group">
               <label className="setting-label">Privacy & Data</label>
               <button
-                className="setting-action-btn"
+                type="button"
+                className="setting-action-btn settings-panel-btn-danger"
                 onClick={onOpenClearDataModal || handleClearCacheClick}
               >
-                <Trash2 size={13} className="text-red-400" />
+                <Trash2 size={13} style={{ color: '#FB7185' }} />
                 <span>Clear Browsing Data...</span>
               </button>
             </div>

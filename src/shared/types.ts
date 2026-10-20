@@ -142,6 +142,7 @@ export interface DownloadRecord {
   startTime: number;
   endTime?: number;
   canResume: boolean;
+  isPrivate?: boolean;
 }
 
 export type DownloadItem = DownloadRecord;
@@ -1111,6 +1112,7 @@ export interface NexusAPI {
   duplicateTab: (id: string) => Promise<string | null>;
   reopenClosedTab: () => Promise<string | null>;
   closeTab: (id: string) => Promise<void>;
+  closeAllPrivateTabs: () => Promise<void>;
   switchTab: (id: string) => Promise<void>;
   navigate: (id: string, url: string) => Promise<void>;
   goBack: (id: string) => Promise<void>;

@@ -410,7 +410,7 @@ export class TabManager {
     const activeProfile = this.profileManager?.getActiveProfile();
 
     if (isPrivate) {
-      tabSession = session.fromPartition(`private_${tabId}`, { cache: false });
+      tabSession = session.fromPartition('nexus_incognito', { cache: false });
     } else if (activeProfile && activeProfile.id !== 'default') {
       tabSession = session.fromPartition(`persist:profile_${activeProfile.id}`);
     } else if (this.isolatedWorkspaces.has(workspaceId)) {
@@ -428,6 +428,10 @@ export class TabManager {
       shield.attachToSession(tabSession, this.networkMonitor);
     } else if (this.networkMonitor) {
       this.networkMonitor.attachToSession(tabSession);
+    }
+
+    if (this.downloadManager) {
+      this.downloadManager.setupDownloadHandler(tabSession);
     }
 
     return tabSession;
@@ -827,8 +831,13 @@ export class TabManager {
     const url = initialUrl || 'nexus://newtab';
     const isInternalPage = url.startsWith('nexus://') || url === '';
 
+    if (url === 'nexus://private' || url.startsWith('nexus://private')) {
+      privateTab = true;
+    }
+
     let initialTitle = 'New Tab';
-    if (url === 'nexus://extensions') initialTitle = 'Extensions';
+    if (url === 'nexus://private' || url.startsWith('nexus://private')) initialTitle = 'Private Browsing';
+    else if (url === 'nexus://extensions') initialTitle = 'Extensions';
     else if (url === 'nexus://compatibility') initialTitle = 'Compatibility Guide';
     else if (url === 'nexus://bookmarks') initialTitle = 'Bookmarks';
     else if (url === 'nexus://history') initialTitle = 'History';
@@ -1131,12 +1140,20 @@ export class TabManager {
       }
     }
 
-    // Clean up private tab session data immediately
-    if (tab.isPrivate && tab.view) {
-      try {
-        tab.view.webContents.session.clearStorageData();
-        tab.view.webContents.session.clearCache();
-      } catch (e) {}
+    // Clean up private tab session data if this was the last private tab
+    if (tab.isPrivate) {
+      const remainingPrivate = Array.from(this.tabs.values()).filter(
+        (t) => t.id !== id && t.isPrivate
+      );
+      if (remainingPrivate.length === 0) {
+        try {
+          const incognitoSession = session.fromPartition('nexus_incognito', { cache: false });
+          incognitoSession.clearStorageData();
+          incognitoSession.clearCache();
+          incognitoSession.clearAuthCache();
+        } catch (e) {}
+        this.downloadManager?.clearPrivateDownloads();
+      }
     }
     try {
       const shield = this.shieldEngine || (this.trackingProtection as any);
@@ -1238,6 +1255,8 @@ export class TabManager {
         tab.title = 'Settings';
       } else if (formatted === 'nexus://privacy' || formatted.startsWith('nexus://privacy')) {
         tab.title = 'Privacy Center';
+      } else if (formatted === 'nexus://private' || formatted.startsWith('nexus://private')) {
+        tab.title = 'Private Browsing';
       } else if (formatted === 'nexus://warning' || formatted.startsWith('nexus://warning')) {
         tab.title = 'Security Warning';
       } else {
@@ -1494,5 +1513,24 @@ export class TabManager {
 
   public setHistoryStore(store: HistoryStore): void {
     this.historyStore = store;
+  }
+
+  public async closeAllPrivateTabs(): Promise<void> {
+    const privateTabIds = Array.from(this.tabs.values())
+      .filter((t) => t.isPrivate)
+      .map((t) => t.id);
+
+    for (const tabId of privateTabIds) {
+      this.closeTab(tabId);
+    }
+
+    try {
+      const incognitoSession = session.fromPartition('nexus_incognito', { cache: false });
+      await incognitoSession.clearStorageData();
+      await incognitoSession.clearCache();
+      await incognitoSession.clearAuthCache();
+    } catch (e) {}
+    this.downloadManager?.clearPrivateDownloads();
+    this.notifyTabsUpdated();
   }
 }

@@ -19,6 +19,7 @@ import {
   Columns,
   ChevronRight,
   ChevronDown,
+  EyeOff,
 } from 'lucide-react';
 
 interface TitleBarProps {
@@ -212,7 +213,9 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
                   onDragStart={(e) => handleDragStart(e, tab.id)}
                   onDragOver={(e) => handleDragOver(e, tab.id)}
                   onDrop={(e) => handleDrop(e, tab.id)}
-                  className={`nexus-tab nexus-pinned-tab ${isActive ? 'active' : ''} ${tab.isSuspended ? 'is-suspended' : ''} ${
+                  className={`nexus-tab nexus-pinned-tab ${isActive ? 'active' : ''} ${
+                    tab.isPrivate ? 'tab-item-private' : ''
+                  } ${tab.isSuspended ? 'is-suspended' : ''} ${
                     dragOverTabId === tab.id ? 'drag-over' : ''
                   }`}
                   onClick={() => onSelectTab(tab.id)}
@@ -240,6 +243,8 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
                       <Loader2 size={13} className="animate-spin text-accent" />
                     ) : tab.favicon ? (
                       <img src={tab.favicon} alt="" className="tab-favicon" />
+                    ) : tab.isPrivate ? (
+                      <EyeOff size={13} className="tab-private-icon" />
                     ) : (
                       <Globe size={13} />
                     )}
@@ -300,6 +305,8 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
                     onDragOver={(e) => handleDragOver(e, tab.id)}
                     onDrop={(e) => handleDrop(e, tab.id)}
                     className={`nexus-tab ${isActive ? 'active' : ''} ${
+                      tab.isPrivate ? 'tab-item-private' : ''
+                    } ${
                       tab.errorCode ? 'has-error' : ''
                     } ${tab.isSuspended ? 'is-suspended' : ''} ${dragOverTabId === tab.id ? 'drag-over' : ''}`}
                     style={group ? { borderTopColor: group.color } : undefined}
@@ -334,13 +341,20 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
                         <Loader2 size={13} className="animate-spin text-accent" />
                       ) : tab.favicon ? (
                         <img src={tab.favicon} alt="" className="tab-favicon" />
+                      ) : tab.isPrivate ? (
+                        <EyeOff size={13} className="tab-private-icon" />
                       ) : (
                         <Globe size={13} />
                       )}
                       {tab.isSuspended && <span className="tab-suspended-indicator" aria-hidden="true" />}
                     </div>
 
-                    <span className="tab-title">{tab.title || 'New Tab'}</span>
+                    <span className="tab-title">
+                      {tab.isPrivate && tab.favicon && (
+                        <EyeOff size={10} className="tab-private-prefix-icon" style={{ marginRight: 4, display: 'inline', verticalAlign: 'middle', opacity: 0.8 }} />
+                      )}
+                      {tab.title || 'New Tab'}
+                    </span>
 
                     {tab.hasAudio && (
                       <button

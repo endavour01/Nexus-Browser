@@ -120,7 +120,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose, onNavig
 
     const res = await api.agentStartTask({ task: text.trim() });
     if (!res.success) {
-      alert(`Could not start assistant task: ${res.error || 'Unknown error'}`);
+      alert(`Could not start Nexus Bot task: ${res.error || 'Unknown error'}`);
     }
   };
 
@@ -228,7 +228,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose, onNavig
   return (
     <div className="nexus-assistant-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-app)' }}>
       <PanelHeader
-        title="AI Assistant"
+        title="Nexus Bot"
         icon={<Bot size={16} />}
         description="Autonomous single-task browser agent"
         onClose={onClose}
@@ -377,7 +377,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose, onNavig
                   </span>
                 </div>
                 <p style={{ fontSize: '11.5px', color: 'var(--text-secondary)', marginBottom: '8px', lineHeight: 1.4 }}>
-                  The agent wants to act on <strong>{allowlistPrompt.site}</strong>. Allow this site?
+                  Nexus Bot wants to act on <strong>{allowlistPrompt.site}</strong>. Allow this site?
                 </p>
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <Button
@@ -497,7 +497,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose, onNavig
                   leftIcon={<Square size={13} fill="currentColor" />}
                   onClick={handleStopTask}
                 >
-                  Stop Assistant Immediately
+                  Stop Nexus Bot Immediately
                 </Button>
               </div>
             )}
@@ -727,7 +727,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose, onNavig
             </span>
 
             <p style={{ fontSize: '11.5px', color: 'var(--text-secondary)', lineHeight: 1.4 }}>
-              The AI assistant will strictly pause and ask for your approval before taking any action on sites not in this allowlist.
+              Nexus Bot will strictly pause and ask for your approval before taking any action on sites not in this allowlist.
             </p>
 
             <form onSubmit={handleAddAllowedSite} style={{ display: 'flex', gap: '6px' }}>
@@ -745,7 +745,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose, onNavig
             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px' }}>
               {allowedSites.length === 0 ? (
                 <div style={{ padding: '16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '11.5px' }}>
-                  No sites currently allowlisted. The assistant will ask permission on first interaction.
+                  No sites currently allowlisted. Nexus Bot will ask permission on first interaction.
                 </div>
               ) : (
                 allowedSites.map((site) => (

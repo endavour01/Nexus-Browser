@@ -14,6 +14,7 @@ import {
   Copy,
   RotateCw,
   FolderKanban,
+  EyeOff,
 } from 'lucide-react';
 import { TabGroupContextMenu } from './TabGroupContextMenu';
 
@@ -169,7 +170,9 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
               return (
                 <button
                   key={tab.id}
-                  className={`vtab-pinned-item ${isActive ? 'active' : ''} ${tab.isSuspended ? 'is-suspended' : ''}`}
+                  className={`vtab-pinned-item ${isActive ? 'active' : ''} ${
+                    tab.isPrivate ? 'tab-item-private' : ''
+                  } ${tab.isSuspended ? 'is-suspended' : ''}`}
                   onClick={() => onSelectTab(tab.id)}
                   onContextMenu={(e) => handleContextMenu(e, tab.id)}
                   title={`${tab.title} (${tab.url})${tab.isSuspended ? ' - Suspended to save memory. Click to restore.' : ''}`}
@@ -178,6 +181,8 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
                     <Loader2 size={13} className="animate-spin text-accent" />
                   ) : tab.favicon ? (
                     <img src={tab.favicon} alt="" className={`vtab-pinned-favicon ${tab.isSuspended ? 'is-suspended' : ''}`} />
+                  ) : tab.isPrivate ? (
+                    <EyeOff size={13} className="text-secondary" />
                   ) : (
                     <Globe size={13} className="text-secondary" />
                   )}
@@ -237,6 +242,8 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
                       onDragOver={(e) => handleDragOver(e, tab.id)}
                       onDrop={(e) => handleDrop(e, tab.id)}
                       className={`vtab-item ${tab.id === activeTabId ? 'active' : ''} ${
+                        tab.isPrivate ? 'tab-item-private' : ''
+                      } ${
                         tab.isSuspended ? 'is-suspended' : ''
                       } ${dragOverTabId === tab.id ? 'drag-over' : ''}`}
                       onClick={() => onSelectTab(tab.id)}
@@ -257,6 +264,8 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
                           <Loader2 size={13} className="animate-spin text-accent" />
                         ) : tab.favicon ? (
                           <img src={tab.favicon} alt="" className="vtab-favicon-img" />
+                        ) : tab.isPrivate ? (
+                          <EyeOff size={13} className="text-secondary" />
                         ) : (
                           <Globe size={13} className="text-secondary" />
                         )}
@@ -264,6 +273,9 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
                       </div>
 
                       <span className="vtab-title-text" title={tab.title}>
+                        {tab.isPrivate && tab.favicon && (
+                          <EyeOff size={10} style={{ marginRight: 4, display: 'inline', verticalAlign: 'middle', opacity: 0.8 }} />
+                        )}
                         {tab.title || 'New Tab'}
                       </span>
 
@@ -311,6 +323,8 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
             onDragOver={(e) => handleDragOver(e, tab.id)}
             onDrop={(e) => handleDrop(e, tab.id)}
             className={`vtab-item ${tab.id === activeTabId ? 'active' : ''} ${
+              tab.isPrivate ? 'tab-item-private' : ''
+            } ${
               tab.isSuspended ? 'is-suspended' : ''
             } ${dragOverTabId === tab.id ? 'drag-over' : ''}`}
             onClick={() => onSelectTab(tab.id)}
@@ -331,6 +345,8 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
                 <Loader2 size={13} className="animate-spin text-accent" />
               ) : tab.favicon ? (
                 <img src={tab.favicon} alt="" className="vtab-favicon-img" />
+              ) : tab.isPrivate ? (
+                <EyeOff size={13} className="text-secondary" />
               ) : (
                 <Globe size={13} className="text-secondary" />
               )}
@@ -338,6 +354,9 @@ export const VerticalTabBar: React.FC<VerticalTabBarProps> = ({
             </div>
 
             <span className="vtab-title-text" title={tab.title}>
+              {tab.isPrivate && tab.favicon && (
+                <EyeOff size={10} style={{ marginRight: 4, display: 'inline', verticalAlign: 'middle', opacity: 0.8 }} />
+              )}
               {tab.title || 'New Tab'}
             </span>
 

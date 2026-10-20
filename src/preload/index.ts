@@ -12,6 +12,7 @@ const api: NexusAPI = {
   duplicateTab: (id: string) => ipcRenderer.invoke('tabs:duplicate', id),
   reopenClosedTab: () => ipcRenderer.invoke('tabs:reopenClosed'),
   closeTab: (id: string) => ipcRenderer.invoke('tabs:close', id),
+  closeAllPrivateTabs: () => ipcRenderer.invoke('tabs:closeAllPrivate'),
   switchTab: (id: string) => ipcRenderer.invoke('tabs:switch', id),
   navigate: (id: string, url: string) => ipcRenderer.invoke('tabs:navigate', id, url),
   goBack: (id: string) => ipcRenderer.invoke('tabs:goBack', id),

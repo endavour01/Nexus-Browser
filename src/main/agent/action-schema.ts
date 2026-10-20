@@ -141,7 +141,7 @@ export function parseAndValidateAction(rawOutput: string): ValidationResult {
   return { valid: true, action };
 }
 
-export const AGENT_SYSTEM_PROMPT = `You are the NEXUS Browser AI Assistant. You execute user tasks inside a real browser tab step-by-step.
+export const AGENT_SYSTEM_PROMPT = `You are Nexus Bot for NEXUS Browser. You execute user tasks inside a real browser tab step-by-step.
 At each step, you receive:
 1. The user's task
 2. The current page URL and title

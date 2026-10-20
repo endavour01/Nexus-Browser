@@ -36,6 +36,7 @@ import {
   FileText,
   Shield,
   MessageSquare,
+  EyeOff,
 } from 'lucide-react';
 
 export interface CommandPaletteItem {
@@ -57,6 +58,7 @@ interface CommandPaletteProps {
   activeWorkspaceId: string;
   onSelectTab: (id: string) => void;
   onNewTab: (url?: string) => void;
+  onNewPrivateTab?: () => void;
   onDuplicateTab: (id: string) => void;
   onReopenClosedTab: () => void;
   onCloseTab: (id: string) => void;
@@ -111,6 +113,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   workspaces,
   onSelectTab,
   onNewTab,
+  onNewPrivateTab,
   onDuplicateTab,
   onReopenClosedTab,
   onCloseTab,
@@ -171,6 +174,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         shortcut: 'Ctrl+T',
         icon: 'Plus',
         action: () => onNewTab(),
+      },
+      {
+        id: 'new-private-tab',
+        title: 'New Incognito Tab',
+        subtitle: 'Open an isolated incognito tab (no history, ephemeral session)',
+        category: 'Tabs',
+        shortcut: 'Ctrl+Shift+N',
+        icon: 'EyeOff',
+        action: () => (onNewPrivateTab ? onNewPrivateTab() : onNewTab('nexus://private')),
       },
       {
         id: 'close-active-tab',
@@ -865,6 +877,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       case 'MessageSquare': return <MessageSquare size={15} />;
       case 'Search': return <Search size={15} />;
       case 'X': return <X size={15} />;
+      case 'EyeOff': return <EyeOff size={15} />;
       default: return <Command size={15} />;
     }
   };
