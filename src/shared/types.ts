@@ -27,14 +27,14 @@ export interface TabGroup {
 }
 
 export const TAB_GROUP_COLORS = [
-  { name: 'Violet', value: '#A78BFA' },
-  { name: 'Sky', value: '#38BDF8' },
-  { name: 'Emerald', value: '#34D399' },
-  { name: 'Amber', value: '#FBBF24' },
-  { name: 'Rose', value: '#F43F5E' },
-  { name: 'Fuchsia', value: '#E879F9' },
-  { name: 'Indigo', value: '#818CF8' },
-  { name: 'Slate', value: '#94A3B8' },
+  { name: 'Grey', value: '#9AA0A6' },
+  { name: 'Blue', value: '#60A5FA' },
+  { name: 'Red', value: '#F87171' },
+  { name: 'Yellow', value: '#FBBF24' },
+  { name: 'Green', value: '#34D399' },
+  { name: 'Pink', value: '#F472B6' },
+  { name: 'Purple', value: '#A78BFA' },
+  { name: 'Cyan', value: '#22D3EE' },
 ] as const;
 
 export interface PinnedSiteItem {

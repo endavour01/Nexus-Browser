@@ -13,6 +13,7 @@ import {
   SidePanelId,
   SystemInfo,
   TabGroup,
+  TAB_GROUP_COLORS,
   TabState,
   Workspace,
   ExtensionValidationResult,
@@ -31,7 +32,7 @@ import { StatusBar } from './components/StatusBar';
 import { NewTabWorkspace } from './components/NewTabWorkspace';
 import { CommandPalette } from './components/CommandPalette';
 import { WorkspaceModal } from './components/WorkspaceModal';
-import { TabGroupModal } from './components/TabGroupModal';
+import { TabGroupPopover } from './components/TabGroupPopover';
 import { TabSearchModal } from './components/TabSearchModal';
 import { ExtensionsPage } from './components/ExtensionsPage';
 import { ExtensionPermissionModal } from './components/ExtensionPermissionModal';
@@ -83,7 +84,11 @@ export const App: React.FC = () => {
   // Modals & Overlays
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false);
-  const [groupEditor, setGroupEditor] = useState<{ group: TabGroup | null; tabId?: string } | null>(null);
+  const [groupPopover, setGroupPopover] = useState<{
+    groupId: string;
+    anchorRect?: { top: number; left: number; bottom: number; right: number };
+    isNew?: boolean;
+  } | null>(null);
   const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null);
   const [isTabSearchOpen, setIsTabSearchOpen] = useState(false);
   const [focusOmniboxTrigger, setFocusOmniboxTrigger] = useState(0);
@@ -303,14 +308,24 @@ export const App: React.FC = () => {
   useEffect(() => {
     const validGroupIds = new Set(tabGroups.map((group) => group.id));
     const invalidTabs = tabs.filter((tab) => tab.groupId && !validGroupIds.has(tab.groupId));
-    if (invalidTabs.length === 0) return;
+    if (invalidTabs.length > 0) {
+      const invalidTabIds = new Set(invalidTabs.map((tab) => tab.id));
+      setTabs((current) => current.map((tab) =>
+        invalidTabIds.has(tab.id) ? { ...tab, groupId: undefined } : tab
+      ));
+      invalidTabs.forEach((tab) => api?.setTabGroup(tab.id, undefined));
+    }
 
-    const invalidTabIds = new Set(invalidTabs.map((tab) => tab.id));
-    setTabs((current) => current.map((tab) =>
-      invalidTabIds.has(tab.id) ? { ...tab, groupId: undefined } : tab
-    ));
-    invalidTabs.forEach((tab) => api?.setTabGroup(tab.id, undefined));
-  }, [api, tabGroups, tabs]);
+    // Auto-prune empty groups when all their tabs are closed or removed
+    const activeGroupIdsInTabs = new Set(tabs.map((tab) => tab.groupId).filter(Boolean));
+    const emptyGroups = tabGroups.filter(
+      (g) => !activeGroupIdsInTabs.has(g.id) && groupPopover?.groupId !== g.id
+    );
+    if (emptyGroups.length > 0) {
+      const emptyGroupIds = new Set(emptyGroups.map((g) => g.id));
+      setTabGroups((prev) => prev.filter((g) => !emptyGroupIds.has(g.id)));
+    }
+  }, [api, tabGroups, tabs, groupPopover]);
 
   const activeTab = useMemo(
     () => tabs.find((t) => t.id === activeTabId) || null,
@@ -596,11 +611,35 @@ export const App: React.FC = () => {
     [api]
   );
 
+  const enforceContiguousGroupOrder = useCallback((tabId: string, groupId: string) => {
+    if (!api) return;
+    const currentWorkspaceTabs = tabs.filter((t) => t.workspaceId === activeWorkspaceId);
+    const otherGroupTabs = currentWorkspaceTabs.filter((t) => t.groupId === groupId && t.id !== tabId);
+
+    if (otherGroupTabs.length > 0) {
+      const lastGroupTab = otherGroupTabs[otherGroupTabs.length - 1];
+      const currentOrder = currentWorkspaceTabs.map((t) => t.id);
+      const sourceIdx = currentOrder.indexOf(tabId);
+      const lastIdx = currentOrder.indexOf(lastGroupTab.id);
+
+      if (sourceIdx !== -1 && lastIdx !== -1 && sourceIdx !== lastIdx + 1) {
+        const newOrder = [...currentOrder];
+        newOrder.splice(sourceIdx, 1);
+        const newInsertIdx = newOrder.indexOf(lastGroupTab.id) + 1;
+        newOrder.splice(newInsertIdx, 0, tabId);
+        api.reorderTabs(newOrder);
+      }
+    }
+  }, [activeWorkspaceId, api, tabs]);
+
   const handleSetTabGroup = useCallback(
     (id: string, groupId?: string) => {
       api?.setTabGroup(id, groupId);
+      if (groupId) {
+        enforceContiguousGroupOrder(id, groupId);
+      }
     },
-    [api]
+    [api, enforceContiguousGroupOrder]
   );
 
   const handleReorderTabs = useCallback(
@@ -625,59 +664,96 @@ export const App: React.FC = () => {
     [api]
   );
 
-  // Tab Groups
-  const handleCreateGroup = useCallback((tabId?: string) => {
-    setGroupEditor({ group: null, tabId });
-  }, []);
+  // Tab Groups (Chrome-Style Rebuilt Architecture)
+  const handleCreateGroup = useCallback(
+    (tabId?: string, anchorRect?: { top: number; left: number; bottom: number; right: number }) => {
+      const nextColor = TAB_GROUP_COLORS[tabGroups.length % TAB_GROUP_COLORS.length].value;
+      const groupId = `group-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+      const newGroup: TabGroup = {
+        id: groupId,
+        name: 'New group',
+        color: nextColor,
+        collapsed: false,
+      };
 
-  const handleEditGroup = useCallback((groupId: string) => {
-    const group = tabGroups.find((item) => item.id === groupId);
-    if (group) setGroupEditor({ group });
-  }, [tabGroups]);
+      setTabGroups((prev) => [...prev, newGroup]);
 
-  const handleSaveGroup = useCallback((name: string, color: string) => {
-    if (!groupEditor) return;
+      const targetTabId = tabId || activeTabId;
+      if (targetTabId) {
+        api?.setTabGroup(targetTabId, groupId);
+        enforceContiguousGroupOrder(targetTabId, groupId);
+      }
 
-    let groupId = groupEditor.group?.id;
-    if (groupEditor.group) {
-      setTabGroups((prev) => prev.map((group) =>
-        group.id === groupEditor.group?.id ? { ...group, name, color } : group
-      ));
-    } else {
-      groupId = `group-${crypto.randomUUID()}`;
-      setTabGroups((prev) => [...prev, { id: groupId!, name, color, collapsed: false }]);
-    }
+      setGroupPopover({ groupId, anchorRect, isNew: true });
+    },
+    [activeTabId, api, enforceContiguousGroupOrder, tabGroups.length]
+  );
 
-    const targetTabId = groupEditor.tabId || activeTabId;
-    const targetTab = tabs.find((tab) => tab.id === targetTabId);
-    if (!groupEditor.group && groupId && targetTab && !targetTab.isPinned) {
-      api?.setTabGroup(targetTab.id, groupId);
-    }
-    setGroupEditor(null);
-  }, [activeTabId, api, groupEditor, tabs]);
+  const handleEditGroup = useCallback(
+    (groupId: string, anchorRect?: { top: number; left: number; bottom: number; right: number }) => {
+      setGroupPopover({ groupId, anchorRect });
+    },
+    []
+  );
 
-  const handleUngroupTabs = useCallback((groupId?: string) => {
-    const matchingTabs = tabs.filter((tab) => tab.groupId && (!groupId || tab.groupId === groupId));
-    matchingTabs.forEach((tab) => api?.setTabGroup(tab.id, undefined));
-    const matchingIds = new Set(matchingTabs.map((tab) => tab.id));
-    setTabs((prev) => prev.map((tab) => matchingIds.has(tab.id) ? { ...tab, groupId: undefined } : tab));
-    setRecentlyClosed((prev) => prev.map((tab) =>
-      tab.groupId && (!groupId || tab.groupId === groupId) ? { ...tab, groupId: undefined } : tab
-    ));
-  }, [api, tabs]);
+  const handleUpdateGroup = useCallback(
+    (groupId: string, updates: { name?: string; color?: string; collapsed?: boolean }) => {
+      setTabGroups((prev) =>
+        prev.map((g) => (g.id === groupId ? { ...g, ...updates } : g))
+      );
+    },
+    []
+  );
 
-  const handleDeleteGroup = useCallback((groupId: string) => {
-    handleUngroupTabs(groupId);
-    setTabGroups((prev) => prev.filter((group) => group.id !== groupId));
-  }, [handleUngroupTabs]);
+  const handleNewTabInGroup = useCallback(
+    async (groupId: string) => {
+      if (!api) return;
+      const newTabId = await api.createTab('nexus://newtab', activeWorkspaceId, false);
+      if (newTabId) {
+        api.setTabGroup(newTabId, groupId);
+        enforceContiguousGroupOrder(newTabId, groupId);
+      }
+    },
+    [activeWorkspaceId, api, enforceContiguousGroupOrder]
+  );
 
-  const handleCloseGroup = useCallback((groupId: string) => {
-    const group = tabGroups.find((item) => item.id === groupId);
-    const groupTabs = tabs.filter((tab) => tab.groupId === groupId);
-    if (!group || groupTabs.length === 0) return;
-    if (!window.confirm(`Close ${groupTabs.length} tab${groupTabs.length === 1 ? '' : 's'} in "${group.name}"?`)) return;
-    groupTabs.forEach((tab) => handleCloseTab(tab.id));
-  }, [handleCloseTab, tabGroups, tabs]);
+  const handleUngroupTabs = useCallback(
+    (groupId?: string) => {
+      const matchingTabs = tabs.filter((tab) => tab.groupId && (!groupId || tab.groupId === groupId));
+      matchingTabs.forEach((tab) => api?.setTabGroup(tab.id, undefined));
+      const matchingIds = new Set(matchingTabs.map((tab) => tab.id));
+      setTabs((prev) => prev.map((tab) => (matchingIds.has(tab.id) ? { ...tab, groupId: undefined } : tab)));
+      setRecentlyClosed((prev) =>
+        prev.map((tab) =>
+          tab.groupId && (!groupId || tab.groupId === groupId) ? { ...tab, groupId: undefined } : tab
+        )
+      );
+      if (groupId) {
+        setTabGroups((prev) => prev.filter((g) => g.id !== groupId));
+      } else {
+        setTabGroups([]);
+      }
+    },
+    [api, tabs]
+  );
+
+  const handleDeleteGroup = useCallback(
+    (groupId: string) => {
+      handleUngroupTabs(groupId);
+      setTabGroups((prev) => prev.filter((group) => group.id !== groupId));
+    },
+    [handleUngroupTabs]
+  );
+
+  const handleCloseGroup = useCallback(
+    (groupId: string) => {
+      const groupTabs = tabs.filter((tab) => tab.groupId === groupId);
+      if (groupTabs.length === 0) return;
+      groupTabs.forEach((tab) => handleCloseTab(tab.id));
+      setTabGroups((prev) => prev.filter((g) => g.id !== groupId));
+    },
+    [handleCloseTab, tabs]
+  );
 
   const handleToggleGroupCollapse = useCallback((groupId: string) => {
     setTabGroups((prev) =>
@@ -1360,6 +1436,7 @@ export const App: React.FC = () => {
         onDeleteGroup={handleDeleteGroup}
         onUngroupGroup={handleUngroupTabs}
         onCloseGroup={handleCloseGroup}
+        onNewTabInGroup={handleNewTabInGroup}
         onToggleTabLayout={() => {
           handleUpdateSettings({
             tabLayout: settings.tabLayout === 'vertical' ? 'horizontal' : 'vertical',
@@ -1460,6 +1537,7 @@ export const App: React.FC = () => {
             onDeleteGroup={handleDeleteGroup}
             onUngroupGroup={handleUngroupTabs}
             onCloseGroup={handleCloseGroup}
+            onNewTabInGroup={handleNewTabInGroup}
           />
         )}
 
@@ -1838,13 +1916,23 @@ export const App: React.FC = () => {
         onDeleteWorkspace={handleDeleteWorkspace}
       />
 
-      <TabGroupModal
-        isOpen={!!groupEditor}
-        group={groupEditor?.group || null}
-        nextColorIndex={tabGroups.length}
-        onClose={() => setGroupEditor(null)}
-        onSave={handleSaveGroup}
-      />
+      {groupPopover && (() => {
+        const group = tabGroups.find((g) => g.id === groupPopover.groupId);
+        if (!group) return null;
+        const groupTabs = tabs.filter((t) => t.groupId === group.id);
+        return (
+          <TabGroupPopover
+            group={group}
+            tabCount={groupTabs.length}
+            anchorRect={groupPopover.anchorRect}
+            onUpdateGroup={handleUpdateGroup}
+            onNewTabInGroup={handleNewTabInGroup}
+            onUngroup={handleUngroupTabs}
+            onCloseGroup={handleCloseGroup}
+            onClose={() => setGroupPopover(null)}
+          />
+        );
+      })()}
 
       {/* 9. Tab Search & Recently Closed Modal */}
       <TabSearchModal

@@ -3360,28 +3360,40 @@ button.nexus-btn-primary:active:not(:disabled) {
 }
 
 .tab-group-pill {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 5px;
-  height: 22px;
+  gap: 6px;
+  height: 24px;
   padding: 0 8px;
-  border: 1px solid;
+  border: 1px solid var(--group-color, var(--border-medium));
   border-radius: var(--radius-xs);
   color: var(--text-primary);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   margin-bottom: 5px;
   margin-right: 4px;
-  background: var(--bg-elevated);
+  background: color-mix(in srgb, var(--group-color) 12%, var(--bg-elevated));
   user-select: none;
-  transition: all 120ms ease;
+  transition: all 140ms ease;
   font-family: inherit;
   appearance: none;
+  flex-shrink: 0;
+  max-width: 140px;
 }
 
-.tab-group-pill-empty {
-  flex-shrink: 0;
+.tab-group-pill.collapsed {
+  opacity: 0.9;
+}
+
+.tab-group-pill.has-active-tab {
+  box-shadow: 0 0 0 1px var(--group-color), 0 0 8px color-mix(in srgb, var(--group-color) 40%, transparent);
+}
+
+.tab-group-pill.drag-over {
+  background: color-mix(in srgb, var(--group-color) 30%, var(--bg-elevated));
+  outline: 2px dashed var(--group-color);
+  outline-offset: 1px;
 }
 
 .tab-group-pill:focus-visible,
@@ -3391,18 +3403,34 @@ button.nexus-btn-primary:active:not(:disabled) {
 }
 
 .tab-group-pill:hover {
-  filter: brightness(1.15);
+  filter: brightness(1.2);
 }
 
 .tab-group-dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .tab-group-title {
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90px;
+}
+
+.tab-group-active-indicator {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  box-shadow: 0 0 4px var(--text-primary);
+  flex-shrink: 0;
+}
+
+.nexus-tab.in-group {
+  border-top: 2px solid var(--group-color);
 }
 
 .tab-audio-btn {
@@ -3645,46 +3673,178 @@ button.nexus-btn-primary:active:not(:disabled) {
   opacity: 0.55;
 }
 
-.tab-group-editor {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+/* Chrome-Style Tab Group Popover */
+.nexus-group-popover {
+  width: 250px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  padding: 12px;
+  color: var(--text-primary);
+  user-select: none;
+  animation: groupPopoverFadeIn 120ms ease-out;
 }
 
-.tab-group-color-fieldset {
-  border: 0;
-  margin: 8px 0 0;
-  padding: 0;
+@keyframes groupPopoverFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-.tab-group-color-fieldset legend {
-  margin-bottom: 10px;
+.group-popover-header {
+  margin-bottom: 8px;
 }
 
-.tab-group-color-options {
+.group-popover-input {
+  width: 100%;
+  height: 32px;
+  padding: 0 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 120ms ease;
+  box-sizing: border-box;
+}
+
+.group-popover-input:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 1px var(--accent-primary);
+}
+
+.group-popover-presets {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 5px;
+  margin-bottom: 12px;
 }
 
-.tab-group-color-swatch {
-  width: 26px;
-  height: 26px;
-  aspect-ratio: 1;
-  border: 2px solid transparent;
-  border-radius: 50%;
+.group-preset-chip {
+  padding: 3px 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  color: var(--text-secondary);
+  font-size: 10.5px;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 120ms ease;
+  font-family: inherit;
 }
 
-.tab-group-color-swatch:hover,
-.tab-group-color-swatch:focus-visible {
-  outline: 2px solid var(--text-primary);
-  outline-offset: 2px;
+.group-preset-chip:hover {
+  background: var(--bg-surface-hover);
+  color: var(--text-primary);
+  border-color: var(--border-medium);
 }
 
-.tab-group-color-swatch[aria-checked='true'] {
+.group-preset-chip.active {
+  background: var(--accent-primary);
+  color: var(--accent-contrast);
+  border-color: var(--accent-primary);
+  font-weight: 600;
+}
+
+.group-popover-colors {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 6px;
+  margin-bottom: 10px;
+  justify-items: center;
+}
+
+.group-color-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 100ms ease, box-shadow 100ms ease;
+  padding: 0;
+  outline: none;
+}
+
+.group-color-swatch:hover {
+  transform: scale(1.18);
+}
+
+.group-color-swatch.selected {
   border-color: var(--bg-surface);
   box-shadow: 0 0 0 2px var(--text-primary);
+  transform: scale(1.12);
+}
+
+.group-popover-divider {
+  height: 1px;
+  background: var(--border-subtle);
+  margin: 8px 0;
+}
+
+.group-popover-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.group-action-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 8px;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-xs);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: background 100ms ease;
+  font-family: inherit;
+}
+
+.group-action-row:hover {
+  background: var(--bg-elevated);
+}
+
+.group-action-row.item-danger {
+  color: var(--status-red, #EF4444);
+}
+
+.group-action-row.item-danger:hover {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.context-menu-group-list {
+  max-height: 140px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.vtab-group-active-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  box-shadow: 0 0 4px var(--text-primary);
+  margin-right: 4px;
+}
+
+.vtab-group-header.drag-over {
+  background: color-mix(in srgb, var(--group-color, var(--accent-primary)) 25%, var(--bg-elevated));
 }
 
 .vtab-item {

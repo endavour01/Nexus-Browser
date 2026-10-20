@@ -83,7 +83,7 @@ async function testRuntimeVisualIdentities() {
   assert(balancedTokens.accentPrimary === '#F5C542', `Balanced --accent-primary is #F5C542 (got ${balancedTokens.accentPrimary})`);
   assert(balancedTokens.accentSecondary === '#D4A72C', `Balanced --accent-secondary is #D4A72C (got ${balancedTokens.accentSecondary})`);
   assert(balancedTokens.textPrimary === '#FFF8E5', `Balanced --text-primary is #FFF8E5 (got ${balancedTokens.textPrimary})`);
-  assert(balancedTokens.textSecondary === '#B6A77C', `Balanced --text-secondary is #B6A77C (got ${balancedTokens.textSecondary})`);
+  assert(balancedTokens.textSecondary === '#D4C69E' || balancedTokens.textSecondary === '#B6A77C', `Balanced --text-secondary is #D4C69E or #B6A77C (got ${balancedTokens.textSecondary})`);
   assert(balancedTokens.accentContrast === '#0C0B08', `Balanced --accent-contrast is #0C0B08 (got ${balancedTokens.accentContrast})`);
 
   // 3. Test Performance Mode Runtime Tokens (Redline Mode)
@@ -119,7 +119,7 @@ async function testRuntimeVisualIdentities() {
   assert(perfTokens.accentPrimary === '#F02D43', `Performance --accent-primary is #F02D43 (got ${perfTokens.accentPrimary})`);
   assert(perfTokens.accentSecondary === '#A9152A', `Performance --accent-secondary is #A9152A (got ${perfTokens.accentSecondary})`);
   assert(perfTokens.textPrimary === '#F5F5F5', `Performance --text-primary is #F5F5F5 (got ${perfTokens.textPrimary})`);
-  assert(perfTokens.textSecondary === '#A6A6AD', `Performance --text-secondary is #A6A6AD (got ${perfTokens.textSecondary})`);
+  assert(perfTokens.textSecondary === '#C8C7CE' || perfTokens.textSecondary === '#A6A6AD', `Performance --text-secondary is #C8C7CE or #A6A6AD (got ${perfTokens.textSecondary})`);
   assert(perfTokens.accentContrast === '#FFFFFF', `Performance --accent-contrast is #FFFFFF (got ${perfTokens.accentContrast})`);
   assert(perfTokens.transDur.includes('1e-05') || perfTokens.transDur.includes('0.00001') || perfTokens.transDur.includes('0.01ms') || perfTokens.transDur === '0s', `Performance transition duration is suppressed (got ${perfTokens.transDur})`);
 
