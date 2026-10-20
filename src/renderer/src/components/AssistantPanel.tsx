@@ -23,16 +23,20 @@ import {
   AgentStepLog,
   ConfirmationRequest,
   StoredCredentialMetadata,
+  NexusBrowserMode,
 } from '@shared/types';
 import { Button, IconButton, Input, Card, Badge, Modal, Tabs } from './ui';
 import { PanelHeader } from './ui/PanelHeader/PanelHeader';
+import { NexusBotAvatar } from './NexusBotAvatar';
+import { getNexusModeLabel, getNexusModeAccent } from '../assets/nexusBotAssets';
 
 interface AssistantPanelProps {
   onClose: () => void;
   onNavigate?: (url: string) => void;
+  mode?: NexusBrowserMode;
 }
 
-export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose, onNavigate }) => {
+export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose, onNavigate, mode = 'default' }) => {
   const [activeTab, setActiveTab] = useState<'task' | 'credentials' | 'allowlist'>('task');
   const [taskInput, setTaskInput] = useState('');
   const [status, setStatus] = useState<AgentStatusResponse>({
@@ -229,7 +233,7 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose, onNavig
     <div className="nexus-assistant-panel" style={{ display: 'flex', flexDirection: 'column', height: '100%', background: 'var(--bg-app)' }}>
       <PanelHeader
         title="Nexus Bot"
-        icon={<Bot size={16} />}
+        icon={<NexusBotAvatar mode={mode} size={20} showGlow={true} />}
         description="Autonomous single-task browser agent"
         onClose={onClose}
       />
@@ -271,6 +275,21 @@ export const AssistantPanel: React.FC<AssistantPanelProps> = ({ onClose, onNavig
                   {isRunning ? 'Agent is working' : 'Agent Ready'}
                 </span>
                 {getStatusBadge()}
+                <span
+                  style={{
+                    fontSize: '9.5px',
+                    padding: '2px 6px',
+                    borderRadius: '8px',
+                    background: `${getNexusModeAccent(mode)}18`,
+                    color: getNexusModeAccent(mode),
+                    border: `1px solid ${getNexusModeAccent(mode)}33`,
+                    fontWeight: 700,
+                    letterSpacing: '0.03em',
+                  }}
+                  title={`NEXUS Active Mode: ${getNexusModeLabel(mode)}`}
+                >
+                  {getNexusModeLabel(mode)}
+                </span>
               </div>
               <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)' }}>
                 Step {status.stepCount} / {status.maxSteps}

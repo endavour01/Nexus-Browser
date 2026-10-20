@@ -14699,4 +14699,56 @@ select.nexus-select.small {
 .text-muted { color: var(--nexus-text-muted, #717786); }
 .text-accent { color: var(--nexus-accent-primary, #A78BFA); }
 
+/* ==========================================================================
+   NEXUS BOT LOGO & PROFILE SECTION
+   Liquid glass styling, mode-specific ambient accents, responsive avatar
+   ========================================================================== */
+.nexus-bot-profile-card {
+  background: var(--nexus-bg-surface, #12151D);
+  border: 1px solid var(--nexus-border-subtle, #1C202C);
+  border-radius: var(--nexus-radius-md, 8px);
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
 
+.nexus-bot-profile-card:hover {
+  border-color: var(--nexus-border-strong, #2E3445);
+}
+
+.nexus-bot-profile-default {
+  border-left: 3px solid #A78BFA !important;
+  box-shadow: 0 4px 16px -4px rgba(167, 139, 250, 0.12);
+}
+.nexus-bot-profile-default:hover {
+  box-shadow: 0 6px 20px -2px rgba(167, 139, 250, 0.18);
+}
+
+.nexus-bot-profile-balanced {
+  border-left: 3px solid #F5C542 !important;
+  box-shadow: 0 4px 16px -4px rgba(245, 197, 66, 0.12);
+}
+.nexus-bot-profile-balanced:hover {
+  box-shadow: 0 6px 20px -2px rgba(245, 197, 66, 0.18);
+}
+
+.nexus-bot-profile-performance {
+  border-left: 3px solid #F02D43 !important;
+  box-shadow: 0 4px 16px -4px rgba(240, 45, 67, 0.12);
+}
+.nexus-bot-profile-performance:hover {
+  box-shadow: 0 6px 20px -2px rgba(240, 45, 67, 0.18);
+}
+
+.nexus-bot-avatar-wrapper {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+}
+.nexus-bot-avatar-wrapper:hover {
+  transform: scale(1.03);
+}
+
+.nexus-bot-cycle-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: var(--nexus-text-primary, #F4F4F5) !important;
+}

@@ -41,6 +41,7 @@ import {
 } from 'lucide-react';
 import { Button, Select, Badge, Card } from '../ui';
 import { AccountProfileView, AccountModal } from '../Account';
+import { NexusBotProfileSection } from '../NexusBotProfileSection';
 import { PrivacyCenterView } from './PrivacyCenterView';
 import { DataTransparencyView } from './DataTransparencyView';
 import { AboutNexusView } from './AboutNexusView';
@@ -357,6 +358,12 @@ export const SettingsWorkspace: React.FC<SettingsWorkspaceProps> = ({
             {/* 1.5. NEXUS ACCOUNT & IDENTITY SECTION */}
             {activeSection === 'account' && (
               <div className="settings-section-block">
+                <div style={{ marginBottom: '16px' }}>
+                  <NexusBotProfileSection
+                    mode={settings.mode}
+                    onSelectMode={(m) => handleSettingChange({ mode: m }, `Mode switched to ${m}`)}
+                  />
+                </div>
                 <div className="settings-section-header">
                   <div>
                     <h3 className="settings-section-title">NEXUS Account & User Identity</h3>

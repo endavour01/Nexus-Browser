@@ -1925,6 +1925,8 @@ export const App: React.FC = () => {
           setActiveProfile(prof);
           api?.getProfiles().then(setProfiles).catch(() => {});
         }}
+        mode={browserMode}
+        onSelectMode={setBrowserMode}
       />
 
       {/* 16. Browser Mode Selector Modal */}

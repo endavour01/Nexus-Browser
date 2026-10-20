@@ -14,14 +14,17 @@ import {
   X,
   Edit2,
 } from 'lucide-react';
-import { UserProfile, AccountSession } from '@shared/types';
+import { UserProfile, AccountSession, NexusBrowserMode } from '@shared/types';
 import { Tabs } from './ui/Tabs/Tabs';
 import { AccountProfileView, AccountModal } from './Account';
+import { NexusBotProfileSection } from './NexusBotProfileSection';
 
 interface ProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
   onProfileSwitched?: (profile: UserProfile) => void;
+  mode?: NexusBrowserMode;
+  onSelectMode?: (mode: NexusBrowserMode) => void;
 }
 
 const AVAILABLE_ICONS = [
@@ -50,6 +53,8 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
   isOpen,
   onClose,
   onProfileSwitched,
+  mode,
+  onSelectMode,
 }) => {
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
   const [activeProfile, setActiveProfile] = useState<UserProfile | null>(null);
@@ -273,6 +278,12 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({
             {/* List of profiles */}
             {!isCreating && !editingId && (
               <>
+                <div style={{ marginBottom: '14px' }}>
+                  <NexusBotProfileSection
+                    mode={mode}
+                    onSelectMode={onSelectMode}
+                  />
+                </div>
                 <div className="profiles-grid">
                   {profiles.map((p) => {
                     const isActive = activeProfile?.id === p.id;

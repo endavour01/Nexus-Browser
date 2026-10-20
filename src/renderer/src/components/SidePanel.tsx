@@ -18,6 +18,7 @@ import { DictionaryView } from './Intelligence/DictionaryView';
 import { HubWorkspace } from './Hub';
 import { TodoWorkspace } from './Todo';
 import { AssistantPanel } from './AssistantPanel';
+import { NexusBotProfileSection } from './NexusBotProfileSection';
 import { NexusState } from './NexusState';
 import { ModeBehaviorControls } from './ModeBehaviorControls';
 import {
@@ -645,6 +646,14 @@ export const SidePanel: React.FC<SidePanelProps> = ({
         {/* ================= Profiles View ================= */}
         {type === 'profiles' && (
           <div className="panel-section">
+            {/* NEXUS Bot Companion Profile Section */}
+            <div style={{ marginBottom: '14px' }}>
+              <NexusBotProfileSection
+                mode={settings?.mode}
+                onSelectMode={onSelectMode}
+              />
+            </div>
+
             {activeProfile && (
               <div
                 className="profile-active-card"
@@ -1293,7 +1302,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
         )}
 
         {type === 'assistant' && (
-          <AssistantPanel onClose={onClose} onNavigate={onNavigate} />
+          <AssistantPanel onClose={onClose} onNavigate={onNavigate} mode={settings?.mode} />
         )}
       </div>
     </div>
