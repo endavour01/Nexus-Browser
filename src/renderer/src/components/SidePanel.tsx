@@ -52,6 +52,7 @@ import {
   Compass,
   Sun,
   Sliders,
+  ExternalLink,
 } from 'lucide-react';
 
 interface SidePanelProps {
@@ -263,6 +264,7 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                   title="Open full Bookmarks Manager"
                 >
                   <span>Open Full Manager</span>
+                  <ExternalLink size={11} />
                 </button>
               )}
             </div>
