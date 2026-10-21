@@ -1099,6 +1099,53 @@ export interface ConnectState {
   workspaces: ConnectWorkspace[];
 }
 
+// ==========================================
+// NEXUS Music Types
+// ==========================================
+export type MusicServiceId =
+  | 'spotify'
+  | 'youtube-music'
+  | 'apple-music'
+  | 'soundcloud'
+  | 'amazon-music'
+  | 'deezer'
+  | string;
+
+export type MusicConnectionState =
+  | 'available'
+  | 'not_connected'
+  | 'connecting'
+  | 'connected'
+  | 'unavailable'
+  | 'error';
+
+export type MusicServiceCategory = 'streaming' | 'radio' | 'indie' | 'hifi' | 'custom' | string;
+
+export interface MusicService {
+  id: MusicServiceId;
+  name: string;
+  url: string;
+  brandColor: string;
+  description: string;
+  category: MusicServiceCategory;
+  connectionState: MusicConnectionState;
+  statusText?: string;
+  requiresAuth?: boolean;
+  supportsWebPlayer: boolean;
+  isFavorite?: boolean;
+  isPinned?: boolean;
+  order: number;
+  createdAt: number;
+  updatedAt?: number;
+  lastOpenedAt?: number;
+}
+
+export interface MusicState {
+  services: MusicService[];
+  connectedServiceIds?: string[];
+  lastActiveServiceId?: string;
+}
+
 
 export interface NexusAPI {
   getVpnStatus: () => Promise<VpnStatus>;
@@ -1327,6 +1374,14 @@ export interface NexusAPI {
   saveConnectWorkspace: (ws: Partial<ConnectWorkspace> & { name: string }) => Promise<ConnectWorkspace>;
   deleteConnectWorkspace: (id: string) => Promise<boolean>;
 
+  // NEXUS Music Management
+  getMusicServices: () => Promise<MusicService[]>;
+  saveMusicService: (service: Partial<MusicService> & { name: string; url: string }) => Promise<MusicService>;
+  setMusicConnectionState: (id: string, state: MusicConnectionState, statusText?: string) => Promise<boolean>;
+  disconnectMusicService: (id: string) => Promise<boolean>;
+  toggleMusicFavorite: (id: string) => Promise<boolean>;
+  resetDefaultMusicServices: () => Promise<MusicService[]>;
+
   // Event Listeners
   onTabsUpdated: (callback: (tabs: TabState[], activeTabId: string) => void) => () => void;
   onWindowMaximizedChange: (callback: (isMaximized: boolean) => void) => () => void;
@@ -1349,6 +1404,7 @@ export interface NexusAPI {
   onMarketsAlertTriggered: (callback: (payload: MarketsAlertPayload) => void) => () => void;
   onTodosUpdated: (callback: (todos: NexusTodo[]) => void) => () => void;
   onConnectUpdated: (callback: (data: { apps: ConnectApp[]; workspaces: ConnectWorkspace[] }) => void) => () => void;
+  onMusicUpdated: (callback: (data: { services: MusicService[] }) => void) => () => void;
 
   // Central Browser Settings & Feedback
   getBrowserSettings: () => Promise<BrowserSettings>;

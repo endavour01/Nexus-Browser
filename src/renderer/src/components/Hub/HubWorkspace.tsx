@@ -39,6 +39,7 @@ import {
   X,
   Check,
   MessageSquare,
+  Music,
 } from 'lucide-react';
 import { Button, IconButton, Badge } from '../ui';
 
@@ -315,6 +316,18 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
                 <MessageSquare size={18} />
               </div>
               <span className="hub-utility-label">Connect</span>
+            </button>
+
+            <button
+              type="button"
+              className="hub-utility-item"
+              onClick={() => onNavigate && onNavigate('nexus://music')}
+              title="Open NEXUS Music hub"
+            >
+              <div className="hub-utility-icon">
+                <Music size={18} />
+              </div>
+              <span className="hub-utility-label">Music</span>
             </button>
 
             <button

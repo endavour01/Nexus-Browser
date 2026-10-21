@@ -423,6 +423,24 @@ const api: NexusAPI = {
     };
   },
 
+  // NEXUS Music Management
+  getMusicServices: () => ipcRenderer.invoke('music:getServices'),
+  saveMusicService: (service: any) => ipcRenderer.invoke('music:saveService', service),
+  setMusicConnectionState: (id: string, state: any, statusText?: string) =>
+    ipcRenderer.invoke('music:setConnectionState', id, state, statusText),
+  disconnectMusicService: (id: string) => ipcRenderer.invoke('music:disconnectService', id),
+  toggleMusicFavorite: (id: string) => ipcRenderer.invoke('music:toggleFavorite', id),
+  resetDefaultMusicServices: () => ipcRenderer.invoke('music:resetDefaults'),
+  onMusicUpdated: (callback: (data: any) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, data: any) => {
+      callback(data);
+    };
+    ipcRenderer.on('music:updated', handler);
+    return () => {
+      ipcRenderer.removeListener('music:updated', handler);
+    };
+  },
+
   onMarketsAlertTriggered: (callback: (alert: any) => void) => {
     const handler = (_event: Electron.IpcRendererEvent, data: any) => {
       callback(data);

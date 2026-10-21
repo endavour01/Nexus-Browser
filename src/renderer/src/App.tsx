@@ -60,6 +60,7 @@ import { MarketsDashboard } from './components/Markets';
 import { HubWorkspace } from './components/Hub';
 import { TodoWorkspace, TodoPrefill } from './components/Todo';
 import { ConnectWorkspace } from './components/Connect';
+import { MusicWorkspace } from './components/Music';
 import { SettingsWorkspace } from './components/Settings';
 import { PrivateStartPage } from './components/PrivateStartPage';
 import { useTheme } from './hooks/useTheme';
@@ -1396,6 +1397,8 @@ export const App: React.FC = () => {
     activeTab?.url === 'nexus://hub' || activeTab?.url?.startsWith('nexus://hub');
   const isConnectPage =
     activeTab?.url === 'nexus://connect' || activeTab?.url?.startsWith('nexus://connect');
+  const isMusicPage =
+    activeTab?.url === 'nexus://music' || activeTab?.url?.startsWith('nexus://music');
   const isTodoPage =
     activeTab?.url === 'nexus://todo' || activeTab?.url?.startsWith('nexus://todo');
   const isSettingsPage =
@@ -1705,6 +1708,22 @@ export const App: React.FC = () => {
                 });
                 handleNavigate('nexus://todo');
               }}
+            />
+          )}
+
+          {isMusicPage && (
+            <MusicWorkspace
+              tabs={tabs}
+              activeWorkspaceId={activeWorkspaceId}
+              onNavigate={handleNavigate}
+              onOpenTab={async (url, pinned) => {
+                const tabId = await api?.createTab(url, activeWorkspaceId, false);
+                if (pinned && tabId && api?.pinTab) {
+                  await api.pinTab(tabId);
+                }
+              }}
+              onSwitchTab={(tabId) => handleSelectTab(tabId)}
+              browserMode={browserMode}
             />
           )}
 

@@ -29,6 +29,7 @@ import {
   Settings,
   MessageSquare,
   FileText,
+  Music,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -271,6 +272,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <div className="pinned-site-icon"><MessageSquare size={13} className="text-accent" /></div>
             {!collapsed && <span className="pinned-site-name">Connect</span>}
+          </button>
+          <button
+            className="pinned-site-item"
+            onClick={() => onNavigate('nexus://music')}
+            title="NEXUS Music"
+          >
+            <div className="pinned-site-icon"><Music size={13} className="text-accent" /></div>
+            {!collapsed && <span className="pinned-site-name">Music</span>}
           </button>
           <button
             className="pinned-site-item"

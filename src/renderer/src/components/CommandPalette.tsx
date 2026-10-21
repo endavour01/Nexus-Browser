@@ -37,6 +37,7 @@ import {
   Shield,
   MessageSquare,
   EyeOff,
+  Music,
 } from 'lucide-react';
 
 export interface CommandPaletteItem {
@@ -442,6 +443,62 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         category: 'Developer & Tools',
         icon: 'Layers',
         action: () => onNavigate('nexus://connect'),
+      },
+      {
+        id: 'music-open',
+        title: 'Open NEXUS Music',
+        subtitle: 'Dedicated music hub for Spotify, YouTube Music, Apple Music, and more',
+        category: 'Developer & Tools',
+        icon: 'Music',
+        action: () => onNavigate('nexus://music'),
+      },
+      {
+        id: 'music-spotify',
+        title: 'Music: Spotify',
+        subtitle: 'Open Spotify Web Player inside NEXUS Browser',
+        category: 'Developer & Tools',
+        icon: 'Music',
+        action: () => onNavigate('https://open.spotify.com'),
+      },
+      {
+        id: 'music-youtube',
+        title: 'Music: YouTube Music',
+        subtitle: 'Open YouTube Music Web Player inside NEXUS Browser',
+        category: 'Developer & Tools',
+        icon: 'Music',
+        action: () => onNavigate('https://music.youtube.com'),
+      },
+      {
+        id: 'music-apple',
+        title: 'Music: Apple Music',
+        subtitle: 'Open Apple Music Web Player inside NEXUS Browser',
+        category: 'Developer & Tools',
+        icon: 'Music',
+        action: () => onNavigate('https://music.apple.com'),
+      },
+      {
+        id: 'music-soundcloud',
+        title: 'Music: SoundCloud',
+        subtitle: 'Open SoundCloud Web Player inside NEXUS Browser',
+        category: 'Developer & Tools',
+        icon: 'Music',
+        action: () => onNavigate('https://soundcloud.com'),
+      },
+      {
+        id: 'music-amazon',
+        title: 'Music: Amazon Music',
+        subtitle: 'Open Amazon Music Web Player inside NEXUS Browser',
+        category: 'Developer & Tools',
+        icon: 'Music',
+        action: () => onNavigate('https://music.amazon.com'),
+      },
+      {
+        id: 'music-deezer',
+        title: 'Music: Deezer',
+        subtitle: 'Open Deezer Web Player inside NEXUS Browser',
+        category: 'Developer & Tools',
+        icon: 'Music',
+        action: () => onNavigate('https://www.deezer.com'),
       },
       {
         id: 'todo-open',
@@ -875,6 +932,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
       case 'FileText': return <FileText size={15} />;
       case 'Shield': return <Shield size={15} />;
       case 'MessageSquare': return <MessageSquare size={15} />;
+      case 'Music': return <Music size={15} />;
       case 'Search': return <Search size={15} />;
       case 'X': return <X size={15} />;
       case 'EyeOff': return <EyeOff size={15} />;

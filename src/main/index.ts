@@ -20,6 +20,7 @@ import { IntelligenceManager } from './intelligence-manager';
 import { MarketsManager } from './markets-manager';
 import { TodoManager } from './todo-manager';
 import { ConnectManager } from './connect-manager';
+import { MusicManager } from './music-manager';
 import { SettingsManager, DEFAULT_BROWSER_SETTINGS } from './settings-manager';
 import { VpnManager } from './vpn-manager';
 import { AccountManager } from './account-manager';
@@ -66,6 +67,7 @@ let intelligenceManager: IntelligenceManager | null = null;
 let marketsManager: MarketsManager | null = null;
 let todoManager: TodoManager | null = null;
 let connectManager: ConnectManager | null = null;
+let musicManager: MusicManager | null = null;
 let settingsManager: SettingsManager | null = null;
 let accountManager: AccountManager | null = null;
 let agentCore: AgentCore | null = null;
@@ -127,6 +129,7 @@ function createWindow() {
   marketsManager = new MarketsManager(storageDir, mainWindow);
   todoManager = new TodoManager(storageDir, mainWindow);
   connectManager = new ConnectManager(storageDir, mainWindow);
+  musicManager = new MusicManager(storageDir, mainWindow);
   settingsManager = new SettingsManager(storageDir, mainWindow);
   accountManager = new AccountManager(storageDir, mainWindow);
   downloadManager = new DownloadManager(mainWindow, profilePaths.downloads);
@@ -1099,6 +1102,38 @@ function registerIpcHandlers() {
   ipcMain.handle('connect:deleteWorkspace', async (_event, id: string) => {
     if (!connectManager) throw new Error('ConnectManager not initialized');
     return connectManager.deleteWorkspace(id);
+  });
+
+  // ==========================================
+  // NEXUS Music IPC Handlers
+  // ==========================================
+  ipcMain.handle('music:getServices', async () => {
+    return musicManager?.getServices() ?? [];
+  });
+
+  ipcMain.handle('music:saveService', async (_event, service: any) => {
+    if (!musicManager) throw new Error('MusicManager not initialized');
+    return musicManager.saveService(service);
+  });
+
+  ipcMain.handle('music:setConnectionState', async (_event, id: string, state: any, statusText?: string) => {
+    if (!musicManager) throw new Error('MusicManager not initialized');
+    return musicManager.setConnectionState(id, state, statusText);
+  });
+
+  ipcMain.handle('music:disconnectService', async (_event, id: string) => {
+    if (!musicManager) throw new Error('MusicManager not initialized');
+    return musicManager.disconnectService(id);
+  });
+
+  ipcMain.handle('music:toggleFavorite', async (_event, id: string) => {
+    if (!musicManager) throw new Error('MusicManager not initialized');
+    return musicManager.toggleFavorite(id);
+  });
+
+  ipcMain.handle('music:resetDefaults', async () => {
+    if (!musicManager) throw new Error('MusicManager not initialized');
+    return musicManager.resetDefaultServices();
   });
 
   // ==========================================
