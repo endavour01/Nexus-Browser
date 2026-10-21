@@ -427,7 +427,6 @@ export const MarketsDashboard: React.FC<MarketsDashboardProps> = ({
                             title="Official Investor Relations Portal"
                           >
                             <span>Investor Relations</span>
-                            <ExternalLink size={12} />
                           </button>
                         )}
 

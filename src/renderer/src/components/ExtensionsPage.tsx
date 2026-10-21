@@ -74,7 +74,6 @@ const ExtensionsPageComponent: React.FC<ExtensionsPageProps> = ({
 
         <div className="extensions-header-actions">
           <button className="nexus-btn nexus-btn-secondary" onClick={handleOpenChromeWebStore}>
-            <ExternalLink size={15} />
             <span>Chrome Web Store</span>
           </button>
           <button className="nexus-btn nexus-btn-secondary" onClick={onOpenCompatibility}>
@@ -104,7 +103,6 @@ const ExtensionsPageComponent: React.FC<ExtensionsPageProps> = ({
             className="nexus-btn nexus-btn-primary nexus-btn-sm shrink-0 flex items-center gap-1.5"
             onClick={handleOpenChromeWebStore}
           >
-            <ExternalLink size={13} />
             <span>Open Chrome Web Store</span>
           </button>
         </div>
@@ -193,7 +191,6 @@ const ExtensionsPageComponent: React.FC<ExtensionsPageProps> = ({
                 </p>
                 <div className="flex flex-wrap items-center justify-center gap-3 mt-4">
                   <button className="nexus-btn nexus-btn-secondary" onClick={handleOpenChromeWebStore}>
-                    <ExternalLink size={15} />
                     <span>Chrome Web Store</span>
                   </button>
                   <button className="nexus-btn nexus-btn-primary" onClick={onInstallUnpacked}>

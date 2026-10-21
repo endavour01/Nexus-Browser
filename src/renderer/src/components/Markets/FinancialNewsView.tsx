@@ -165,7 +165,6 @@ export const FinancialNewsView: React.FC<FinancialNewsViewProps> = ({
                   onClick={() => onOpenLink ? onOpenLink(art.originalUrl) : window.open(art.originalUrl, '_blank')}
                   title="Open source article"
                 >
-                  <ExternalLink size={14} />
                 </button>
               </div>
             </div>

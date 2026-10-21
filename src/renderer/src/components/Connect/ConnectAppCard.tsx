@@ -190,7 +190,6 @@ export const ConnectAppCard: React.FC<ConnectAppCardProps> = ({
           variant="primary"
           size="sm"
           className="flex-1"
-          leftIcon={<ExternalLink size={12} />}
           onClick={() => onOpen(app, false)}
           title={`Open ${app.name} in a tab`}
         >

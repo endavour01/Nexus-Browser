@@ -1,6 +1,6 @@
 import React from 'react';
 import { HubCardId } from '@shared/types';
-import { ChevronUp, ChevronDown, EyeOff, ExternalLink } from 'lucide-react';
+import { ChevronUp, ChevronDown, EyeOff } from 'lucide-react';
 import { IconButton } from '../ui';
 
 interface HubCardProps {
@@ -50,7 +50,6 @@ export const HubCard: React.FC<HubCardProps> = ({
               onClick={onAction}
             >
               <span>{actionText}</span>
-              <ExternalLink size={10} />
             </button>
           )}
 

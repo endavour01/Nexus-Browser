@@ -196,7 +196,6 @@ export const ShoppingTrackerView: React.FC<ShoppingTrackerViewProps> = ({
                   onClick={() => onOpenLink ? onOpenLink(prod.url) : window.open(prod.url, '_blank')}
                 >
                   <span>Visit Store</span>
-                  <ExternalLink size={12} />
                 </button>
 
                 {updatingProductId === prod.id ? (

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { MusicService } from '@shared/types';
 import {
-  ExternalLink,
   Pin,
   Star,
   MoreVertical,
@@ -223,7 +222,6 @@ export const MusicServiceCard: React.FC<MusicServiceCardProps> = ({
             variant="primary"
             size="sm"
             className="flex-1 font-semibold"
-            leftIcon={<ExternalLink size={12} />}
             onClick={() => onOpen(service, false)}
             title={`Open ${service.name} inside NEXUS Browser`}
           >

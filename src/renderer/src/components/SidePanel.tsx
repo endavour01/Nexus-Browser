@@ -264,7 +264,6 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                   title="Open full Bookmarks Manager"
                 >
                   <span>Open Full Manager</span>
-                  <ExternalLink size={11} />
                 </button>
               )}
             </div>
@@ -411,7 +410,6 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                     className="panel-inline-action"
                     onClick={onOpenDownloadsPage}
                   >
-                    <ExternalLink size={12} />
                     <span>Full page</span>
                   </button>
                 )}
@@ -547,7 +545,6 @@ export const SidePanel: React.FC<SidePanelProps> = ({
                 onClick={onOpenExtensionsPage}
                 title="Open full extensions page (nexus://extensions)"
               >
-                <ExternalLink size={13} />
                 <span>Full Page</span>
               </button>
             </div>

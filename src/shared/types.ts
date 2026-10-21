@@ -1110,6 +1110,7 @@ export type MusicServiceId =
   | 'soundcloud'
   | 'amazon-music'
   | 'deezer'
+  | 'jiosaavn'
   | string;
 
 export type MusicConnectionState =

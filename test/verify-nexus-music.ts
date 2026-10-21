@@ -34,11 +34,11 @@ async function runMusicTestSuite() {
   const musicManager = new MusicManager(testDir);
 
   // --------------------------------------------------------------------------
-  // SUITE 1: 6 LAUNCH SERVICES & AUTHENTIC BRAND DATA
+  // SUITE 1: 7 LAUNCH SERVICES & AUTHENTIC BRAND DATA
   // --------------------------------------------------------------------------
-  console.log('[SUITE 1: 6 LAUNCH SERVICES & AUTHENTIC BRAND DATA]');
+  console.log('[SUITE 1: 7 LAUNCH SERVICES & AUTHENTIC BRAND DATA]');
 
-  assert(DEFAULT_MUSIC_SERVICES.length === 6, 'DEFAULT_MUSIC_SERVICES contains exactly 6 services');
+  assert(DEFAULT_MUSIC_SERVICES.length === 7, 'DEFAULT_MUSIC_SERVICES contains exactly 7 services');
 
   const spotify = DEFAULT_MUSIC_SERVICES.find((s) => s.id === 'spotify');
   assert(!!spotify, 'Spotify service is defined');
@@ -70,6 +70,13 @@ async function runMusicTestSuite() {
   assert(!!deezer, 'Deezer service is defined');
   assert(deezer?.url === 'https://www.deezer.com', 'Deezer URL is https://www.deezer.com');
   assert(deezer?.brandColor === '#A238FF', 'Deezer brand color is #A238FF');
+
+  const jioSaavn = DEFAULT_MUSIC_SERVICES.find((s) => s.id === 'jiosaavn');
+  assert(!!jioSaavn, 'JioSaavn service is defined');
+  assert(jioSaavn?.name === 'JioSaavn', 'JioSaavn service name is correctly capitalized');
+  assert(jioSaavn?.url === 'https://www.jiosaavn.com', 'JioSaavn URL is the official web player');
+  assert(jioSaavn?.connectionState === 'available', 'JioSaavn starts available, not connected');
+  assert(jioSaavn?.supportsWebPlayer === true, 'JioSaavn supports its web player');
 
   // --------------------------------------------------------------------------
   // SUITE 2: URL VALIDATION & SECURITY
@@ -110,7 +117,7 @@ async function runMusicTestSuite() {
   console.log('\n[SUITE 3: STATE TRANSITIONS & PERSISTENCE]');
 
   const loadedServices = musicManager.getServices();
-  assert(loadedServices.length === 6, 'MusicManager loaded 6 default services from initialization');
+  assert(loadedServices.length === 7, 'MusicManager loaded 7 default services from initialization');
 
   // Set connection state
   musicManager.setConnectionState('spotify', 'connected', 'In-Tab Active');
@@ -142,7 +149,7 @@ async function runMusicTestSuite() {
   // Corruption tolerance test
   fs.writeFileSync(storageFilePath, '{"corrupted": true, "services": null}', 'utf8');
   const recoveryManager = new MusicManager(testDir);
-  assert(recoveryManager.getServices().length === 6, 'Corrupt nexus-music.json recovered gracefully to defaults');
+  assert(recoveryManager.getServices().length === 7, 'Corrupt nexus-music.json recovered gracefully to defaults');
 
   // --------------------------------------------------------------------------
   // SUITE 4: COMPONENT FILES & SVG LOGO INTEGRITY
@@ -164,6 +171,7 @@ async function runMusicTestSuite() {
   assert(logosContent.includes('SoundCloudLogo'), 'MusicServiceLogos exports SoundCloudLogo');
   assert(logosContent.includes('AmazonMusicLogo'), 'MusicServiceLogos exports AmazonMusicLogo');
   assert(logosContent.includes('DeezerLogo'), 'MusicServiceLogos exports DeezerLogo');
+  assert(logosContent.includes('JioSaavnLogo'), 'MusicServiceLogos exports JioSaavnLogo');
   assert(logosContent.includes('renderMusicServiceLogo'), 'MusicServiceLogos exports renderMusicServiceLogo resolver');
 
   const cssContent = fs.readFileSync(path.join(rootDir, 'src/renderer/src/components.css'), 'utf8');

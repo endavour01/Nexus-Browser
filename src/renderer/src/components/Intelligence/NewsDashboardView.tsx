@@ -426,7 +426,6 @@ export const NewsDashboardView: React.FC<NewsDashboardViewProps> = ({
                     title="Open original verified source"
                   >
                     <span>Source</span>
-                    <ExternalLink size={12} />
                   </button>
                 </div>
               </div>
@@ -480,7 +479,6 @@ export const NewsDashboardView: React.FC<NewsDashboardViewProps> = ({
                           onClick={() => handleOpenArticle(art.originalUrl)}
                         >
                           <span>Original</span>
-                          <ExternalLink size={11} />
                         </button>
                       </div>
                     </div>

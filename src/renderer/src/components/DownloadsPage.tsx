@@ -312,7 +312,6 @@ export const DownloadsPage: React.FC<DownloadsPageProps> = memo(({
                             onClick={() => onOpenFile(item.id)}
                             title="Open File"
                           >
-                            <ExternalLink size={12} />
                             <span>Open</span>
                           </button>
                           <button

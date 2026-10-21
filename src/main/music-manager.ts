@@ -103,6 +103,22 @@ export const DEFAULT_MUSIC_SERVICES: MusicService[] = [
     order: 5,
     createdAt: 1700000000005,
   },
+  {
+    id: 'jiosaavn',
+    name: 'JioSaavn',
+    url: 'https://www.jiosaavn.com',
+    brandColor: '#2BC5B4',
+    description: 'Stream music, playlists, and podcasts from JioSaavn’s web player',
+    category: 'streaming',
+    connectionState: 'available',
+    statusText: 'Web Player Ready',
+    requiresAuth: true,
+    supportsWebPlayer: true,
+    isFavorite: false,
+    isPinned: false,
+    order: 6,
+    createdAt: 1700000000006,
+  },
 ];
 
 // ============================================================================

@@ -156,7 +156,6 @@ export const PrivacyCenterView: React.FC<PrivacyCenterViewProps> = ({
             <Button
               variant="secondary"
               size="sm"
-              leftIcon={<ExternalLink size={12} />}
               onClick={() => onNavigate('nexus://shield')}
               title="Open full NEXUS Shield dashboard"
             >

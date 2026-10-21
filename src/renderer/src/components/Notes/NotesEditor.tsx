@@ -1032,7 +1032,6 @@ export const NotesEditor: React.FC<NotesEditorProps> = ({
                 onClick={() => onOpenUrl(note.linkedTab!.url)}
                 title="Open source URL in browser tab"
               >
-                <ExternalLink size={13} />
                 Open
               </button>
             )}

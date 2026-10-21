@@ -323,7 +323,6 @@ export const ShieldPopover: React.FC<ShieldPopoverProps> = ({
           }}
         >
           <span>Open Shield Dashboard</span>
-          <ExternalLink size={13} />
         </button>
       </div>
     </div>
