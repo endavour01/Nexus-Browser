@@ -4,7 +4,6 @@ import {
   ShoppingBag,
   Plus,
   Trash2,
-  ExternalLink,
   Tag,
   TrendingDown,
   Bell,

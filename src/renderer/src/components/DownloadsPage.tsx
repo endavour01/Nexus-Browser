@@ -11,7 +11,6 @@ import {
   AlertCircle,
   Folder,
   Trash2,
-  ExternalLink,
 } from 'lucide-react';
 import { NexusState } from './NexusState';
 

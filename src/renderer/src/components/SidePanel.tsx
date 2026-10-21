@@ -25,7 +25,6 @@ import {
   X,
   Plus,
   Trash2,
-  ExternalLink,
   Search,
   Check,
   ShieldCheck,

@@ -12,7 +12,6 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
-  ExternalLink,
   Sliders,
   Database,
   Globe,

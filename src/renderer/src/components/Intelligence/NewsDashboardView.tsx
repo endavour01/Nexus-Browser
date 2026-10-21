@@ -3,7 +3,6 @@ import {
   Newspaper,
   Search,
   SlidersHorizontal,
-  ExternalLink,
   ShieldCheck,
   CheckCircle2,
   AlertCircle,

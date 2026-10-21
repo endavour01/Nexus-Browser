@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { FinancialNewsArticle, FinancialArticleType } from '@shared/types';
 import {
   Newspaper,
-  ExternalLink,
   BookmarkPlus,
   Filter,
   FileCheck,

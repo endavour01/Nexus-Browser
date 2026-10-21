@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { ConnectApp } from '@shared/types';
 import {
-  ExternalLink,
   Pin,
   Star,
   CheckSquare,

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Music, Radio, Disc } from 'lucide-react';
+import jioSaavnLogo from '../../assets/jiosaavn-logo-icon.png';
 
 interface LogoProps {
   size?: number;
@@ -150,10 +151,7 @@ export const DeezerLogo: React.FC<LogoProps> = ({ size = 24, className = '' }) =
 
 /** JioSaavn's teal logomark, sized to match the existing music service tiles. */
 export const JioSaavnLogo: React.FC<LogoProps> = ({ size = 24, className = '' }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className={className} role="img" aria-label="JioSaavn Logo">
-    <rect width="24" height="24" rx="5.5" fill="#2BC5B4" />
-    <path d="M7.2 7.1c1.9-1.5 5.8-1.8 8.5-.2 2 1.2 2.9 3.1 2.9 5.2 0 3.3-2.6 5.8-6 5.8-2.7 0-4.9-1.6-5.7-3.9h3.3c.5.8 1.3 1.2 2.4 1.2 1.7 0 2.8-1.2 2.8-3.1 0-1.8-1.1-3.1-2.8-3.1-.9 0-1.7.4-2.2 1.1H7.1c.4-1.2 1.1-2.2 2.1-2.9Z" fill="#fff" />
-  </svg>
+  <img src={jioSaavnLogo} width={size} height={size} className={className} alt="JioSaavn Logo" />
 );
 
 /**

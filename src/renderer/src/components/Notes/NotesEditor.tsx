@@ -45,7 +45,6 @@ import {
   Maximize2,
   Minimize2,
   Download,
-  ExternalLink,
   Trash2,
   Check,
   ChevronDown,

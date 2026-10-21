@@ -6,7 +6,6 @@ import {
   ShieldOff,
   Pause,
   Play,
-  ExternalLink,
   X,
   AlertTriangle,
   Lock,

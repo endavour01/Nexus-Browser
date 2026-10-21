@@ -18,7 +18,6 @@ import {
   Newspaper,
   Settings,
   Search,
-  ExternalLink,
   BookmarkPlus,
   Star,
   Bell,
