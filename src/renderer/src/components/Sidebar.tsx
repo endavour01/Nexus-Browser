@@ -271,7 +271,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title="NEXUS Connect"
           >
             <div className="pinned-site-icon"><MessageSquare size={13} className="text-accent" /></div>
-            {!collapsed && <span className="pinned-site-name">Connect</span>}
+            {!collapsed && <span className="pinned-site-name">NEXUS Connect</span>}
           </button>
           <button
             className="pinned-site-item"
@@ -279,7 +279,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title="NEXUS Music"
           >
             <div className="pinned-site-icon"><Music size={13} className="text-accent" /></div>
-            {!collapsed && <span className="pinned-site-name">Music</span>}
+            {!collapsed && <span className="pinned-site-name">NEXUS Music</span>}
           </button>
           <button
             className="pinned-site-item"
@@ -287,7 +287,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title="NEXUS Notes"
           >
             <div className="pinned-site-icon"><FileText size={13} className="text-accent" /></div>
-            {!collapsed && <span className="pinned-site-name">Notes</span>}
+            {!collapsed && <span className="pinned-site-name">NEXUS Notes</span>}
           </button>
           <button
             className="pinned-site-item"
@@ -295,7 +295,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title="NEXUS Todo"
           >
             <div className="pinned-site-icon"><CheckSquare size={13} className="text-accent" /></div>
-            {!collapsed && <span className="pinned-site-name">Todo</span>}
+            {!collapsed && <span className="pinned-site-name">NEXUS Todo</span>}
           </button>
           <button
             className="pinned-site-item"
@@ -303,7 +303,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title="NEXUS Shield"
           >
             <div className="pinned-site-icon"><Shield size={13} className="text-accent" /></div>
-            {!collapsed && <span className="pinned-site-name">Shield</span>}
+            {!collapsed && <span className="pinned-site-name">NEXUS Shield</span>}
           </button>
           <button
             className="pinned-site-item"
@@ -311,7 +311,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title="NEXUS Explore"
           >
             <div className="pinned-site-icon"><Compass size={13} className="text-accent" /></div>
-            {!collapsed && <span className="pinned-site-name">Explore</span>}
+            {!collapsed && <span className="pinned-site-name">NEXUS Explore</span>}
           </button>
           <button
             className="pinned-site-item"
@@ -319,7 +319,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             title="NEXUS Markets"
           >
             <div className="pinned-site-icon"><TrendingUp size={13} className="text-accent" /></div>
-            {!collapsed && <span className="pinned-site-name">Markets</span>}
+            {!collapsed && <span className="pinned-site-name">NEXUS Markets</span>}
           </button>
           <button
             className="pinned-site-item"

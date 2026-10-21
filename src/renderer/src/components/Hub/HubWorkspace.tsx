@@ -315,7 +315,7 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
               <div className="hub-utility-icon">
                 <MessageSquare size={18} />
               </div>
-              <span className="hub-utility-label">Connect</span>
+              <span className="hub-utility-label">NEXUS Connect</span>
             </button>
 
             <button
@@ -327,7 +327,7 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
               <div className="hub-utility-icon">
                 <Music size={18} />
               </div>
-              <span className="hub-utility-label">Music</span>
+              <span className="hub-utility-label">NEXUS Music</span>
             </button>
 
             <button
@@ -339,7 +339,7 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
               <div className="hub-utility-icon">
                 <CheckSquare size={18} />
               </div>
-              <span className="hub-utility-label">Todo</span>
+              <span className="hub-utility-label">NEXUS Todo</span>
             </button>
 
             <button
@@ -351,7 +351,7 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
               <div className="hub-utility-icon">
                 <FileText size={18} />
               </div>
-              <span className="hub-utility-label">Notes</span>
+              <span className="hub-utility-label">NEXUS Notes</span>
             </button>
 
             <button
@@ -363,7 +363,7 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
               <div className="hub-utility-icon">
                 <Shield size={18} />
               </div>
-              <span className="hub-utility-label">Shield</span>
+              <span className="hub-utility-label">NEXUS Shield</span>
             </button>
 
             <button
@@ -375,7 +375,7 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
               <div className="hub-utility-icon">
                 <Compass size={18} />
               </div>
-              <span className="hub-utility-label">Explore</span>
+              <span className="hub-utility-label">NEXUS Explore</span>
             </button>
 
             <button
@@ -387,7 +387,7 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
               <div className="hub-utility-icon">
                 <TrendingUp size={18} />
               </div>
-              <span className="hub-utility-label">Markets</span>
+              <span className="hub-utility-label">NEXUS Markets</span>
             </button>
 
             <button
