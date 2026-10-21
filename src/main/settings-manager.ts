@@ -59,6 +59,8 @@ export const DEFAULT_BROWSER_SETTINGS: BrowserSettings = {
   hubEnabled: true,
   devToolsEnabled: true,
   extensionsEnabled: true,
+  connectEnabled: true,
+  musicEnabled: true,
 
   // Notifications (Strictly Opt-In)
   notificationsEnabled: false,

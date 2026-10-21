@@ -302,6 +302,7 @@ export interface BrowserSettings {
   devToolsEnabled?: boolean;
   extensionsEnabled?: boolean;
   connectEnabled?: boolean;
+  musicEnabled?: boolean;
 
   // Notifications
   notificationsEnabled?: boolean;

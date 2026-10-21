@@ -17,6 +17,7 @@ import {
   Database,
   HelpCircle,
   MessageSquare,
+  Music,
   Search,
   RotateCcw,
   Check,
@@ -885,6 +886,26 @@ export const SettingsWorkspace: React.FC<SettingsWorkspaceProps> = ({
                           type="checkbox"
                           checked={settings.connectEnabled ?? true}
                           onChange={(e) => handleSettingChange({ connectEnabled: e.target.checked }, 'Connect')}
+                        />
+                        <span className="toggle-slider" />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="settings-row">
+                    <div className="settings-row-label-group">
+                      <div className="settings-row-label" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Music size={14} style={{ color: '#A78BFA' }} />
+                        <span>NEXUS Music</span>
+                      </div>
+                      <div className="settings-row-desc">Music streaming hub & in-browser web players (nexus://music)</div>
+                    </div>
+                    <div className="settings-row-control">
+                      <label className="toggle-switch">
+                        <input
+                          type="checkbox"
+                          checked={settings.musicEnabled ?? true}
+                          onChange={(e) => handleSettingChange({ musicEnabled: e.target.checked }, 'Music')}
                         />
                         <span className="toggle-slider" />
                       </label>
