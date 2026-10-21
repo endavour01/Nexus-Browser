@@ -261,7 +261,7 @@ export interface BrowserSettings {
   reducedMotion?: boolean;
   uiDensity?: 'comfortable' | 'compact';
   defaultZoom: number;
-  tabLayout: 'horizontal' | 'vertical';
+  tabLayout?: 'horizontal' | 'vertical';
   showBookmarksBar?: boolean;
   onboardingCompleted?: boolean;
   hiddenSidePanels?: SidePanelId[];

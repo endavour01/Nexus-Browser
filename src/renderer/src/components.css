@@ -157,9 +157,7 @@
   border-radius: 2px;
 }
 
-.nexus-tab.is-suspended .tab-favicon,
-.vtab-favicon-slot.is-suspended .vtab-favicon-img,
-.vtab-pinned-favicon.is-suspended {
+.nexus-tab.is-suspended .tab-favicon {
   opacity: 0.5;
   filter: grayscale(0.6);
 }
@@ -179,15 +177,6 @@
 .nexus-tab .tab-icon.is-suspended .tab-suspended-indicator {
   right: -1px;
   bottom: -1px;
-}
-
-.vtab-favicon-slot {
-  position: relative;
-}
-
-.vtab-pinned-item .tab-suspended-indicator {
-  right: 4px;
-  bottom: 4px;
 }
 
 .tab-fallback-icon {
@@ -266,12 +255,6 @@
   gap: 4px;
   flex-shrink: 0;
   -webkit-app-region: no-drag;
-}
-
-.titlebar-controls .layout-toggle-btn {
-  flex-shrink: 0;
-  width: 28px;
-  height: 28px;
 }
 
 .window-controls-divider {
@@ -2721,18 +2704,6 @@ button.nexus-btn-primary:active:not(:disabled) {
   border-bottom-color: var(--nexus-accent-primary, #A78BFA) !important;
 }
 
-.vtab-item.tab-item-private,
-.vtab-pinned-item.tab-item-private {
-  border-left: 2px solid rgba(167, 139, 250, 0.5) !important;
-  background: rgba(167, 139, 250, 0.04);
-}
-
-.vtab-item.tab-item-private.active,
-.vtab-pinned-item.tab-item-private.active {
-  background: rgba(167, 139, 250, 0.12) !important;
-  border-left-color: var(--nexus-accent-primary, #A78BFA) !important;
-}
-
 .tab-private-icon {
   color: var(--nexus-accent-primary, #A78BFA) !important;
   flex-shrink: 0;
@@ -2744,14 +2715,6 @@ button.nexus-btn-primary:active:not(:disabled) {
 :root[data-mode='balanced'] .nexus-tab.tab-item-private.active {
   border-bottom-color: #F5C542 !important;
 }
-:root[data-mode='balanced'] .vtab-item.tab-item-private,
-:root[data-mode='balanced'] .vtab-pinned-item.tab-item-private {
-  border-left-color: rgba(245, 197, 66, 0.5) !important;
-}
-:root[data-mode='balanced'] .vtab-item.tab-item-private.active,
-:root[data-mode='balanced'] .vtab-pinned-item.tab-item-private.active {
-  border-left-color: #F5C542 !important;
-}
 :root[data-mode='balanced'] .tab-private-icon {
   color: #F5C542 !important;
 }
@@ -2761,14 +2724,6 @@ button.nexus-btn-primary:active:not(:disabled) {
 }
 :root[data-mode='performance'] .nexus-tab.tab-item-private.active {
   border-bottom-color: #F02D43 !important;
-}
-:root[data-mode='performance'] .vtab-item.tab-item-private,
-:root[data-mode='performance'] .vtab-pinned-item.tab-item-private {
-  border-left-color: rgba(240, 45, 67, 0.5) !important;
-}
-:root[data-mode='performance'] .vtab-item.tab-item-private.active,
-:root[data-mode='performance'] .vtab-pinned-item.tab-item-private.active {
-  border-left-color: #F02D43 !important;
 }
 :root[data-mode='performance'] .tab-private-icon {
   color: #F02D43 !important;
@@ -3405,8 +3360,7 @@ button.nexus-btn-primary:active:not(:disabled) {
 /* ==========================================================================
    Tab Enhancements: Pinning, Drag & Drop, Groups, Audio
    ========================================================================== */
-.nexus-tab.drag-over,
-.vtab-item.drag-over {
+.nexus-tab.drag-over {
   border-left: 2px solid var(--accent-primary) !important;
   background: var(--bg-surface-hover) !important;
 }
@@ -3467,8 +3421,7 @@ button.nexus-btn-primary:active:not(:disabled) {
   outline-offset: 1px;
 }
 
-.tab-group-pill:focus-visible,
-.vtab-group-header:focus-visible {
+.tab-group-pill:focus-visible {
   outline: 2px solid var(--group-color, var(--accent-primary));
   outline-offset: 1px;
 }
@@ -3502,240 +3455,6 @@ button.nexus-btn-primary:active:not(:disabled) {
 
 .nexus-tab.in-group {
   border-top: 2px solid var(--group-color);
-}
-
-.tab-audio-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 2px;
-  margin-left: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 2px;
-}
-
-.tab-audio-btn:hover {
-  color: var(--accent-primary);
-  background: var(--bg-surface-hover);
-}
-
-.tab-audio-indicator {
-  display: flex;
-  align-items: center;
-  color: var(--accent-primary);
-  margin-left: 2px;
-}
-
-.titlebar-tab-actions {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  margin-left: 4px;
-  margin-bottom: 3px;
-  align-self: flex-end;
-}
-
-.titlebar-vtab-indicator {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-left: 12px;
-  font-size: 11.5px;
-  color: var(--text-muted);
-}
-
-.vtab-active-indicator-text {
-  font-family: var(--font-mono);
-  font-size: 11px;
-}
-
-.layout-toggle-btn.active {
-  color: var(--accent-primary);
-  background: var(--accent-dim);
-}
-
-/* ==========================================================================
-   Vertical Tab Bar Styles
-   ========================================================================== */
-.nexus-vertical-tabs-bar {
-  width: 220px;
-  background: var(--bg-surface);
-  border-right: 1px solid var(--border-subtle);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  flex-shrink: 0;
-  user-select: none;
-}
-
-.vtabs-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.vtabs-title-wrap {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.vtabs-heading {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: var(--text-secondary);
-}
-
-.vtabs-actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.vtab-action-btn {
-  width: 24px;
-  height: 24px;
-}
-
-.vtabs-pinned-container {
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-.vtabs-section-label {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-muted);
-  margin-bottom: 6px;
-}
-
-.vtabs-pinned-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
-.vtab-pinned-item {
-  width: 32px;
-  height: 32px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xs);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  position: relative;
-  transition: all 120ms ease;
-}
-
-.vtab-pinned-item:hover {
-  background: var(--bg-surface-hover);
-  border-color: var(--border-accent);
-}
-
-.vtab-pinned-item.active {
-  background: var(--accent-dim);
-  border-color: var(--border-accent);
-  color: var(--accent-primary);
-}
-
-.vtab-pinned-favicon {
-  width: 15px;
-  height: 15px;
-  border-radius: 2px;
-}
-
-.vtab-pinned-audio-dot {
-  position: absolute;
-  top: 3px;
-  right: 3px;
-  width: 5px;
-  height: 5px;
-  background: var(--accent-primary);
-  border-radius: 50%;
-}
-
-.vtabs-scroll-list {
-  flex: 1;
-  overflow-y: auto;
-  padding: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.vtab-group-container {
-  margin-bottom: 4px;
-}
-
-.vtab-group-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 8px;
-  background: var(--bg-elevated);
-  border-left: 2px solid;
-  border-radius: var(--radius-xs);
-  cursor: pointer;
-  user-select: none;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 3px;
-  width: 100%;
-  text-align: left;
-  color: var(--text-primary);
-  border-top: 0;
-  border-right: 0;
-  border-bottom: 0;
-  font-family: inherit;
-  appearance: none;
-}
-
-.vtab-group-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-}
-
-.vtab-group-name {
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.vtab-group-count {
-  font-size: 9.5px;
-  font-family: var(--font-mono);
-  background: var(--bg-base);
-  padding: 1px 5px;
-  border-radius: 3px;
-  color: var(--text-muted);
-}
-
-.vtab-group-chevron {
-  color: var(--text-muted);
-}
-
-.vtab-group-items {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding-left: 4px;
 }
 
 .tab-group-context-menu .context-menu-item:disabled {
@@ -3905,97 +3624,38 @@ button.nexus-btn-primary:active:not(:disabled) {
   gap: 1px;
 }
 
-.vtab-group-active-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--text-primary);
-  box-shadow: 0 0 4px var(--text-primary);
-  margin-right: 4px;
-}
-
-.vtab-group-header.drag-over {
-  background: color-mix(in srgb, var(--group-color, var(--accent-primary)) 25%, var(--bg-elevated));
-}
-
-.vtab-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-xs);
-  cursor: pointer;
-  color: var(--text-secondary);
-  font-size: 12px;
-  transition: all 100ms ease;
-  user-select: none;
-}
-
-.vtab-item:hover {
-  background: var(--bg-surface-hover);
-  color: var(--text-primary);
-}
-
-.vtab-item.active {
-  background: var(--bg-elevated);
-  border-color: var(--border-medium);
-  color: var(--text-primary);
-  border-left: 2px solid var(--accent-primary);
-}
-
-.vtab-favicon-slot {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-}
-
-.vtab-favicon-img {
-  width: 14px;
-  height: 14px;
-  border-radius: 2px;
-}
-
-.vtab-title-text {
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 11.5px;
-}
-
-.vtab-trailing-actions {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  opacity: 0.7;
-}
-
-.vtab-item:hover .vtab-trailing-actions {
-  opacity: 1;
-}
-
-.vtab-audio-btn,
-.vtab-close-btn {
+.tab-audio-btn {
   background: transparent;
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
   padding: 2px;
-  border-radius: 2px;
+  margin-left: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 2px;
 }
 
-.vtab-audio-btn:hover,
-.vtab-close-btn:hover {
-  color: var(--text-primary);
+.tab-audio-btn:hover {
+  color: var(--accent-primary);
   background: var(--bg-surface-hover);
+}
+
+.tab-audio-indicator {
+  display: flex;
+  align-items: center;
+  color: var(--accent-primary);
+  margin-left: 2px;
+}
+
+.titlebar-tab-actions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 4px;
+  margin-bottom: 3px;
+  align-self: flex-end;
 }
 
 /* ==========================================================================

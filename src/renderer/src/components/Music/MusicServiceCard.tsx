@@ -7,7 +7,6 @@ import {
   LogOut,
   Radio,
   ArrowRight,
-  ShieldCheck,
 } from 'lucide-react';
 import { Button, IconButton, Badge } from '../ui';
 import { renderMusicServiceLogo } from './MusicServiceLogos';
@@ -90,7 +89,7 @@ export const MusicServiceCard: React.FC<MusicServiceCardProps> = ({
         return (
           <span className="music-status-badge available flex items-center gap-1.5 px-2 py-0.5 rounded-full text-2xs font-medium bg-accent/10 text-accent border border-accent/25">
             <span className="w-1.5 h-1.5 rounded-full bg-accent" />
-            <span>Web Player Ready</span>
+          <span>Available</span>
           </span>
         );
     }
@@ -124,12 +123,6 @@ export const MusicServiceCard: React.FC<MusicServiceCardProps> = ({
               <Badge variant="neutral" size="sm" className="uppercase font-mono tracking-wider text-3xs">
                 {service.category}
               </Badge>
-              {service.supportsWebPlayer && (
-                <span className="text-3xs text-secondary flex items-center gap-0.5 font-medium">
-                  <ShieldCheck size={10} className="text-emerald-400" />
-                  <span>Web Player</span>
-                </span>
-              )}
             </div>
           </div>
         </div>

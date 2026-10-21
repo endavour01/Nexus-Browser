@@ -1105,23 +1105,6 @@ export const SidePanel: React.FC<SidePanelProps> = ({
               </select>
             </div>
 
-            {/* Tab Layout Preference */}
-            <div className="setting-group">
-              <label className="setting-label">Tab Strip Layout</label>
-              <select
-                className="setting-select"
-                value={settings.tabLayout || 'horizontal'}
-                onChange={(e) =>
-                  onUpdateSettings({
-                    tabLayout: e.target.value as 'horizontal' | 'vertical',
-                  })
-                }
-              >
-                <option value="horizontal">Horizontal Tabs (Top)</option>
-                <option value="vertical">Vertical Tabs (Left Sidebar)</option>
-              </select>
-            </div>
-
             {/* Extensions & Tools Management */}
             <div className="setting-group">
               <label className="setting-label">Extensions & Plugins</label>

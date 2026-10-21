@@ -88,7 +88,7 @@ export const WorkspaceModal: React.FC<WorkspaceModalProps> = ({
       icon,
       isolatedSession,
       pinnedSites: editingWorkspace?.pinnedSites || [],
-      layout: editingWorkspace?.layout || { sidebarCollapsed: false, tabLayout: 'horizontal' },
+      layout: editingWorkspace?.layout || { sidebarCollapsed: false },
     };
 
     onSaveWorkspace(workspaceData);

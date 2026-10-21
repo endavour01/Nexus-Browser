@@ -12,8 +12,6 @@ import {
   Volume2,
   VolumeX,
   FolderPlus,
-  Sidebar,
-  Columns,
   ChevronRight,
   ChevronDown,
   EyeOff,
@@ -27,7 +25,6 @@ interface TitleBarProps {
   activeTabId: string | null;
   activeWorkspaceId: string;
   isMaximized: boolean;
-  tabLayout: 'horizontal' | 'vertical';
   onSelectTab: (id: string) => void;
   onCloseTab: (id: string) => void;
   onNewTab: (url?: string) => void;
@@ -46,7 +43,6 @@ interface TitleBarProps {
   onUngroupGroup: (groupId?: string) => void;
   onCloseGroup: (groupId: string) => void;
   onNewTabInGroup?: (groupId: string) => void;
-  onToggleTabLayout: () => void;
   onMinimize: () => void;
   onMaximize: () => void;
   onCloseWindow: () => void;
@@ -81,7 +77,6 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
   activeTabId,
   activeWorkspaceId,
   isMaximized,
-  tabLayout,
   currentMode = 'default',
   onSelectTab,
   onCloseTab,
@@ -101,7 +96,6 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
   onUngroupGroup,
   onCloseGroup,
   onNewTabInGroup,
-  onToggleTabLayout,
   onMinimize,
   onMaximize,
   onCloseWindow,
@@ -435,9 +429,8 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
         <NexusLogo mode={currentMode} size={24} className="brand-emblem" />
       </button>
 
-      {/* Tabs Container (Horizontal Mode) */}
-      {tabLayout === 'horizontal' ? (
-        <div className="titlebar-tabs-scroll no-drag">
+      {/* Tabs Container */}
+      <div className="titlebar-tabs-scroll no-drag">
           <div className="titlebar-tabs">
             {/* 1. Pinned Tabs (Compact Squares) */}
             {pinnedTabs.map((tab) => {
@@ -580,25 +573,9 @@ export const TitleBar: React.FC<TitleBarProps> = memo(({
             </button>
           </div>
         </div>
-      ) : (
-        /* Vertical Tab Mode Banner in TitleBar */
-        <div className="titlebar-vtab-indicator no-drag">
-          <span className="vtab-active-indicator-text">
-            {workspaceTabs.length} tabs in active workspace
-          </span>
-        </div>
-      )}
 
-      {/* Right Controls: Tab Layout Toggle & Window Minimise/Maximise/Close */}
+      {/* Right Controls: Window Minimise/Maximise/Close */}
       <div className="titlebar-controls no-drag">
-        <button
-          className={`nexus-icon-btn layout-toggle-btn ${tabLayout === 'vertical' ? 'active' : ''}`}
-          onClick={onToggleTabLayout}
-          title={tabLayout === 'horizontal' ? 'Switch to Vertical Tabs' : 'Switch to Horizontal Tabs'}
-        >
-          {tabLayout === 'horizontal' ? <Sidebar size={14} /> : <Columns size={14} />}
-        </button>
-
         <div className="window-controls-divider" />
 
         <div className="window-controls-group">

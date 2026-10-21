@@ -25,7 +25,6 @@ import { TitleBar } from './components/TitleBar';
 import { NavigationBar } from './components/NavigationBar';
 import { BookmarksBar } from './components/BookmarksBar';
 import { Sidebar } from './components/Sidebar';
-import { VerticalTabBar } from './components/VerticalTabBar';
 import { RightToolbar, SidePanelType } from './components/RightToolbar';
 import { SidePanel } from './components/SidePanel';
 import { StatusBar } from './components/StatusBar';
@@ -67,9 +66,9 @@ import { useTheme } from './hooks/useTheme';
 import { useBrowserMode, applyDistractionReduction } from './hooks/useBrowserMode';
 
 const defaultWorkspaces: Workspace[] = [
-  { id: 'default', name: 'Personal', icon: 'User', color: '#A78BFA', layout: { sidebarCollapsed: false, tabLayout: 'horizontal' } },
-  { id: 'dev', name: 'Development', icon: 'Code', color: '#38BDF8', layout: { sidebarCollapsed: false, tabLayout: 'horizontal' } },
-  { id: 'research', name: 'Research', icon: 'BookOpen', color: '#34D399', layout: { sidebarCollapsed: false, tabLayout: 'horizontal' } },
+  { id: 'default', name: 'Personal', icon: 'User', color: '#A78BFA', layout: { sidebarCollapsed: false } },
+  { id: 'dev', name: 'Development', icon: 'Code', color: '#38BDF8', layout: { sidebarCollapsed: false } },
+  { id: 'research', name: 'Research', icon: 'BookOpen', color: '#34D399', layout: { sidebarCollapsed: false } },
 ];
 
 export const App: React.FC = () => {
@@ -277,7 +276,7 @@ export const App: React.FC = () => {
         name: 'Focus Session',
         icon: 'Target',
         color: '#F5C542',
-        layout: { sidebarCollapsed: true, tabLayout: 'horizontal' },
+        layout: { sidebarCollapsed: true },
       };
       const updated = [...workspaces, focusWs];
       setWorkspaces(updated);
@@ -483,8 +482,7 @@ export const App: React.FC = () => {
     if (!api) return;
 
     const baseSidebarWidth = sidebarCollapsed ? 48 : 210;
-    const vtabWidth = settings.tabLayout === 'vertical' ? 220 : 0;
-    const leftWidth = baseSidebarWidth + vtabWidth;
+    const leftWidth = baseSidebarWidth;
     const rightWidth = (activeSidePanel ? 310 : 0) + 44;
     const topHeight = 84 + (settings.showBookmarksBar ? 28 : 0);
 
@@ -494,7 +492,7 @@ export const App: React.FC = () => {
       right: rightWidth,
       bottom: 24,
     });
-  }, [api, sidebarCollapsed, activeSidePanel, settings.tabLayout, settings.showBookmarksBar]);
+  }, [api, sidebarCollapsed, activeSidePanel, settings.showBookmarksBar]);
 
   // Modal Visibility Sync to prevent WebContentsView occlusion
   const isAnyModalOpen =
@@ -1420,7 +1418,6 @@ export const App: React.FC = () => {
         activeTabId={activeTabId}
         activeWorkspaceId={activeWorkspaceId}
         isMaximized={isMaximized}
-        tabLayout={settings.tabLayout || 'horizontal'}
         currentMode={browserMode}
         onSelectTab={handleSelectTab}
         onCloseTab={handleCloseTab}
@@ -1440,11 +1437,6 @@ export const App: React.FC = () => {
         onUngroupGroup={handleUngroupTabs}
         onCloseGroup={handleCloseGroup}
         onNewTabInGroup={handleNewTabInGroup}
-        onToggleTabLayout={() => {
-          handleUpdateSettings({
-            tabLayout: settings.tabLayout === 'vertical' ? 'horizontal' : 'vertical',
-          });
-        }}
         onMinimize={handleMinimize}
         onMaximize={handleMaximize}
         onCloseWindow={handleCloseWindow}
@@ -1515,34 +1507,6 @@ export const App: React.FC = () => {
           onNavigate={handleNavigate}
           pinnedCount={workspaceTabs.filter((t) => t.isPinned).length}
         />
-
-        {/* Optional Vertical Tab Strip */}
-        {settings.tabLayout === 'vertical' && (
-          <VerticalTabBar
-            tabs={tabs}
-            tabGroups={tabGroups}
-            workspaces={workspaces}
-            activeTabId={activeTabId}
-            activeWorkspaceId={activeWorkspaceId}
-            onSelectTab={handleSelectTab}
-            onCloseTab={handleCloseTab}
-            onNewTab={handleNewTab}
-            onDuplicateTab={handleDuplicateTab}
-            onReloadTab={handleReload}
-            onTogglePinTab={handleTogglePinTab}
-            onToggleMuteTab={handleToggleMuteTab}
-            onSetTabGroup={handleSetTabGroup}
-            onMoveTabToWorkspace={handleMoveTabToWorkspace}
-            onReorderTabs={handleReorderTabs}
-            onCreateGroup={handleCreateGroup}
-            onToggleGroupCollapse={handleToggleGroupCollapse}
-            onEditGroup={handleEditGroup}
-            onDeleteGroup={handleDeleteGroup}
-            onUngroupGroup={handleUngroupTabs}
-            onCloseGroup={handleCloseGroup}
-            onNewTabInGroup={handleNewTabInGroup}
-          />
-        )}
 
         {/* 5. Central Browser Content Area */}
         <main className="browser-content-host">

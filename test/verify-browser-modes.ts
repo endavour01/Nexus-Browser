@@ -261,10 +261,8 @@ async function runModesTestSuite() {
   passedChecks++;
 
   const titleBarSource = fs.readFileSync(path.join(__dirname, '../src/renderer/src/components/TitleBar.tsx'), 'utf8');
-  const verticalTabBarSource = fs.readFileSync(path.join(__dirname, '../src/renderer/src/components/VerticalTabBar.tsx'), 'utf8');
   const componentsCss = fs.readFileSync(path.join(__dirname, '../src/renderer/src/components.css'), 'utf8');
   assert(titleBarSource.includes('Suspended to save memory. Click to restore.'), 'Horizontal tabs show a restore tooltip for suspended tabs');
-  assert(verticalTabBarSource.includes('Suspended to save memory. Click to restore.'), 'Vertical tabs show a restore tooltip for suspended tabs');
   assert(componentsCss.includes('.tab-suspended-indicator') && componentsCss.includes('.nexus-tab.is-suspended .tab-favicon'), 'Suspended tabs have a dot indicator and dimmed favicon');
   passedChecks++;
 

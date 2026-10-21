@@ -12,10 +12,10 @@ export const DEFAULT_MUSIC_SERVICES: MusicService[] = [
     name: 'Spotify',
     url: 'https://open.spotify.com',
     brandColor: '#1DB954',
-    description: 'Stream millions of songs, curated playlists, and podcasts via Spotify Web Player',
+    description: 'Stream millions of songs, curated playlists, and podcasts via Spotify',
     category: 'streaming',
     connectionState: 'available',
-    statusText: 'Web Player Ready',
+    statusText: 'Available',
     requiresAuth: true,
     supportsWebPlayer: true,
     isFavorite: true,
@@ -31,7 +31,7 @@ export const DEFAULT_MUSIC_SERVICES: MusicService[] = [
     description: 'Official music tracks, full albums, live performances, and video mixes from YouTube',
     category: 'streaming',
     connectionState: 'available',
-    statusText: 'Web Player Ready',
+    statusText: 'Available',
     requiresAuth: true,
     supportsWebPlayer: true,
     isFavorite: true,
@@ -47,7 +47,7 @@ export const DEFAULT_MUSIC_SERVICES: MusicService[] = [
     description: 'Over 100 million songs, spatial audio, curated radio stations, and personal library',
     category: 'streaming',
     connectionState: 'available',
-    statusText: 'Web Player Ready',
+    statusText: 'Available',
     requiresAuth: true,
     supportsWebPlayer: true,
     isFavorite: false,
@@ -63,7 +63,7 @@ export const DEFAULT_MUSIC_SERVICES: MusicService[] = [
     description: 'Discover independent artists, electronic sets, underground remixes, and podcasts',
     category: 'indie',
     connectionState: 'available',
-    statusText: 'Web Player Ready',
+    statusText: 'Available',
     requiresAuth: false,
     supportsWebPlayer: true,
     isFavorite: true,
@@ -79,7 +79,7 @@ export const DEFAULT_MUSIC_SERVICES: MusicService[] = [
     description: 'Curated playlists, top podcasts, Prime Music access, and HD audio streaming',
     category: 'streaming',
     connectionState: 'available',
-    statusText: 'Web Player Ready',
+    statusText: 'Available',
     requiresAuth: true,
     supportsWebPlayer: true,
     isFavorite: false,
@@ -95,7 +95,7 @@ export const DEFAULT_MUSIC_SERVICES: MusicService[] = [
     description: 'Personalized Flow recommendations, high-fidelity sound, and global music catalog',
     category: 'hifi',
     connectionState: 'available',
-    statusText: 'Web Player Ready',
+    statusText: 'Available',
     requiresAuth: true,
     supportsWebPlayer: true,
     isFavorite: false,
@@ -108,10 +108,10 @@ export const DEFAULT_MUSIC_SERVICES: MusicService[] = [
     name: 'JioSaavn',
     url: 'https://www.jiosaavn.com',
     brandColor: '#2BC5B4',
-    description: 'Stream music, playlists, and podcasts from JioSaavn’s web player',
+    description: 'Stream music, playlists, and podcasts from JioSaavn',
     category: 'streaming',
     connectionState: 'available',
-    statusText: 'Web Player Ready',
+    statusText: 'Available',
     requiresAuth: true,
     supportsWebPlayer: true,
     isFavorite: false,
@@ -290,7 +290,7 @@ export class MusicManager {
       description: serviceData.description || 'Custom Web Music Streamer',
       category: serviceData.category || 'custom',
       connectionState: serviceData.connectionState || 'available',
-      statusText: serviceData.statusText || 'Web Player Ready',
+      statusText: serviceData.statusText || 'Available',
       requiresAuth: serviceData.requiresAuth ?? false,
       supportsWebPlayer: serviceData.supportsWebPlayer ?? true,
       isFavorite: !!serviceData.isFavorite,
@@ -316,7 +316,7 @@ export class MusicManager {
     } else {
       switch (state) {
         case 'available':
-          service.statusText = 'Web Player Ready';
+          service.statusText = 'Available';
           break;
         case 'not_connected':
           service.statusText = 'Sign-in Optional';

@@ -6,7 +6,7 @@
       "name": "Personal",
       "icon": "User",
       "color": "#A78BFA",
-      "createdAt": 1792055500788,
+      "createdAt": 1792575376503,
       "isDefault": true
     },
     {
@@ -14,14 +14,14 @@
       "name": "Work",
       "icon": "Briefcase",
       "color": "#38BDF8",
-      "createdAt": 1792055500789
+      "createdAt": 1792575376504
     },
     {
       "id": "dev",
       "name": "Developer",
       "icon": "Code",
       "color": "#34D399",
-      "createdAt": 1792055500790
+      "createdAt": 1792575376505
     }
   ]
 }

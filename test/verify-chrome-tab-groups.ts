@@ -69,10 +69,6 @@ async function runChromeTabGroupsTestSuite() {
   assert(titleBarCode.includes('Add tab to new group'), 'TitleBar context menu includes Add tab to new group');
   assert(titleBarCode.includes('Remove tab from group'), 'TitleBar context menu includes Remove tab from group');
 
-  const vtabCode = fs.readFileSync(path.join(rootDir, 'src/renderer/src/components/VerticalTabBar.tsx'), 'utf8');
-  assert(vtabCode.includes('stripItems'), 'VerticalTabBar uses contiguous stripItems model');
-  assert(vtabCode.includes('Add tab to new group'), 'VerticalTabBar context menu includes Add tab to new group');
-
   const componentsCss = fs.readFileSync(path.join(rootDir, 'src/renderer/src/components.css'), 'utf8');
   assert(componentsCss.includes('.nexus-group-popover'), 'components.css defines .nexus-group-popover');
   assert(componentsCss.includes('.group-preset-chip'), 'components.css defines .group-preset-chip');

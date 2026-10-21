@@ -649,27 +649,6 @@ export const SettingsWorkspace: React.FC<SettingsWorkspaceProps> = ({
                       />
                     </div>
                   </div>
-
-                  <hr className="settings-divider" />
-
-                  {/* Tab Strip Layout */}
-                  <div className="settings-row">
-                    <div className="settings-row-label-group">
-                      <div className="settings-row-label">Tab Strip Orientation</div>
-                      <div className="settings-row-desc">Choose between classic top tab strip or left vertical tab list</div>
-                    </div>
-                    <div className="settings-row-control" style={{ width: '280px' }}>
-                      <Select
-                        size="sm"
-                        value={settings.tabLayout || 'horizontal'}
-                        onChange={(e) => handleSettingChange({ tabLayout: e.target.value as any }, 'Tab Layout')}
-                        options={[
-                          { value: 'horizontal', label: 'Horizontal (Top Tab Strip)' },
-                          { value: 'vertical', label: 'Vertical (Left Sidebar Tab List)' },
-                        ]}
-                      />
-                    </div>
-                  </div>
                 </div>
               </div>
             )}
