@@ -1,10 +1,16 @@
 import React, { useState } from 'react';
-import { Sparkles, Terminal, Code2, ShieldCheck, Heart, ExternalLink, Check, Copy } from 'lucide-react';
+import { Sparkles, Terminal, Code2, ShieldCheck, Heart, ExternalLink, Check, Copy, Scale } from 'lucide-react';
 import { NexusLogo } from '../NexusLogo';
 import { Button, Badge } from '../ui';
+import { LegalDocumentView } from './LegalDocumentView';
 
 export const AboutNexusView: React.FC = () => {
   const [copied, setCopied] = useState<boolean>(false);
+  const [legalDocument, setLegalDocument] = useState<'privacy' | 'terms' | null>(null);
+
+  if (legalDocument) {
+    return <LegalDocumentView document={legalDocument} onBack={() => setLegalDocument(null)} />;
+  }
 
   const buildDetails = {
     name: 'NEXUS Browser',
@@ -123,6 +129,21 @@ Platform: ${navigator.userAgent}`;
         <p style={{ margin: 0, fontSize: '12px', color: 'var(--nexus-text-secondary, #9298A8)', lineHeight: 1.5 }}>
           NEXUS is designed with an uncompromising commitment to local storage, user agency, zero fabricated telemetry, and three distinct operating modes: Default (Obsidian & Violet), Balanced (Metallic Gold), and Performance (Redline High-FPS).
         </p>
+      </div>
+
+      <div className="settings-group-card legal-document-links">
+        <div>
+          <h3>Legal information</h3>
+          <p>Review how NEXUS describes privacy and use of the browser.</p>
+        </div>
+        <div className="legal-document-link-actions">
+          <Button variant="secondary" size="sm" leftIcon={<ShieldCheck size={13} />} onClick={() => setLegalDocument('privacy')}>
+            Privacy Policy
+          </Button>
+          <Button variant="secondary" size="sm" leftIcon={<Scale size={13} />} onClick={() => setLegalDocument('terms')}>
+            Terms of Use
+          </Button>
+        </div>
       </div>
     </div>
   );

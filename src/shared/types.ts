@@ -1420,11 +1420,16 @@ export interface NexusAPI {
   getAccountSession: () => Promise<AccountSession>;
   signInAccount: (credentials: SignInCredentials) => Promise<AuthResponse>;
   signUpAccount: (credentials: SignUpCredentials) => Promise<AuthResponse>;
+  signInWithOAuth: (provider: 'google' | 'apple') => Promise<AuthResponse>;
   signOutAccount: () => Promise<{ success: boolean }>;
+  deleteAccount: () => Promise<AccountDeletionResult>;
   requestPasswordReset: (req: PasswordResetRequest) => Promise<AuthResponse>;
   resendVerificationEmail: () => Promise<AuthResponse>;
   updateAccountProfile: (payload: AccountUpdatePayload) => Promise<AuthResponse>;
   onAccountUpdated: (callback: (session: AccountSession) => void) => () => void;
+  triggerSync: () => Promise<{ success: boolean; error?: string }>;
+  getSyncStatus: () => Promise<SyncTelemetry>;
+  onSyncStatusChanged: (callback: (telemetry: SyncTelemetry) => void) => () => void;
 
   // Phase-1 AI Assistant
   agentStartTask: (payload: { task: string; initialUrl?: string; modelConfig?: any }) => Promise<{ success: boolean; error?: string }>;
@@ -1455,6 +1460,8 @@ export interface NexusAccount {
   isEmailVerified: boolean;
   createdAt: number;
   lastLoginAt?: number;
+  provider?: 'email' | 'google' | 'apple';
+  authProviderId?: string;
 }
 
 export type AccountAuthStatus =
@@ -1463,12 +1470,31 @@ export type AccountAuthStatus =
   | 'unconfigured'
   | 'verification-pending';
 
+export type SyncStatus = 'idle' | 'syncing' | 'offline' | 'error';
+
+export interface SyncTelemetry {
+  status: SyncStatus;
+  lastSyncedAt: number | null;
+  pendingChangesCount: number;
+  syncedNotesCount: number;
+  syncedTodosCount: number;
+  errorMessage?: string;
+}
+
 export interface AccountSession {
   account: NexusAccount | null;
   isAuthenticated: boolean;
   isConfigured: boolean;
   providerName?: string;
   status: AccountAuthStatus;
+  message?: string;
+  syncStatus?: SyncStatus;
+  lastSyncedAt?: number;
+}
+
+export interface AccountDeletionResult {
+  success: boolean;
+  error?: string;
   message?: string;
 }
 

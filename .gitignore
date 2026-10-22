@@ -4,3 +4,7 @@ release/
 *.log
 .DS_Store
 test/sandbox*/
+.env
+.env.local
+.env.*.local
+*.bin
