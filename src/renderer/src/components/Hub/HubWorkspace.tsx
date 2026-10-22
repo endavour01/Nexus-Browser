@@ -492,28 +492,28 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
                     isLast={isLast}
                   >
                     {displayApps.length > 0 ? (
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="hub-apps-grid">
                         {displayApps.map((app) => (
                           <div
                             key={app.id}
                             onClick={() => onNavigate && onNavigate(app.url)}
-                            className="flex items-center gap-2 p-2 rounded bg-surface/50 border border-subtle hover:border-accent/40 hover:bg-surface cursor-pointer transition-all group"
+                            className="hub-connect-app flex items-center gap-2 p-2 rounded bg-surface/50 border border-subtle hover:border-accent/40 hover:bg-surface cursor-pointer transition-all group"
                           >
-                            <div className="w-6 h-6 rounded bg-accent/10 border border-accent/20 flex items-center justify-center text-xs font-bold text-accent shrink-0">
+                            <div className="hub-connect-icon flex items-center justify-center text-accent">
                               {renderConnectIcon(app.icon, 13) || app.name.charAt(0)}
                             </div>
-                            <div className="truncate flex-1">
-                              <div className="font-semibold text-xs text-primary truncate flex items-center gap-1">
+                            <div className="hub-connect-copy truncate flex-1">
+                              <div className="hub-connect-name text-xs text-primary truncate flex items-center gap-1">
                                 <span className="truncate">{app.name}</span>
-                                {app.isFavorite && <span className="text-amber-400 text-3xs shrink-0">★</span>}
+                                {app.isFavorite && <span className="hub-connect-favorite">★</span>}
                               </div>
-                              <div className="text-3xs text-secondary capitalize truncate">{app.category}</div>
+                              <div className="hub-connect-category text-3xs text-secondary capitalize truncate">{app.category}</div>
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="h-full flex flex-col items-center justify-center text-center p-3 text-secondary text-2xs space-y-1">
+                      <div className="hub-empty-state h-full flex flex-col items-center justify-center text-center p-3 text-secondary text-2xs space-y-1">
                         <MessageSquare size={20} className="text-secondary/40" />
                         <div>No Connect apps available.</div>
                         <button
@@ -542,7 +542,7 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
                     isFirst={isFirst}
                     isLast={isLast}
                   >
-                    <div className="space-y-1.5 text-xs">
+                    <div className="hub-tool-list space-y-1.5 text-xs">
                       {[
                         { name: 'NEXUS Notes', url: 'nexus://notes', desc: 'Notebooks & Rich Docs' },
                         { name: 'NEXUS Markets', url: 'nexus://markets', desc: 'Stocks, IPOs & Shopping' },
@@ -552,9 +552,9 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
                         <div
                           key={tool.name}
                           onClick={() => onNavigate && onNavigate(tool.url)}
-                          className="flex items-center justify-between p-2 rounded hover:bg-surface cursor-pointer border border-transparent hover:border-subtle transition-all"
+                          className="hub-tool-row flex items-center justify-between p-2 rounded hover:bg-surface cursor-pointer border border-transparent hover:border-subtle transition-all"
                         >
-                          <div>
+                          <div className="hub-tool-copy">
                             <div className="font-semibold text-primary">{tool.name}</div>
                             <div className="text-3xs text-secondary">{tool.desc}</div>
                           </div>
@@ -589,11 +589,11 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
                     isLast={isLast}
                   >
                     {todos.length > 0 ? (
-                      <div className="space-y-1.5">
+                      <div className="hub-task-list space-y-1.5">
                         {todos.map((todo) => (
                           <div
                             key={todo.id}
-                            className="flex items-center gap-2 p-1.5 rounded hover:bg-surface transition-colors"
+                            className="hub-task-row flex items-center gap-2 p-1.5 rounded hover:bg-surface transition-colors"
                           >
                             <input
                               type="checkbox"
@@ -601,9 +601,9 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
                               onChange={() => handleToggleTodo(todo.id)}
                               className="rounded border-subtle text-accent focus:ring-0 shrink-0"
                             />
-                            <span className="text-xs text-primary truncate flex-1">{todo.title}</span>
+                            <span className="hub-task-title text-xs text-primary truncate flex-1">{todo.title}</span>
                             {todo.category && (
-                              <span className="text-3xs text-secondary bg-surface px-1.5 py-0.5 rounded border border-subtle">
+                              <span className="hub-task-category text-3xs text-secondary bg-surface px-1.5 py-0.5 rounded border border-subtle">
                                 {todo.category}
                               </span>
                             )}
@@ -611,7 +611,7 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
                         ))}
                       </div>
                     ) : (
-                      <div className="h-full flex flex-col items-center justify-center text-center p-3 text-secondary text-2xs space-y-1">
+                      <div className="hub-empty-state h-full flex flex-col items-center justify-center text-center p-3 text-secondary text-2xs space-y-1">
                         <CheckSquare size={20} className="text-secondary/40" />
                         <div>No active tasks.</div>
                         <button
@@ -641,20 +641,20 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
                     isFirst={isFirst}
                     isLast={isLast}
                   >
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="hub-shortcuts-grid">
                       {preferences?.customShortcuts.map((sc) => (
                         <div
                           key={sc.id}
-                          className="group/sc flex items-center justify-between p-2 rounded bg-surface/50 border border-subtle hover:border-accent/40 transition-colors"
+                          className="hub-shortcut-item group/sc flex items-center justify-between p-2 rounded bg-surface/50 border border-subtle hover:border-accent/40 transition-colors"
                         >
                           <button
                             type="button"
-                            className="text-left truncate flex-1"
+                            className="hub-shortcut-open text-left truncate flex-1"
                             onClick={() => onNavigate && onNavigate(sc.url)}
                             title={sc.url}
                           >
-                            <div className="font-semibold text-xs text-primary truncate">{sc.title}</div>
-                            <div className="text-3xs text-secondary font-mono truncate">{sc.category}</div>
+                            <div className="hub-shortcut-title truncate">{sc.title}</div>
+                            <div className="hub-shortcut-category truncate">{sc.category}</div>
                           </button>
                           <IconButton
                             variant="ghost"
@@ -687,12 +687,12 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
                     isLast={isLast}
                   >
                     {bookmarks.length > 0 ? (
-                      <div className="space-y-1">
+                      <div className="hub-bookmark-list space-y-1">
                         {bookmarks.map((b) => (
                           <div
                             key={b.id}
                             onClick={() => b.url && onNavigate && onNavigate(b.url)}
-                            className="flex items-center gap-2 p-1.5 rounded hover:bg-surface cursor-pointer text-xs transition-colors"
+                            className="hub-bookmark-row flex items-center gap-2 p-1.5 rounded hover:bg-surface cursor-pointer text-xs transition-colors"
                           >
                             <Bookmark size={12} className="text-accent shrink-0" />
                             <span className="text-primary truncate flex-1">{b.title}</span>
@@ -700,7 +700,7 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
                         ))}
                       </div>
                     ) : (
-                      <div className="h-full flex flex-col items-center justify-center text-center p-3 text-secondary text-2xs space-y-1">
+                      <div className="hub-empty-state h-full flex flex-col items-center justify-center text-center p-3 text-secondary text-2xs space-y-1">
                         <Bookmark size={20} className="text-secondary/40" />
                         <div>No bookmarks added yet.</div>
                         <span className="text-3xs text-muted">Use Ctrl+D to bookmark any webpage.</span>
@@ -726,22 +726,22 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
                     isLast={isLast}
                   >
                     {downloads.length > 0 ? (
-                      <div className="space-y-1.5">
+                      <div className="hub-download-list space-y-1.5">
                         {downloads.map((d) => (
                           <div
                             key={d.id}
-                            className="flex items-center justify-between p-1.5 rounded hover:bg-surface text-xs"
+                            className="hub-download-row flex items-center justify-between p-1.5 rounded hover:bg-surface text-xs"
                           >
-                            <div className="flex items-center gap-2 truncate">
+                            <div className="hub-download-name flex items-center gap-2 truncate">
                               <Download size={12} className="text-accent shrink-0" />
                               <span className="text-primary truncate">{d.filename}</span>
                             </div>
-                            <span className="text-3xs text-secondary font-mono">{d.status}</span>
+                            <span className="hub-download-status text-3xs text-secondary font-mono">{d.status}</span>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="h-full flex flex-col items-center justify-center text-center p-3 text-secondary text-2xs space-y-1">
+                      <div className="hub-empty-state h-full flex flex-col items-center justify-center text-center p-3 text-secondary text-2xs space-y-1">
                         <Download size={20} className="text-secondary/40" />
                         <div>No recent downloads.</div>
                       </div>
@@ -766,25 +766,25 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
                     isLast={isLast}
                   >
                     {notes.length > 0 ? (
-                      <div className="space-y-1">
+                      <div className="hub-note-list space-y-1">
                         {notes.map((n) => (
                           <div
                             key={n.id}
                             onClick={() => onNavigate && onNavigate('nexus://notes')}
-                            className="flex items-center justify-between p-1.5 rounded hover:bg-surface cursor-pointer text-xs"
+                            className="hub-note-row flex items-center justify-between p-1.5 rounded hover:bg-surface cursor-pointer text-xs"
                           >
-                            <div className="flex items-center gap-2 truncate">
+                            <div className="hub-note-title flex items-center gap-2 truncate">
                               <FileText size={12} className="text-blue-400 shrink-0" />
                               <span className="text-primary truncate">{n.title || 'Untitled Note'}</span>
                             </div>
-                            <span className="text-3xs text-secondary font-mono">
+                            <span className="hub-note-date text-3xs text-secondary font-mono">
                               {new Date(n.updatedAt).toLocaleDateString()}
                             </span>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="h-full flex flex-col items-center justify-center text-center p-3 text-secondary text-2xs space-y-1">
+                      <div className="hub-empty-state h-full flex flex-col items-center justify-center text-center p-3 text-secondary text-2xs space-y-1">
                         <FileText size={20} className="text-secondary/40" />
                         <div>No notes created yet.</div>
                         <button
@@ -815,23 +815,23 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
                     isLast={isLast}
                   >
                     {watchlist.length > 0 ? (
-                      <div className="space-y-1">
+                      <div className="hub-watchlist-list space-y-1">
                         {watchlist.map((w) => (
                           <div
                             key={w.ticker}
                             onClick={() => onNavigate && onNavigate('nexus://markets')}
-                            className="flex items-center justify-between p-1.5 rounded hover:bg-surface cursor-pointer text-xs"
+                            className="hub-watchlist-row flex items-center justify-between p-1.5 rounded hover:bg-surface cursor-pointer text-xs"
                           >
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono font-bold text-primary">{w.ticker}</span>
-                              <span className="text-3xs text-secondary truncate max-w-[120px]">{w.name}</span>
+                            <div className="hub-watchlist-identity">
+                              <span className="hub-watchlist-ticker font-mono font-bold text-primary">{w.ticker}</span>
+                              <span className="hub-watchlist-company text-3xs text-secondary truncate">{w.name}</span>
                             </div>
                             <span className="text-2xs text-secondary uppercase font-mono">{w.exchange}</span>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="h-full flex flex-col items-center justify-center text-center p-3 text-secondary text-2xs space-y-1">
+                      <div className="hub-empty-state h-full flex flex-col items-center justify-center text-center p-3 text-secondary text-2xs space-y-1">
                         <TrendingUp size={20} className="text-secondary/40" />
                         <div>Watchlist empty.</div>
                         <button
