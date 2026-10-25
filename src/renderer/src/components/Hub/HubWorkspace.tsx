@@ -42,8 +42,16 @@ import {
   Music,
 } from 'lucide-react';
 import { Button, IconButton, Badge } from '../ui';
+import { resolveConnectBrand, getBrandLogoComponent } from '../Connect';
 
-const renderConnectIcon = (iconName?: string, size = 13) => {
+const renderConnectIcon = (appOrIconName?: ConnectApp | string, size = 13) => {
+  if (!appOrIconName) return null;
+  const brand = resolveConnectBrand(appOrIconName);
+  if (brand) {
+    const Component = getBrandLogoComponent(brand);
+    return <Component size={size} className="shrink-0" />;
+  }
+  const iconName = typeof appOrIconName === 'string' ? appOrIconName : appOrIconName.icon;
   if (!iconName) return null;
   const IconComponent = (Icons as unknown as Record<string, React.ComponentType<{ size?: number; className?: string }>>)[iconName];
   if (IconComponent) {
@@ -500,7 +508,7 @@ export const HubWorkspace: React.FC<HubWorkspaceProps> = ({
                             className="hub-connect-app flex items-center gap-2 p-2 rounded bg-surface/50 border border-subtle hover:border-accent/40 hover:bg-surface cursor-pointer transition-all group"
                           >
                             <div className="hub-connect-icon flex items-center justify-center text-accent">
-                              {renderConnectIcon(app.icon, 13) || app.name.charAt(0)}
+                              {renderConnectIcon(app, 15) || app.name.charAt(0)}
                             </div>
                             <div className="hub-connect-copy truncate flex-1">
                               <div className="hub-connect-name text-xs text-primary truncate flex items-center gap-1">

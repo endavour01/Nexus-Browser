@@ -14782,6 +14782,38 @@ button.responsive-close-btn:hover {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
+  transition: border-color var(--nexus-transition-fast, 150ms ease), background-color var(--nexus-transition-fast, 150ms ease);
+}
+
+.connect-app-card:hover .connect-card-icon-box {
+  border-color: var(--nexus-border-hover, #2E364A);
+}
+
+.connect-brand-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  object-fit: contain;
+  transition: transform var(--nexus-transition-fast, 150ms ease);
+}
+
+.connect-app-card:hover .connect-brand-icon {
+  transform: scale(1.05);
+}
+
+.connect-modal-app-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: var(--nexus-bg-elevated, #191D28);
+  border: 1px solid var(--nexus-border-subtle, #1C202C);
+  padding: 1px;
+  flex-shrink: 0;
 }
 
 .connect-card-name-group,

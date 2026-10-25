@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { ConnectApp, ConnectCategory, ConnectWorkspace as IConnectWorkspace, NexusTodo } from '@shared/types';
 import { ConnectAppCard } from './ConnectAppCard';
+import { ConnectAppLogo } from './ConnectAppLogos';
 import {
   Share2,
   Plus,
@@ -687,16 +688,45 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
                       onChange={(e) => setAppIcon(e.target.value)}
                       className="nexus-input w-full text-xs"
                     >
-                      <option value="Globe">Globe</option>
-                      <option value="MessageCircle">Message Circle</option>
-                      <option value="Send">Paper Plane</option>
-                      <option value="MessageSquare">Message Square</option>
-                      <option value="Video">Video Camera</option>
-                      <option value="Hash">Hash Tag</option>
-                      <option value="Users">Users / Team</option>
-                      <option value="Code2">Code Bracket</option>
-                      <option value="Layout">Design Layout</option>
-                      <option value="FileText">Document Text</option>
+                      <option value="Globe">Default / Globe</option>
+                      <optgroup label="Brand Icons">
+                        <option value="Discord">Discord</option>
+                        <option value="Telegram">Telegram</option>
+                        <option value="WhatsApp">WhatsApp</option>
+                        <option value="Reddit">Reddit</option>
+                        <option value="GoogleMeet">Google Meet</option>
+                        <option value="Slack">Slack</option>
+                        <option value="MicrosoftTeams">Microsoft Teams</option>
+                        <option value="Zoom">Zoom</option>
+                        <option value="Skype">Skype</option>
+                        <option value="GitHub">GitHub</option>
+                        <option value="Figma">Figma</option>
+                        <option value="Notion">Notion</option>
+                        <option value="GoogleDocs">Google Docs</option>
+                        <option value="Linear">Linear</option>
+                        <option value="Trello">Trello</option>
+                        <option value="Asana">Asana</option>
+                        <option value="Jira">Jira</option>
+                        <option value="GoogleDrive">Google Drive</option>
+                        <option value="GoogleSheets">Google Sheets</option>
+                        <option value="Gmail">Gmail</option>
+                        <option value="X">X / Twitter</option>
+                        <option value="LinkedIn">LinkedIn</option>
+                        <option value="YouTube">YouTube</option>
+                        <option value="Spotify">Spotify</option>
+                        <option value="ArXiv">ArXiv</option>
+                      </optgroup>
+                      <optgroup label="Generic Icons">
+                        <option value="MessageCircle">Message Circle</option>
+                        <option value="Send">Paper Plane</option>
+                        <option value="MessageSquare">Message Square</option>
+                        <option value="Video">Video Camera</option>
+                        <option value="Hash">Hash Tag</option>
+                        <option value="Users">Users / Team</option>
+                        <option value="Code2">Code Bracket</option>
+                        <option value="Layout">Design Layout</option>
+                        <option value="FileText">Document Text</option>
+                      </optgroup>
                     </select>
                   </div>
                 </div>
@@ -826,6 +856,9 @@ export const ConnectWorkspace: React.FC<ConnectWorkspaceProps> = ({
                             }}
                             className="rounded border-subtle text-accent"
                           />
+                          <span className="connect-modal-app-icon shrink-0">
+                            <ConnectAppLogo app={app} size={16} />
+                          </span>
                           <span className="truncate text-2xs">{app.name}</span>
                         </label>
                       );

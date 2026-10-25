@@ -7,22 +7,11 @@ import {
   Edit2,
   Trash2,
   Globe,
-  MessageCircle,
-  Send,
-  MessageSquare,
-  Flame,
-  Video,
-  Hash,
-  Users,
-  Phone,
-  Code2,
-  Layout,
-  FileText,
-  File,
   BellOff,
   MoreVertical,
 } from 'lucide-react';
 import { Button, IconButton, Badge } from '../ui';
+import { ConnectAppLogo } from './ConnectAppLogos';
 
 interface ConnectAppCardProps {
   app: ConnectApp;
@@ -43,37 +32,6 @@ export const ConnectAppCard: React.FC<ConnectAppCardProps> = ({
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const renderIcon = (iconName?: string) => {
-    const size = 18;
-    switch (iconName) {
-      case 'MessageCircle':
-        return <MessageCircle size={size} />;
-      case 'Send':
-        return <Send size={size} />;
-      case 'MessageSquare':
-        return <MessageSquare size={size} />;
-      case 'Flame':
-        return <Flame size={size} />;
-      case 'Video':
-        return <Video size={size} />;
-      case 'Hash':
-        return <Hash size={size} />;
-      case 'Users':
-        return <Users size={size} />;
-      case 'Phone':
-        return <Phone size={size} />;
-      case 'Code2':
-        return <Code2 size={size} />;
-      case 'Layout':
-        return <Layout size={size} />;
-      case 'FileText':
-        return <FileText size={size} />;
-      case 'File':
-        return <File size={size} />;
-      default:
-        return <Globe size={size} />;
-    }
-  };
 
   const domain = (() => {
     try {
@@ -93,7 +51,7 @@ export const ConnectAppCard: React.FC<ConnectAppCardProps> = ({
       <div className="connect-card-header">
         <div className="connect-card-identity">
           <div className="connect-card-icon-box">
-            {renderIcon(app.icon)}
+            <ConnectAppLogo app={app} size={22} />
           </div>
           <div className="connect-card-title-group">
             <h3 className="connect-card-title">
