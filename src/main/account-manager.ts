@@ -2,6 +2,7 @@ import { BrowserWindow, safeStorage, app } from 'electron';
 import fs from 'fs';
 import path from 'path';
 import {
+  AccountDeletionResult,
   AccountSession,
   AccountUpdatePayload,
   AuthResponse,
@@ -10,6 +11,8 @@ import {
   SignInCredentials,
   SignUpCredentials,
 } from '../shared/types';
+import { SupabaseAuthProvider } from './supabase-auth-provider';
+import type { SyncManager } from './sync-manager';
 
 /**
  * Interface that all external or local authentication providers must implement.
@@ -24,6 +27,8 @@ export interface AuthProvider {
   resendVerificationEmail(email: string): Promise<AuthResponse>;
   updateProfile(account: NexusAccount, payload: AccountUpdatePayload): Promise<AuthResponse>;
   restoreSession?(): Promise<AccountSession | null>;
+  signInWithOAuth?(provider: 'google' | 'apple'): Promise<AuthResponse>;
+  deleteAccount?(): Promise<AccountDeletionResult>;
 }
 
 /**
@@ -111,6 +116,20 @@ export class UnconfiguredAuthProvider implements AuthProvider {
     return {
       success: false,
       error: 'Profile updates require an active authentication provider.',
+    };
+  }
+
+  public async signInWithOAuth(provider: 'google' | 'apple'): Promise<AuthResponse> {
+    return {
+      success: false,
+      error: `Sign-in with ${provider === 'google' ? 'Google' : 'Apple'} is unavailable because no backend is configured. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to .env to connect your backend.`,
+    };
+  }
+
+  public async deleteAccount(): Promise<AccountDeletionResult> {
+    return {
+      success: false,
+      error: 'Cannot delete account: no authentication backend is configured.',
     };
   }
 }
@@ -240,6 +259,48 @@ export class MockAuthProvider implements AuthProvider {
       this.pendingVerifications.delete(clean);
     }
   }
+
+  public async signInWithOAuth(provider: 'google' | 'apple'): Promise<AuthResponse> {
+    const email = provider === 'google' ? 'alex.vance@gmail.com' : 'alex.vance@privaterelay.appleid.com';
+    const displayName = provider === 'google' ? 'Alex Vance' : 'Alex Vance (Apple Relay)';
+    const now = Date.now();
+    const account: NexusAccount = {
+      id: `acc_oauth_${provider}_${now}`,
+      email,
+      displayName,
+      isEmailVerified: true,
+      createdAt: now,
+      lastLoginAt: now,
+      provider,
+      authProviderId: `oauth_${provider}_sub_12345`,
+    };
+
+    this.users.set(email, { account, passwordHash: 'oauth_mock_hash' });
+
+    return {
+      success: true,
+      account,
+      session: {
+        account,
+        isAuthenticated: true,
+        isConfigured: true,
+        providerName: this.name,
+        status: 'authenticated',
+        syncStatus: 'idle',
+        lastSyncedAt: now,
+      },
+      message: `Signed in successfully with ${provider === 'google' ? 'Google' : 'Apple'}.`,
+    };
+  }
+
+  public async deleteAccount(): Promise<AccountDeletionResult> {
+    this.users.clear();
+    this.pendingVerifications.clear();
+    return {
+      success: true,
+      message: 'Account and synchronized data deleted successfully in mock test provider.',
+    };
+  }
 }
 
 /**
@@ -249,6 +310,7 @@ export class AccountManager {
   private mainWindow: BrowserWindow | null = null;
   private provider: AuthProvider;
   private sessionFilePath: string;
+  private syncManager: SyncManager | null = null;
   private currentSession: AccountSession = {
     account: null,
     isAuthenticated: false,
@@ -270,13 +332,18 @@ export class AccountManager {
 
     this.sessionFilePath = path.join(baseDir, 'nexus-account-session.bin');
 
-    // Select provider: Custom injected -> Mock if test env -> Unconfigured by default
+    // Select provider: Custom injected -> Mock if test env -> Supabase if configured -> Unconfigured by default
     if (provider) {
       this.provider = provider;
     } else if (process.env.NEXUS_USE_MOCK_AUTH === '1' || process.env.NODE_ENV === 'test') {
       this.provider = new MockAuthProvider();
     } else {
-      this.provider = new UnconfiguredAuthProvider();
+      const supabase = new SupabaseAuthProvider();
+      if (supabase.isConfigured()) {
+        this.provider = supabase;
+      } else {
+        this.provider = new UnconfiguredAuthProvider();
+      }
     }
 
     this.updateStatus();
@@ -285,6 +352,13 @@ export class AccountManager {
 
   public setMainWindow(win: BrowserWindow) {
     this.mainWindow = win;
+  }
+
+  public setSyncManager(sync: SyncManager) {
+    this.syncManager = sync;
+    if (this.currentSession.account && this.currentSession.isAuthenticated) {
+      this.syncManager.onAccountSignedIn(this.currentSession.account);
+    }
   }
 
   public setProvider(provider: AuthProvider) {
@@ -323,6 +397,9 @@ export class AccountManager {
       this.currentSession = res.session;
       this.persistSession();
       this.notifyRenderer();
+      if (res.session.account) {
+        this.syncManager?.onAccountSignedIn(res.session.account);
+      }
     }
     return res;
   }
@@ -346,8 +423,49 @@ export class AccountManager {
       this.currentSession = res.session;
       this.persistSession();
       this.notifyRenderer();
+      if (res.session.account) {
+        this.syncManager?.onAccountSignedIn(res.session.account);
+      }
     }
     return res;
+  }
+
+  public async signInWithOAuth(provider: 'google' | 'apple'): Promise<AuthResponse> {
+    if (!this.provider.signInWithOAuth) {
+      return {
+        success: false,
+        error: `Social authentication with ${provider} is not supported by the active provider.`,
+      };
+    }
+
+    const res = await this.provider.signInWithOAuth(provider);
+    if (res.success && res.session) {
+      this.currentSession = res.session;
+      this.persistSession();
+      this.notifyRenderer();
+      if (res.session.account) {
+        this.syncManager?.onAccountSignedIn(res.session.account);
+      }
+    }
+    return res;
+  }
+
+  public async deleteAccount(): Promise<AccountDeletionResult> {
+    if (!this.currentSession.account || !this.currentSession.isAuthenticated) {
+      return { success: false, error: 'Not authenticated' };
+    }
+
+    let result: AccountDeletionResult = { success: true };
+    if (this.provider.deleteAccount) {
+      result = await this.provider.deleteAccount();
+    }
+
+    if (result.success) {
+      this.syncManager?.onAccountSignedOut();
+      await this.signOut();
+    }
+
+    return result;
   }
 
   public async signOut(): Promise<{ success: boolean }> {
@@ -356,6 +474,8 @@ export class AccountManager {
     } catch (e) {
       console.warn('[AccountManager] Provider sign-out error:', e);
     }
+
+    this.syncManager?.onAccountSignedOut();
 
     // Clear session state in memory
     this.currentSession = {
@@ -455,6 +575,7 @@ export class AccountManager {
           isConfigured: this.provider.isConfigured(),
           providerName: this.provider.name,
         };
+        this.syncManager?.onAccountSignedIn(parsed.account);
       }
     } catch (err) {
       console.warn('[AccountManager] Failed to restore session from storage:', err);

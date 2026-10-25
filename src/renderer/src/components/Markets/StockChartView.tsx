@@ -90,7 +90,7 @@ export const StockChartView: React.FC<StockChartViewProps> = ({
   };
 
   return (
-    <div className="stock-chart-view space-y-3">
+    <div className="stock-chart-view markets-stack-sm">
       {/* Range Selectors & Current Hovered Data */}
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-subtle pb-2">
         <div className="flex items-center gap-1 bg-surface p-0.5 rounded border border-subtle">

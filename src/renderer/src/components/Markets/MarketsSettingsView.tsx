@@ -14,11 +14,11 @@ export const MarketsSettingsView: React.FC<MarketsSettingsViewProps> = ({
   if (!settings) return null;
 
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="markets-stack-lg max-w-3xl">
       {/* Privacy Guarantee Banner */}
-      <div className="p-4 bg-surface border border-subtle rounded-lg flex items-start gap-3">
+      <div className="markets-notice-banner notice-blue flex items-start gap-3">
         <Shield size={20} className="shrink-0 text-emerald-400 mt-0.5" />
-        <div className="space-y-1">
+        <div className="markets-stack-sm">
           <h4 className="text-sm font-semibold text-primary">Privacy & Local-First Philosophy</h4>
           <p className="text-xs text-secondary leading-relaxed">
             All your stock watchlists, price drop alerts, and tracked shopping URLs are stored strictly on your local disk in <code>nexus-markets-*.json</code>. No personal financial queries or tracking habits are sent to third-party ad networks or brokers.
@@ -27,7 +27,7 @@ export const MarketsSettingsView: React.FC<MarketsSettingsViewProps> = ({
       </div>
 
       {/* Master Toggle */}
-      <div className="markets-card p-5 space-y-4">
+      <div className="markets-card markets-stack">
         <div className="flex items-center justify-between border-b border-subtle pb-4">
           <div>
             <h3 className="font-semibold text-sm text-primary">Enable NEXUS Markets Workspace</h3>
@@ -47,7 +47,7 @@ export const MarketsSettingsView: React.FC<MarketsSettingsViewProps> = ({
         </div>
 
         {/* Independent Module Controls */}
-        <div className="space-y-3 pt-2">
+        <div className="markets-stack-sm pt-2">
           <h4 className="text-xs font-semibold text-secondary uppercase tracking-wider">Independent Module Visibility</h4>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -120,7 +120,7 @@ export const MarketsSettingsView: React.FC<MarketsSettingsViewProps> = ({
       </div>
 
       {/* Notifications & Preferences */}
-      <div className="markets-card p-5 space-y-4">
+      <div className="markets-card markets-stack">
         <h3 className="font-semibold text-sm text-primary flex items-center gap-2">
           <Bell size={16} /> Alerts & Preferences
         </h3>

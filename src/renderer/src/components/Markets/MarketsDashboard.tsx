@@ -237,7 +237,7 @@ export const MarketsDashboard: React.FC<MarketsDashboardProps> = ({
     <div className="nexus-fullpage-container markets-page-container">
       {/* Page Header */}
       <div className="markets-page-header">
-        <div className="flex items-center gap-3">
+        <div className="markets-header-title-area">
           {onNavigate && (
             <button
               className="nexus-icon-btn"
@@ -295,7 +295,7 @@ export const MarketsDashboard: React.FC<MarketsDashboardProps> = ({
               onClick={() => setActiveTab('shopping')}
             >
               <ShoppingBag size={13} />
-              <span>Shopping Tracker</span>
+              <span>Shopping</span>
             </button>
           )}
           {settings.enableFinancialNews && (
@@ -323,21 +323,21 @@ export const MarketsDashboard: React.FC<MarketsDashboardProps> = ({
         {/* 1. Stocks View */}
         {/* ================================================================= */}
         {activeTab === 'stocks' && (
-          <div className="space-y-4">
+          <div className="markets-stack">
             {/* Informational Disclaimer Box */}
-            <div className="markets-disclaimer-box">
+            <div className="markets-notice-banner">
               <AlertCircle size={15} className="text-secondary flex-shrink-0" />
-              <span className="text-xs text-secondary leading-relaxed">
-                Quotes may be delayed by at least 15 minutes. For research only; not investment advice.
+              <span>
+                <strong>Quotes Disclaimer:</strong> Quotes may be delayed by at least 15 minutes. For research only; not investment advice.
               </span>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="markets-grid-detail">
               {/* Left Column: Search & Watchlist */}
-              <div className="space-y-4">
+              <div className="markets-stack-sm">
                 {/* Search Stocks Box */}
                 <div className="markets-search-box w-full">
-                  <Search size={14} className="text-secondary" />
+                  <Search size={14} className="text-secondary flex-shrink-0" />
                   <input
                     type="text"
                     placeholder="Search ticker, name, or sector..."
@@ -348,8 +348,8 @@ export const MarketsDashboard: React.FC<MarketsDashboardProps> = ({
                 </div>
 
                 {/* Stock Watchlist List */}
-                <div className="space-y-2 max-h-[560px] overflow-y-auto pr-1">
-                  <div className="text-xs font-semibold text-secondary uppercase tracking-wider mb-1">
+                <div className="markets-stack-sm max-h-[560px] overflow-y-auto pr-1">
+                  <div className="text-xs font-semibold text-secondary uppercase tracking-wider">
                     Watchlist ({watchlist.length})
                   </div>
 
@@ -385,9 +385,9 @@ export const MarketsDashboard: React.FC<MarketsDashboardProps> = ({
               </div>
 
               {/* Right Column: Active Stock Details & Chart */}
-              <div className="lg:col-span-2 space-y-4">
+              <div className="markets-stack">
                 {stockQuote ? (
-                  <div className="markets-card p-5 space-y-4">
+                  <div className="markets-card markets-stack">
                     {/* Stock Header */}
                     <div className="flex flex-wrap items-start justify-between gap-3 border-b border-subtle pb-3">
                       <div>
@@ -472,46 +472,46 @@ export const MarketsDashboard: React.FC<MarketsDashboardProps> = ({
                     />
 
                     {/* OHLCV & Fundamentals Grid */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                      <div className="p-2.5 bg-surface/50 rounded border border-subtle">
-                        <div className="text-2xs text-secondary">Open</div>
-                        <div className="text-xs font-mono font-semibold text-primary">
+                    <div className="markets-metrics-grid">
+                      <div className="markets-metric-card">
+                        <div className="markets-metric-label">Open</div>
+                        <div className="markets-metric-value">
                           ${stockQuote.open?.toFixed(2) || '—'}
                         </div>
                       </div>
-                      <div className="p-2.5 bg-surface/50 rounded border border-subtle">
-                        <div className="text-2xs text-secondary">High / Low</div>
-                        <div className="text-xs font-mono font-semibold text-primary">
+                      <div className="markets-metric-card">
+                        <div className="markets-metric-label">High / Low</div>
+                        <div className="markets-metric-value">
                           ${stockQuote.high?.toFixed(2)} / ${stockQuote.low?.toFixed(2)}
                         </div>
                       </div>
-                      <div className="p-2.5 bg-surface/50 rounded border border-subtle">
-                        <div className="text-2xs text-secondary">Previous Close</div>
-                        <div className="text-xs font-mono font-semibold text-primary">
+                      <div className="markets-metric-card">
+                        <div className="markets-metric-label">Previous Close</div>
+                        <div className="markets-metric-value">
                           ${stockQuote.previousClose?.toFixed(2) || '—'}
                         </div>
                       </div>
-                      <div className="p-2.5 bg-surface/50 rounded border border-subtle">
-                        <div className="text-2xs text-secondary">Volume</div>
-                        <div className="text-xs font-mono font-semibold text-primary">
+                      <div className="markets-metric-card">
+                        <div className="markets-metric-label">Volume</div>
+                        <div className="markets-metric-value">
                           {stockQuote.volume?.toLocaleString() || '—'}
                         </div>
                       </div>
-                      <div className="p-2.5 bg-surface/50 rounded border border-subtle">
-                        <div className="text-2xs text-secondary">Market Cap</div>
-                        <div className="text-xs font-mono font-semibold text-primary">
+                      <div className="markets-metric-card">
+                        <div className="markets-metric-label">Market Cap</div>
+                        <div className="markets-metric-value">
                           ${stockQuote.marketCap ? (stockQuote.marketCap / 1e9).toFixed(1) + 'B' : '—'}
                         </div>
                       </div>
-                      <div className="p-2.5 bg-surface/50 rounded border border-subtle">
-                        <div className="text-2xs text-secondary">P/E Ratio</div>
-                        <div className="text-xs font-mono font-semibold text-primary">
+                      <div className="markets-metric-card">
+                        <div className="markets-metric-label">P/E Ratio</div>
+                        <div className="markets-metric-value">
                           {stockQuote.peRatio || '—'}
                         </div>
                       </div>
-                      <div className="p-2.5 bg-surface/50 rounded border border-subtle col-span-2">
-                        <div className="text-2xs text-secondary">52-Week Range</div>
-                        <div className="text-xs font-mono font-semibold text-primary">
+                      <div className="markets-metric-card">
+                        <div className="markets-metric-label">52-Week Range</div>
+                        <div className="markets-metric-value">
                           ${stockQuote.fiftyTwoWeekLow?.toFixed(2)} - ${stockQuote.fiftyTwoWeekHigh?.toFixed(2)}
                         </div>
                       </div>

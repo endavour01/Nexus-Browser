@@ -102,9 +102,9 @@ export const MutualFundView: React.FC<MutualFundViewProps> = ({ funds }) => {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="markets-stack">
       {/* Top Banner Disclaimer */}
-      <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-start gap-2.5 text-xs text-blue-300">
+      <div className="markets-notice-banner notice-blue">
         <ShieldAlert size={16} className="shrink-0 mt-0.5 text-blue-400" />
         <div>
           <strong>Mutual Fund Analytics & Calculator Notice:</strong> NAV values, expense ratios, and historical trajectories are derived from public disclosures and AMFI/benchmark registries. Past performance does not guarantee future results. Projections are mathematical illustrations only.
@@ -112,25 +112,17 @@ export const MutualFundView: React.FC<MutualFundViewProps> = ({ funds }) => {
       </div>
 
       {/* Sub Tabs: Schemes vs Calculators */}
-      <div className="flex items-center justify-between border-b border-subtle pb-2">
-        <div className="flex items-center gap-2">
+      <div className="markets-subtabs-bar">
+        <div className="markets-subtab-group">
           <button
-            className={`px-3 py-1.5 text-xs font-semibold rounded-md flex items-center gap-1.5 transition-colors ${
-              activeTab === 'schemes'
-                ? 'bg-[var(--accent-primary)] text-[var(--accent-contrast)] font-semibold shadow-sm'
-                : 'text-secondary hover:text-primary hover:bg-surface'
-            }`}
+            className={`markets-subtab-btn ${activeTab === 'schemes' ? 'active' : ''}`}
             onClick={() => setActiveTab('schemes')}
           >
             <PieChart size={14} />
             <span>Mutual Fund Schemes</span>
           </button>
           <button
-            className={`px-3 py-1.5 text-xs font-semibold rounded-md flex items-center gap-1.5 transition-colors ${
-              activeTab === 'calculator'
-                ? 'bg-[var(--accent-primary)] text-[var(--accent-contrast)] font-semibold shadow-sm'
-                : 'text-secondary hover:text-primary hover:bg-surface'
-            }`}
+            className={`markets-subtab-btn ${activeTab === 'calculator' ? 'active' : ''}`}
             onClick={() => setActiveTab('calculator')}
           >
             <Calculator size={14} />
@@ -153,20 +145,16 @@ export const MutualFundView: React.FC<MutualFundViewProps> = ({ funds }) => {
 
       {/* View 1: Schemes Browser & Detail */}
       {activeTab === 'schemes' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="markets-grid-detail">
           {/* Left Column: Scheme List & Categories */}
-          <div className="space-y-3">
+          <div className="markets-stack-sm">
             {/* Category Filter */}
-            <div className="flex items-center gap-1 overflow-x-auto pb-1">
+            <div className="markets-pill-group">
               {categories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-2.5 py-1 text-2xs font-semibold rounded capitalize whitespace-nowrap transition-colors ${
-                    selectedCategory === cat
-                      ? 'bg-surface text-primary border border-primary/50'
-                      : 'text-secondary hover:text-primary bg-surface/50 border border-subtle'
-                  }`}
+                  className={`markets-filter-pill ${selectedCategory === cat ? 'active' : ''}`}
                 >
                   {cat}
                 </button>
@@ -225,10 +213,10 @@ export const MutualFundView: React.FC<MutualFundViewProps> = ({ funds }) => {
           </div>
 
           {/* Right Column: Selected Fund Details or Comparison Table */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="markets-stack" style={{ minWidth: 0 }}>
             {compareFundIds.length > 0 ? (
               /* Comparison Mode */
-              <div className="markets-card p-5 space-y-4">
+              <div className="markets-card markets-stack">
                 <div className="flex items-center justify-between border-b border-subtle pb-3">
                   <h3 className="font-bold text-sm text-primary flex items-center gap-2">
                     <Layers size={16} /> Fund Comparison Matrix
@@ -241,56 +229,56 @@ export const MutualFundView: React.FC<MutualFundViewProps> = ({ funds }) => {
                   </button>
                 </div>
 
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs border-collapse">
+                <div className="markets-table-wrapper">
+                  <table className="markets-table">
                     <thead>
-                      <tr className="border-b border-subtle text-secondary text-2xs uppercase">
-                        <th className="p-2">Metric</th>
+                      <tr>
+                        <th>Metric</th>
                         {compareFundIds.map((id) => {
                           const f = funds.find((item) => item.id === id);
                           return (
-                            <th key={id} className="p-2 text-primary font-semibold max-w-[160px] truncate">
+                            <th key={id} className="text-primary font-semibold max-w-[160px] truncate">
                               {f?.schemeName}
                             </th>
                           );
                         })}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-subtle font-mono text-xs">
-                      <tr>
-                        <td className="p-2 text-secondary font-sans text-2xs">Category</td>
+                    <tbody className="font-mono text-xs">
+                      <tr className="markets-table-row">
+                        <td className="text-secondary font-sans text-2xs font-semibold">Category</td>
                         {compareFundIds.map((id) => (
-                          <td key={id} className="p-2 font-sans">{funds.find((f) => f.id === id)?.category}</td>
+                          <td key={id} className="font-sans">{funds.find((f) => f.id === id)?.category}</td>
                         ))}
                       </tr>
-                      <tr>
-                        <td className="p-2 text-secondary font-sans text-2xs">Current NAV</td>
+                      <tr className="markets-table-row">
+                        <td className="text-secondary font-sans text-2xs font-semibold">Current NAV</td>
                         {compareFundIds.map((id) => (
-                          <td key={id} className="p-2 font-bold">${funds.find((f) => f.id === id)?.nav.toFixed(2)}</td>
+                          <td key={id} className="font-bold text-primary">${funds.find((f) => f.id === id)?.nav.toFixed(2)}</td>
                         ))}
                       </tr>
-                      <tr>
-                        <td className="p-2 text-secondary font-sans text-2xs">Expense Ratio</td>
+                      <tr className="markets-table-row">
+                        <td className="text-secondary font-sans text-2xs font-semibold">Expense Ratio</td>
                         {compareFundIds.map((id) => (
-                          <td key={id} className="p-2">{funds.find((f) => f.id === id)?.expenseRatio}%</td>
+                          <td key={id}>{funds.find((f) => f.id === id)?.expenseRatio}%</td>
                         ))}
                       </tr>
-                      <tr>
-                        <td className="p-2 text-secondary font-sans text-2xs">AUM</td>
+                      <tr className="markets-table-row">
+                        <td className="text-secondary font-sans text-2xs font-semibold">AUM</td>
                         {compareFundIds.map((id) => (
-                          <td key={id} className="p-2">{funds.find((f) => f.id === id)?.aum}</td>
+                          <td key={id}>{funds.find((f) => f.id === id)?.aum}</td>
                         ))}
                       </tr>
-                      <tr>
-                        <td className="p-2 text-secondary font-sans text-2xs">Benchmark</td>
+                      <tr className="markets-table-row">
+                        <td className="text-secondary font-sans text-2xs font-semibold">Benchmark</td>
                         {compareFundIds.map((id) => (
-                          <td key={id} className="p-2 font-sans text-2xs">{funds.find((f) => f.id === id)?.benchmark}</td>
+                          <td key={id} className="font-sans text-2xs">{funds.find((f) => f.id === id)?.benchmark}</td>
                         ))}
                       </tr>
-                      <tr>
-                        <td className="p-2 text-secondary font-sans text-2xs">Risk Level</td>
+                      <tr className="markets-table-row">
+                        <td className="text-secondary font-sans text-2xs font-semibold">Risk Level</td>
                         {compareFundIds.map((id) => (
-                          <td key={id} className="p-2 font-sans text-2xs font-semibold">{funds.find((f) => f.id === id)?.riskLevel}</td>
+                          <td key={id} className="font-sans text-2xs font-semibold">{funds.find((f) => f.id === id)?.riskLevel}</td>
                         ))}
                       </tr>
                     </tbody>
@@ -299,7 +287,7 @@ export const MutualFundView: React.FC<MutualFundViewProps> = ({ funds }) => {
               </div>
             ) : activeFund ? (
               /* Single Fund Deep Dive */
-              <div className="markets-card p-5 space-y-4">
+              <div className="markets-card markets-stack">
                 <div className="border-b border-subtle pb-3">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="text-2xs text-secondary uppercase bg-surface px-1.5 py-0.5 rounded border border-subtle">
@@ -320,37 +308,37 @@ export const MutualFundView: React.FC<MutualFundViewProps> = ({ funds }) => {
                 </div>
 
                 {/* Key Fund Fundamentals */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                  <div className="p-2.5 bg-surface/50 rounded border border-subtle">
-                    <div className="text-2xs text-secondary">Expense Ratio</div>
-                    <div className="text-xs font-mono font-semibold text-primary">{activeFund.expenseRatio}%</div>
+                <div className="markets-metrics-grid">
+                  <div className="markets-metric-card">
+                    <div className="markets-metric-label">Expense Ratio</div>
+                    <div className="markets-metric-value">{activeFund.expenseRatio}%</div>
                   </div>
-                  <div className="p-2.5 bg-surface/50 rounded border border-subtle">
-                    <div className="text-2xs text-secondary">AUM</div>
-                    <div className="text-xs font-mono font-semibold text-primary">{activeFund.aum}</div>
+                  <div className="markets-metric-card">
+                    <div className="markets-metric-label">AUM</div>
+                    <div className="markets-metric-value">{activeFund.aum}</div>
                   </div>
-                  <div className="p-2.5 bg-surface/50 rounded border border-subtle col-span-2">
-                    <div className="text-2xs text-secondary">Benchmark</div>
-                    <div className="text-xs font-mono font-semibold text-primary truncate">{activeFund.benchmark}</div>
+                  <div className="markets-metric-card" style={{ gridColumn: 'span 2' }}>
+                    <div className="markets-metric-label">Benchmark</div>
+                    <div className="markets-metric-value truncate">{activeFund.benchmark}</div>
                   </div>
                 </div>
 
                 {/* NAV History Table */}
-                <div className="pt-2">
-                  <div className="text-xs font-semibold text-secondary uppercase tracking-wider mb-2">Historical NAV Milestones</div>
-                  <div className="overflow-x-auto rounded border border-subtle">
-                    <table className="w-full text-left text-xs border-collapse">
+                <div className="markets-stack-sm pt-2">
+                  <div className="text-xs font-semibold text-secondary uppercase tracking-wider">Historical NAV Milestones</div>
+                  <div className="markets-table-wrapper">
+                    <table className="markets-table">
                       <thead>
-                        <tr className="bg-surface/50 text-secondary text-2xs uppercase">
-                          <th className="p-2">Date</th>
-                          <th className="p-2 text-right">NAV</th>
+                        <tr>
+                          <th>Date</th>
+                          <th style={{ textAlign: 'right' }}>NAV</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-subtle font-mono text-xs">
+                      <tbody>
                         {activeFund.navHistory.map((h, idx) => (
-                          <tr key={idx} className="hover:bg-surface/30">
-                            <td className="p-2">{h.date}</td>
-                            <td className="p-2 text-right font-semibold">${h.nav.toFixed(2)}</td>
+                          <tr key={idx} className="markets-table-row">
+                            <td className="font-mono">{h.date}</td>
+                            <td className="font-mono font-semibold text-primary" style={{ textAlign: 'right' }}>${h.nav.toFixed(2)}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -365,36 +353,28 @@ export const MutualFundView: React.FC<MutualFundViewProps> = ({ funds }) => {
 
       {/* View 2: SIP & Lump-sum Calculators */}
       {activeTab === 'calculator' && (
-        <div className="markets-card p-6 space-y-6">
-          <div className="flex items-center gap-2 border-b border-subtle pb-3">
+        <div className="markets-card markets-stack">
+          <div className="markets-subtab-group border-b border-subtle pb-3">
             <button
               onClick={() => setCalcMode('sip')}
-              className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-colors ${
-                calcMode === 'sip'
-                  ? 'bg-[var(--accent-primary)] text-[var(--accent-contrast)] font-semibold shadow-sm'
-                  : 'text-secondary hover:text-primary bg-surface'
-              }`}
+              className={`markets-subtab-btn ${calcMode === 'sip' ? 'active' : ''}`}
             >
               SIP (Systematic Monthly Investment)
             </button>
             <button
               onClick={() => setCalcMode('lumpsum')}
-              className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-colors ${
-                calcMode === 'lumpsum'
-                  ? 'bg-[var(--accent-primary)] text-[var(--accent-contrast)] font-semibold shadow-sm'
-                  : 'text-secondary hover:text-primary bg-surface'
-              }`}
+              className={`markets-subtab-btn ${calcMode === 'lumpsum' ? 'active' : ''}`}
             >
               Lump-Sum (One-Time Investment)
             </button>
           </div>
 
           {calcMode === 'sip' ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="markets-calc-grid">
               {/* Inputs */}
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-xs font-medium text-secondary mb-1">
+              <div className="markets-stack">
+                <div className="markets-stack-sm">
+                  <div className="flex justify-between text-xs font-medium text-secondary">
                     <span>Monthly Investment Amount</span>
                     <span className="font-mono text-primary font-bold">${monthlyAmount}</span>
                   </div>
@@ -409,8 +389,8 @@ export const MutualFundView: React.FC<MutualFundViewProps> = ({ funds }) => {
                   />
                 </div>
 
-                <div>
-                  <div className="flex justify-between text-xs font-medium text-secondary mb-1">
+                <div className="markets-stack-sm">
+                  <div className="flex justify-between text-xs font-medium text-secondary">
                     <span>Investment Period (Years)</span>
                     <span className="font-mono text-primary font-bold">{sipYears} Years</span>
                   </div>
@@ -425,8 +405,8 @@ export const MutualFundView: React.FC<MutualFundViewProps> = ({ funds }) => {
                   />
                 </div>
 
-                <div>
-                  <div className="flex justify-between text-xs font-medium text-secondary mb-1">
+                <div className="markets-stack-sm">
+                  <div className="flex justify-between text-xs font-medium text-secondary">
                     <span>Expected Annual Return Rate (%)</span>
                     <span className="font-mono text-primary font-bold">{sipRate}%</span>
                   </div>
@@ -443,14 +423,14 @@ export const MutualFundView: React.FC<MutualFundViewProps> = ({ funds }) => {
               </div>
 
               {/* Output Results */}
-              <div className="bg-surface/50 p-5 rounded-lg border border-subtle space-y-4">
-                <div className="text-xs font-semibold text-secondary uppercase tracking-wider">SIP Projection Summary</div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs py-1 border-b border-subtle">
+              <div className="markets-card markets-stack-sm" style={{ background: 'var(--bg-app)' }}>
+                <div className="text-xs font-semibold text-secondary uppercase tracking-wider pb-1">SIP Projection Summary</div>
+                <div className="markets-stack-sm">
+                  <div className="flex justify-between text-xs py-1.5 border-b border-subtle">
                     <span className="text-secondary">Total Invested Amount:</span>
                     <span className="font-mono font-bold text-primary">${sipResult?.investedAmount.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between text-xs py-1 border-b border-subtle">
+                  <div className="flex justify-between text-xs py-1.5 border-b border-subtle">
                     <span className="text-secondary">Estimated Wealth Gain:</span>
                     <span className="font-mono font-bold text-emerald-400">+${sipResult?.wealthGain.toLocaleString()}</span>
                   </div>
@@ -466,11 +446,11 @@ export const MutualFundView: React.FC<MutualFundViewProps> = ({ funds }) => {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="markets-calc-grid">
               {/* Inputs */}
-              <div className="space-y-4">
-                <div>
-                  <div className="flex justify-between text-xs font-medium text-secondary mb-1">
+              <div className="markets-stack">
+                <div className="markets-stack-sm">
+                  <div className="flex justify-between text-xs font-medium text-secondary">
                     <span>Principal Amount</span>
                     <span className="font-mono text-primary font-bold">${lumpSumAmount}</span>
                   </div>
@@ -485,8 +465,8 @@ export const MutualFundView: React.FC<MutualFundViewProps> = ({ funds }) => {
                   />
                 </div>
 
-                <div>
-                  <div className="flex justify-between text-xs font-medium text-secondary mb-1">
+                <div className="markets-stack-sm">
+                  <div className="flex justify-between text-xs font-medium text-secondary">
                     <span>Time Horizon (Years)</span>
                     <span className="font-mono text-primary font-bold">{lumpSumYears} Years</span>
                   </div>
@@ -501,8 +481,8 @@ export const MutualFundView: React.FC<MutualFundViewProps> = ({ funds }) => {
                   />
                 </div>
 
-                <div>
-                  <div className="flex justify-between text-xs font-medium text-secondary mb-1">
+                <div className="markets-stack-sm">
+                  <div className="flex justify-between text-xs font-medium text-secondary">
                     <span>Expected Annual Return Rate (%)</span>
                     <span className="font-mono text-primary font-bold">{lumpSumRate}%</span>
                   </div>
@@ -519,14 +499,14 @@ export const MutualFundView: React.FC<MutualFundViewProps> = ({ funds }) => {
               </div>
 
               {/* Output Results */}
-              <div className="bg-surface/50 p-5 rounded-lg border border-subtle space-y-4">
-                <div className="text-xs font-semibold text-secondary uppercase tracking-wider">Lump-Sum Projection Summary</div>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs py-1 border-b border-subtle">
+              <div className="markets-card markets-stack-sm" style={{ background: 'var(--bg-app)' }}>
+                <div className="text-xs font-semibold text-secondary uppercase tracking-wider pb-1">Lump-Sum Projection Summary</div>
+                <div className="markets-stack-sm">
+                  <div className="flex justify-between text-xs py-1.5 border-b border-subtle">
                     <span className="text-secondary">Initial Principal:</span>
                     <span className="font-mono font-bold text-primary">${lumpSumResult?.principalAmount.toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between text-xs py-1 border-b border-subtle">
+                  <div className="flex justify-between text-xs py-1.5 border-b border-subtle">
                     <span className="text-secondary">Estimated Wealth Gain:</span>
                     <span className="font-mono font-bold text-emerald-400">+${lumpSumResult?.wealthGain.toLocaleString()}</span>
                   </div>

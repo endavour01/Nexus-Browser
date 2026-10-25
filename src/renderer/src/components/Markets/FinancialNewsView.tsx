@@ -8,6 +8,7 @@ import {
   CheckCircle,
   MessageSquare,
   Sparkles,
+  ExternalLink,
 } from 'lucide-react';
 
 interface FinancialNewsViewProps {
@@ -70,9 +71,9 @@ export const FinancialNewsView: React.FC<FinancialNewsViewProps> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="markets-stack">
       {/* Editorial Transparency Notice */}
-      <div className="p-3 bg-surface border border-subtle rounded-lg text-xs text-secondary flex items-start gap-2.5">
+      <div className="markets-notice-banner notice-blue">
         <Newspaper size={16} className="shrink-0 mt-0.5 text-primary" />
         <div>
           <strong>Journalistic Integrity Standards:</strong> NEXUS Markets explicitly tags the editorial nature of every financial wire entry — distinguishing official regulatory filings (SEC/EDGAR) from factual investigative reporting, market commentary, and subjective opinion columns.
@@ -80,19 +81,15 @@ export const FinancialNewsView: React.FC<FinancialNewsViewProps> = ({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-surface p-3 rounded-lg border border-subtle">
+      <div className="markets-filter-toolbar">
         <div className="flex flex-wrap items-center gap-2">
           {/* Categories */}
-          <div className="flex items-center gap-1 overflow-x-auto">
+          <div className="markets-pill-group">
             {['all', 'markets', 'companies', 'economy', 'filings'].map((cat) => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-2.5 py-1 text-2xs font-semibold rounded capitalize transition-colors ${
-                  selectedCategory === cat
-                    ? 'bg-[var(--accent-primary)] text-[var(--accent-contrast)] font-semibold shadow-sm'
-                    : 'text-secondary hover:text-primary hover:bg-surface/80'
-                }`}
+                className={`markets-filter-pill ${selectedCategory === cat ? 'active' : ''}`}
               >
                 {cat}
               </button>
@@ -102,16 +99,12 @@ export const FinancialNewsView: React.FC<FinancialNewsViewProps> = ({
           <div className="h-4 w-px bg-subtle mx-1" />
 
           {/* Article Types */}
-          <div className="flex items-center gap-1 overflow-x-auto">
+          <div className="markets-pill-group">
             {['all', 'filing', 'reporting', 'commentary', 'opinion'].map((t) => (
               <button
                 key={t}
                 onClick={() => setSelectedType(t)}
-                className={`px-2.5 py-1 text-2xs font-semibold rounded capitalize transition-colors ${
-                  selectedType === t
-                    ? 'bg-surface text-primary border border-primary/50'
-                    : 'text-secondary hover:text-primary bg-surface/50 border border-subtle'
-                }`}
+                className={`markets-filter-pill ${selectedType === t ? 'active' : ''}`}
               >
                 {t === 'all' ? 'All Types' : t}
               </button>
@@ -129,11 +122,11 @@ export const FinancialNewsView: React.FC<FinancialNewsViewProps> = ({
       </div>
 
       {/* Articles Feed */}
-      <div className="space-y-3">
+      <div className="markets-stack-sm">
         {filteredArticles.map((art) => (
           <div
             key={art.id}
-            className="markets-card p-4 space-y-2 hover:border-primary/40 transition-colors"
+            className="markets-card markets-stack-sm hover:border-primary/40 transition-colors"
           >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -164,6 +157,7 @@ export const FinancialNewsView: React.FC<FinancialNewsViewProps> = ({
                   onClick={() => onOpenLink ? onOpenLink(art.originalUrl) : window.open(art.originalUrl, '_blank')}
                   title="Open source article"
                 >
+                  <ExternalLink size={14} />
                 </button>
               </div>
             </div>

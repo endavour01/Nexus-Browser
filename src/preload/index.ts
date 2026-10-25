@@ -481,7 +481,9 @@ const api: NexusAPI = {
   getAccountSession: () => ipcRenderer.invoke('account:getSession'),
   signInAccount: (credentials: any) => ipcRenderer.invoke('account:signIn', credentials),
   signUpAccount: (credentials: any) => ipcRenderer.invoke('account:signUp', credentials),
+  signInWithOAuth: (provider: 'google' | 'apple') => ipcRenderer.invoke('account:signInOAuth', provider),
   signOutAccount: () => ipcRenderer.invoke('account:signOut'),
+  deleteAccount: () => ipcRenderer.invoke('account:deleteAccount'),
   requestPasswordReset: (req: any) => ipcRenderer.invoke('account:resetPassword', req),
   resendVerificationEmail: () => ipcRenderer.invoke('account:resendVerification'),
   updateAccountProfile: (payload: any) => ipcRenderer.invoke('account:updateProfile', payload),
@@ -492,6 +494,17 @@ const api: NexusAPI = {
     ipcRenderer.on('account:updated', handler);
     return () => {
       ipcRenderer.removeListener('account:updated', handler);
+    };
+  },
+  triggerSync: () => ipcRenderer.invoke('sync:trigger'),
+  getSyncStatus: () => ipcRenderer.invoke('sync:getStatus'),
+  onSyncStatusChanged: (callback: (telemetry: any) => void) => {
+    const handler = (_event: Electron.IpcRendererEvent, telemetry: any) => {
+      callback(telemetry);
+    };
+    ipcRenderer.on('sync:statusChanged', handler);
+    return () => {
+      ipcRenderer.removeListener('sync:statusChanged', handler);
     };
   },
 

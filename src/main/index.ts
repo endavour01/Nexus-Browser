@@ -24,6 +24,8 @@ import { MusicManager } from './music-manager';
 import { SettingsManager, DEFAULT_BROWSER_SETTINGS } from './settings-manager';
 import { VpnManager } from './vpn-manager';
 import { AccountManager } from './account-manager';
+import { SupabaseAuthProvider } from './supabase-auth-provider';
+import { SyncManager } from './sync-manager';
 import { AgentCore } from './agent/agent-core';
 import {
   ClearDataOptions,
@@ -70,6 +72,7 @@ let connectManager: ConnectManager | null = null;
 let musicManager: MusicManager | null = null;
 let settingsManager: SettingsManager | null = null;
 let accountManager: AccountManager | null = null;
+let syncManager: SyncManager | null = null;
 let agentCore: AgentCore | null = null;
 const vpnManager = new VpnManager();
 
@@ -132,6 +135,16 @@ function createWindow() {
   musicManager = new MusicManager(storageDir, mainWindow);
   settingsManager = new SettingsManager(storageDir, mainWindow);
   accountManager = new AccountManager(storageDir, mainWindow);
+  syncManager = new SyncManager({
+    notesManager,
+    todoManager,
+    settingsManager,
+    mainWindow,
+  });
+  if (accountManager.getProvider() instanceof SupabaseAuthProvider) {
+    syncManager.setAuthProvider(accountManager.getProvider() as SupabaseAuthProvider);
+  }
+  accountManager.setSyncManager(syncManager);
   downloadManager = new DownloadManager(mainWindow, profilePaths.downloads);
   tabManager.setDownloadManager(downloadManager);
   agentCore = new AgentCore(mainWindow, tabManager);
@@ -1202,6 +1215,34 @@ function registerIpcHandlers() {
   ipcMain.handle('account:updateProfile', async (_event, payload: AccountUpdatePayload) => {
     if (!accountManager) throw new Error('AccountManager not initialized');
     return accountManager.updateProfile(payload);
+  });
+
+  ipcMain.handle('account:signInOAuth', async (_event, provider: 'google' | 'apple') => {
+    if (!accountManager) throw new Error('AccountManager not initialized');
+    return accountManager.signInWithOAuth(provider);
+  });
+
+  ipcMain.handle('account:deleteAccount', async () => {
+    if (!accountManager) throw new Error('AccountManager not initialized');
+    return accountManager.deleteAccount();
+  });
+
+  ipcMain.handle('sync:trigger', async () => {
+    if (!syncManager) return { success: false, error: 'SyncManager not initialized' };
+    return syncManager.syncNow();
+  });
+
+  ipcMain.handle('sync:getStatus', async () => {
+    if (!syncManager) {
+      return {
+        status: 'idle',
+        lastSyncedAt: null,
+        pendingChangesCount: 0,
+        syncedNotesCount: 0,
+        syncedTodosCount: 0,
+      };
+    }
+    return syncManager.getTelemetry();
   });
 
   // ==========================================

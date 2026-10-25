@@ -84,9 +84,9 @@ export const ShoppingTrackerView: React.FC<ShoppingTrackerViewProps> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="markets-stack">
       {/* Disclaimer Banner */}
-      <div className="p-3 bg-surface border border-subtle rounded-lg flex items-start gap-2.5 text-xs text-secondary">
+      <div className="markets-notice-banner notice-blue">
         <Clock size={16} className="shrink-0 mt-0.5 text-primary" />
         <div>
           <strong>Verified Price History Principle:</strong> NEXUS Markets starts price tracking strictly from the date an item is added. We never fabricate, guess, or extrapolate past prices before your tracking began.
@@ -107,21 +107,21 @@ export const ShoppingTrackerView: React.FC<ShoppingTrackerViewProps> = ({
       </div>
 
       {/* Products Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="markets-shopping-grid">
         {products.map((prod) => {
           const isAtLowest = prod.currentPrice <= prod.lowestPrice;
           const hasTargetAlert = prod.targetPriceAlert !== undefined && prod.targetPriceAlert > 0;
           const isTargetReached = hasTargetAlert && prod.currentPrice <= prod.targetPriceAlert!;
 
           return (
-            <div key={prod.id} className="markets-card p-4 space-y-3 relative flex flex-col justify-between">
+            <div key={prod.id} className="markets-product-card">
               <div>
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <span className="text-3xs uppercase font-mono bg-surface px-1.5 py-0.5 rounded border border-subtle text-secondary">
                       {prod.category} • {prod.retailer}
                     </span>
-                    <h3 className="font-semibold text-sm text-primary mt-1 leading-snug">{prod.title}</h3>
+                    <h3 className="font-semibold text-sm text-primary mt-1.5 leading-snug">{prod.title}</h3>
                   </div>
                   <button
                     className="nexus-icon-btn text-secondary hover:text-red-400 p-1"
@@ -133,7 +133,7 @@ export const ShoppingTrackerView: React.FC<ShoppingTrackerViewProps> = ({
                 </div>
 
                 {/* Price Stats */}
-                <div className="flex items-baseline gap-3 my-2">
+                <div className="flex items-baseline gap-3 my-2.5">
                   <span className="text-2xl font-mono font-bold text-primary">
                     ${prod.currentPrice.toFixed(2)}
                   </span>
@@ -173,13 +173,13 @@ export const ShoppingTrackerView: React.FC<ShoppingTrackerViewProps> = ({
                 )}
 
                 {/* Price Checkpoints History */}
-                <div className="mt-3 text-3xs text-secondary space-y-1 border-t border-subtle pt-2">
-                  <div className="font-semibold uppercase tracking-wider text-2xs text-secondary mb-1">
+                <div className="markets-checkpoints-box">
+                  <div className="font-semibold uppercase tracking-wider text-2xs text-secondary">
                     Recorded Checkpoints ({prod.priceHistory?.length || 0})
                   </div>
-                  <div className="max-h-24 overflow-y-auto space-y-1 pr-1 font-mono">
+                  <div className="markets-stack-sm max-h-24 overflow-y-auto pr-1">
                     {prod.priceHistory?.map((h, i) => (
-                      <div key={i} className="flex justify-between items-center bg-surface/30 px-2 py-0.5 rounded">
+                      <div key={i} className="markets-checkpoint-row">
                         <span>{new Date(h.date).toLocaleDateString()}</span>
                         <span className="font-semibold text-primary">${h.price.toFixed(2)}</span>
                       </div>
@@ -189,7 +189,7 @@ export const ShoppingTrackerView: React.FC<ShoppingTrackerViewProps> = ({
               </div>
 
               {/* Bottom Actions */}
-              <div className="flex items-center justify-between border-t border-subtle pt-3 text-xs">
+              <div className="flex items-center justify-between border-t border-subtle pt-3 text-xs mt-2">
                 <button
                   className="text-xs text-secondary hover:text-primary flex items-center gap-1"
                   onClick={() => onOpenLink ? onOpenLink(prod.url) : window.open(prod.url, '_blank')}
@@ -238,7 +238,7 @@ export const ShoppingTrackerView: React.FC<ShoppingTrackerViewProps> = ({
         })}
 
         {products.length === 0 && (
-          <div className="col-span-full p-12 text-center text-secondary border border-subtle rounded-lg space-y-2">
+          <div className="col-span-full p-12 text-center text-secondary border border-subtle rounded-lg markets-stack-sm">
             <ShoppingBag size={32} className="mx-auto text-secondary/50 mb-2" />
             <p className="text-sm font-semibold text-primary">No products currently tracked</p>
             <p className="text-xs text-secondary max-w-sm mx-auto">
@@ -251,7 +251,7 @@ export const ShoppingTrackerView: React.FC<ShoppingTrackerViewProps> = ({
       {/* Add Product Modal */}
       {showAddModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="markets-card w-full max-w-md p-6 space-y-4">
+          <div className="markets-card markets-stack w-full max-w-md p-6">
             <div className="flex items-center justify-between border-b border-subtle pb-3">
               <h3 className="font-bold text-sm text-primary">Add Tracked Product</h3>
               <button
